@@ -6,7 +6,47 @@ namespace TacoWin2 {
     class tw2usiIO {
         // USIプロトコルのインタフェース
 
+        //USI座標→内部座標変換
+        public static int usi2pos(string usi, out int ox, out int oy, out int nx, out int ny, out bool nari) {
 
+            //駒打ち
+            if (usi.Substring(1, 1) == "*") {
+                ox = 9;
+                oy = (int)kafb2ktype(usi.Substring(0, 1));
+                nx = Convert.ToInt32(usi.Substring(2, 1)) - 1;
+                ny = dafb2int(usi.Substring(3, 1));
+                nari = false;
+
+            //駒移動
+            } else {
+                ox = Convert.ToInt32(usi.Substring(0, 1)) - 1;
+                oy = dafb2int(usi.Substring(1, 1));
+                nx = Convert.ToInt32(usi.Substring(2, 1)) - 1;
+                ny = dafb2int(usi.Substring(3, 1));
+                if ((usi.Length == 5) && (usi.Substring(4, 1) == "+"))  //駒成り
+                {
+                    nari = true;
+                } else {
+                    nari = false;
+                }
+            }
+            return 0;
+        }
+
+        //内部座標→USI座標変換
+        public static string pos2usi(int ox, int oy, int nx, int ny, bool nari) {
+            string usiStr = "";
+            if (ox == 9) {
+                usiStr = ktype2Kafb((ktype)oy) + "*" + (nx + 1).ToString() + int2Dafb(ny);
+            } else {
+                if (nari == true) {
+                    usiStr = (ox + 1).ToString() + int2Dafb(oy) + (nx + 1).ToString() + int2Dafb(ny) + "+"; //成有り
+                } else {
+                    usiStr = (ox + 1).ToString() + int2Dafb(oy) + (nx + 1).ToString() + int2Dafb(ny);
+                }
+            }
+            return usiStr;
+        }
 
         //[ktype->USI]駒打ち用
         public static string ktype2Kafb(ktype type) {
@@ -81,31 +121,31 @@ namespace TacoWin2 {
         public static string int2Dafb(int val) {
             string usiStr = "";
             switch (val) {
-                case 1:
+                case 0:
                     usiStr = "a";
                     break;
-                case 2:
+                case 1:
                     usiStr = "b";
                     break;
-                case 3:
+                case 2:
                     usiStr = "c";
                     break;
-                case 4:
+                case 3:
                     usiStr = "d";
                     break;
-                case 5:
+                case 4:
                     usiStr = "e";
                     break;
-                case 6:
+                case 5:
                     usiStr = "f";
                     break;
-                case 7:
+                case 6:
                     usiStr = "g";
                     break;
-                case 8:
+                case 7:
                     usiStr = "h";
                     break;
-                case 9:
+                case 8:
                     usiStr = "i";
                     break;
                 default:
