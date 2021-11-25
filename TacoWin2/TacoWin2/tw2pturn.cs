@@ -1,7 +1,7 @@
 ﻿namespace TacoWin2 {
     public enum pturn : byte {
         Sente = 0x00,    //
-        Gote  = 0x01,    //
+        Gote = 0x01,    //
     }
 
     public static class ptuen {
@@ -44,7 +44,11 @@
 
         // 前後の移動
         public static (int, int) mvXY(pturn t, int x, int y, int movalx, int movaly) {
-            return (mvX(t,x ,movalx), mvY(t, y, movaly));
+            return (mvX(t, x, movalx), mvY(t, y, movaly));
+        }
+
+        public static int aturn(int turn) {
+            return 1 - turn;
         }
 
     }
