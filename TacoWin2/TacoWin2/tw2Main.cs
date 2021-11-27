@@ -5,6 +5,10 @@ namespace TacoWin2 {
     class tw2Main {
         static void Main(string[] args) {
 
+            tw2ban w;
+            w.startpos();
+            Console.WriteLine(w.debugShow()); 
+
             while (true) {
                 string str = Console.ReadLine();
 

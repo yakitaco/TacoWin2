@@ -21,7 +21,7 @@ namespace TacoWin2 {
         // [0-8]先手 / [9-17]後手
 
         // 初期盤情報
-        public tw2ban(int a) {
+        public void startpos() {
 
             //王の配置
             addKoma(4, 8, pturn.Sente, ktype.Ousyou);
@@ -69,6 +69,7 @@ namespace TacoWin2 {
 
         void addKoma(int x, int y, pturn turn, ktype type) {
             onBoard[x * 9 + y] = setOnBordDatat(turn, putPieceNum[(int)turn], type);
+            Console.WriteLine(onBoard[x * 9 + y] +":" + (int)turn + ":" + (int)putPieceNum[(int)turn] + ":" + (int)type);
             putPiece[putPieceNum[(int)turn]] = (byte)(x * 9 + y);
             putPieceNum[(int)turn]++;
         }
@@ -96,7 +97,7 @@ namespace TacoWin2 {
                 onBoard[nx * 9 + ny] = (byte)((turn << 4) + oy);
 
                 // 歩情報更新
-                if ((ktype)oy == ktype.Fuhyou) {,
+                if ((ktype)oy == ktype.Fuhyou) {
                     fuPos[turn * 9 + nx] = (byte)ny;
                 }
 
@@ -315,8 +316,8 @@ namespace TacoWin2 {
             }
 
             // 駒打ち
-            for (int i= 0; i < 7; i++) {
-                if (captPiece[ (int)turn * 7 + i] > 0) {
+            for (int i = 0; i < 7; i++) {
+                if (captPiece[(int)turn * 7 + i] > 0) {
                     ForEachKoma(9, i, turn, action);
                 }
             }
@@ -345,12 +346,12 @@ namespace TacoWin2 {
                         break;
 
                     case ktype.Kyousha:
-                        for (int i = 1 ; ForEachKomaContMove(ox, oy, 0, i, turn, action) < 2 ; i++);
+                        for (int i = 1; ForEachKomaContMove(ox, oy, 0, i, turn, action) < 2; i++) ;
 
                         break;
 
                     case ktype.Keima:
-                        ForEachKomaContMove(ox, oy, 1,  2, turn, action);
+                        ForEachKomaContMove(ox, oy, 1, 2, turn, action);
                         ForEachKomaContMove(ox, oy, -1, 2, turn, action);
                         break;
 
@@ -421,6 +422,122 @@ namespace TacoWin2 {
             }
             action(ox, oy, nx, ny, turn, false);
             return 0; // 駒がない
+        }
+
+        // ban情報のデバッグ表示
+        public string debugShow() {
+            string str = "";
+            for (int i = 0; i < 81; i++) {
+                if (onBoard[i] != 0) {
+                    str += "<" + onBoard[i] + ">";
+                    // 先手
+                    if (getOnBoardPturn(i / 9, i % 9) == pturn.Sente) {
+                        switch (getOnBoardKtype(i / 9, i % 9)) {
+                            case ktype.Fuhyou:
+                                str += "P_|";
+                                break;
+                            case ktype.Kyousha:
+                                str += "L_|";
+                                break;
+                            case ktype.Keima:
+                                str += "N_|";
+                                break;
+                            case ktype.Ginsyou:
+                                str += "S_|";
+                                break;
+                            case ktype.Hisya:
+                                str += "R_|";
+                                break;
+                            case ktype.Kakugyou:
+                                str += "B_|";
+                                break;
+                            case ktype.Kinsyou:
+                                str += "G_|";
+                                break;
+                            case ktype.Ousyou:
+                                str += "K_|";
+                                break;
+                            case ktype.Tokin:
+                                str += "+P|";
+                                break;
+                            case ktype.Narikyou:
+                                str += "+L|";
+                                break;
+                            case ktype.Narikei:
+                                str += "+N|";
+                                break;
+                            case ktype.Narigin:
+                                str += "+G|";
+                                break;
+                            case ktype.Ryuuou:
+                                str += "+R|";
+                                break;
+                            case ktype.Ryuuma:
+                                str += "+B|";
+                                break;
+                            default:
+                                str += "!_|";
+                                break;
+                        }
+                    } else {
+                        switch (getOnBoardKtype(i / 9, i % 9)) {
+                            case ktype.Fuhyou:
+                                str += "p_|";
+                                break;
+                            case ktype.Kyousha:
+                                str += "l_|";
+                                break;
+                            case ktype.Keima:
+                                str += "n_|";
+                                break;
+                            case ktype.Ginsyou:
+                                str += "s_|";
+                                break;
+                            case ktype.Hisya:
+                                str += "r_|";
+                                break;
+                            case ktype.Kakugyou:
+                                str += "b_|";
+                                break;
+                            case ktype.Kinsyou:
+                                str += "g_|";
+                                break;
+                            case ktype.Ousyou:
+                                str += "k_|";
+                                break;
+                            case ktype.Tokin:
+                                str += "+p|";
+                                break;
+                            case ktype.Narikyou:
+                                str += "+l|";
+                                break;
+                            case ktype.Narikei:
+                                str += "+n|";
+                                break;
+                            case ktype.Narigin:
+                                str += "+g|";
+                                break;
+                            case ktype.Ryuuou:
+                                str += "+r|";
+                                break;
+                            case ktype.Ryuuma:
+                                str += "+b|";
+                                break;
+                            default:
+                                str += "!_|";
+                                break;
+                        }
+                    }
+                    getOnBoardKtype(i / 9, i % 9);
+
+                } else {
+                    str += "__|";
+                }
+                if ((i+1)%9==0) str += "\n";
+            }
+
+
+            return str;
         }
 
     }
