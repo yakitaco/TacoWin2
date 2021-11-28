@@ -4,7 +4,7 @@ namespace TacoWin2 {
 
     //1局面での将棋盤情報
     public unsafe struct tw2ban {
-        public fixed ushort onBoard[81]; // 盤上情報(X*9+Y)
+        public fixed ushort onBoard[81]; // 盤上情報(X+Y*9)
         // WWWWWWWW000XYYYY [X]0:先手/1:後手 [Y]enum ktype [W]置き駒情報
 
         public fixed byte putPieceNum[2]; // 置き駒数情報(盤上情報の番号を入れる)
@@ -68,14 +68,14 @@ namespace TacoWin2 {
         }
 
         void addKoma(int x, int y, pturn turn, ktype type) {
-            onBoard[x * 9 + y] = setOnBordDatat(turn, putPieceNum[(int)turn], type);
-            Console.WriteLine(onBoard[x * 9 + y] +":" + (int)turn + ":" + (int)putPieceNum[(int)turn] + ":" + (int)type);
-            putPiece[putPieceNum[(int)turn]] = (byte)(x * 9 + y);
+            onBoard[x + y * 9] = setOnBordDatat(turn, putPieceNum[(int)turn], type);
+            Console.WriteLine(onBoard[x + y * 9] +":" + (int)turn + ":" + (int)putPieceNum[(int)turn] + ":" + (int)type);
+            putPiece[40 * (int)turn + putPieceNum[(int)turn]] = (byte)(x + y * 9);
             putPieceNum[(int)turn]++;
         }
 
         ushort setOnBordDatat(pturn trn, int putPieceNum, ktype type) {
-            return (ushort)(putPieceNum << 8 + (int)trn << 4 + (int)type);
+            return (ushort)((putPieceNum << 8) + ((int)trn << 4) + (int)type);
         }
 
         // ox : 0-8 移動元筋 / 9 駒打ち(先手) / 10 駒打ち(後手)
@@ -90,11 +90,11 @@ namespace TacoWin2 {
             // 駒打ち
             if (ox > 8) {
                 // 合法手チェック
-                if (chk) if ((onBoard[nx * 9 + ny] == 0)) return -1;
+                if (chk) if ((onBoard[nx + ny * 9] == 0)) return -1;
                 captPiece[oy + turn * 7]--;
 
                 // 更新
-                onBoard[nx * 9 + ny] = (byte)((turn << 4) + oy);
+                onBoard[nx + ny * 9] = (byte)((turn << 4) + oy);
 
                 // 歩情報更新
                 if ((ktype)oy == ktype.Fuhyou) {
@@ -107,7 +107,7 @@ namespace TacoWin2 {
                 if (chk) if ((captPiece[oy + turn * 7] < 1) || (checkMoveable(getOnBoardKtype(ox, oy), getOnBoardPturn(ox, oy), ox, oy, nx, ny) < 0)) return -1;
 
                 // 移動先に既にある
-                if (onBoard[nx * 9 + ny] > 0) {
+                if (onBoard[nx + ny * 9] > 0) {
                     // 味方駒は取れない
                     if (chk) if (getOnBoardPturn(ox, oy) == getOnBoardPturn(nx, ny)) return -1;
 
@@ -131,8 +131,8 @@ namespace TacoWin2 {
                     }
 
                     // 更新
-                    onBoard[nx * 9 + ny] = onBoard[ox * 9 + oy];
-                    onBoard[ox * 9 + oy] = 0;
+                    onBoard[nx + ny * 9] = onBoard[ox + oy * 9];
+                    onBoard[ox + oy * 9] = 0;
 
 
 
@@ -145,12 +145,12 @@ namespace TacoWin2 {
 
         // 盤上情報上の駒情報を取得
         public ktype getOnBoardKtype(int x, int y) {
-            return (ktype)(onBoard[x * 9 + y] & 0x0F);
+            return (ktype)(onBoard[x + y * 9] & 0x0F);
         }
 
         // 盤上情報上の駒所有者を取得
         public pturn getOnBoardPturn(int x, int y) {
-            return (pturn)(onBoard[x * 9 + y] & 0xF0 >> 4);
+            return (pturn)((onBoard[x + y * 9] & 0xF0) >> 4);
         }
 
         // 指定位置から指定位置への駒移動可能チェック
@@ -313,6 +313,7 @@ namespace TacoWin2 {
             // 駒移動
             for (int i = 0; i < putPieceNum[(int)turn]; i++) {
                 //putPiece[(int)turn * 20 + i].x;
+                ForEachKoma(putPiece[(int)turn * 40 + i]%9, putPiece[(int)turn * 40 + i] / 9, turn, action);
             }
 
             // 駒打ち
@@ -342,12 +343,11 @@ namespace TacoWin2 {
                 switch (getOnBoardKtype(ox, oy)) {
                     case ktype.Fuhyou:
                         //action(ox, oy, ox, ptuen.mvY(getOnBoardPturn(ox, oy), oy, 1), turn, false);
-                        ForEachKomaContMove(ox, oy, 0, -1, turn, action);
+                        ForEachKomaContMove(ox, oy, 0, 1, turn, action);
                         break;
 
                     case ktype.Kyousha:
                         for (int i = 1; ForEachKomaContMove(ox, oy, 0, i, turn, action) < 2; i++) ;
-
                         break;
 
                     case ktype.Keima:
@@ -356,47 +356,71 @@ namespace TacoWin2 {
                         break;
 
                     case ktype.Ginsyou:
-
+                        ForEachKomaContMove(ox, oy, 1, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, 0, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, -1, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, 1, -1, turn, action);
+                        ForEachKomaContMove(ox, oy, -1, -1, turn, action);
                         break;
 
                     case ktype.Hisya:
-
+                        for (int i = 1; ForEachKomaContMove(ox, oy, 0, i, turn, action) < 2; i++) ;
+                        for (int i = 1; ForEachKomaContMove(ox, oy, 0, -i, turn, action) < 2; i++) ;
+                        for (int i = 1; ForEachKomaContMove(ox, oy, i, 0, turn, action) < 2; i++) ;
+                        for (int i = 1; ForEachKomaContMove(ox, oy, -i, 0, turn, action) < 2; i++) ;
                         break;
 
                     case ktype.Kakugyou:
-
+                        for (int i = 1; ForEachKomaContMove(ox, oy, i, i, turn, action) < 2; i++) ;
+                        for (int i = 1; ForEachKomaContMove(ox, oy, i, -i, turn, action) < 2; i++) ;
+                        for (int i = 1; ForEachKomaContMove(ox, oy, -i, i, turn, action) < 2; i++) ;
+                        for (int i = 1; ForEachKomaContMove(ox, oy, -i,-i, turn, action) < 2; i++) ;
                         break;
 
                     case ktype.Kinsyou:
-
+                    case ktype.Tokin:
+                    case ktype.Narikyou:
+                    case ktype.Narikei:
+                    case ktype.Narigin:
+                        ForEachKomaContMove(ox, oy, 1, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, 0, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, -1, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, 1, 0, turn, action);
+                        ForEachKomaContMove(ox, oy, -1, 0, turn, action);
+                        ForEachKomaContMove(ox, oy, 0, -1, turn, action);
                         break;
 
                     case ktype.Ousyou:
-
-                        break;
-
-                    case ktype.Tokin:
-
-                        break;
-
-                    case ktype.Narikyou:
-
-                        break;
-
-                    case ktype.Narikei:
-
-                        break;
-
-                    case ktype.Narigin:
-
+                        ForEachKomaContMove(ox, oy, 1, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, 0, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, -1, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, 1, 0, turn, action);
+                        ForEachKomaContMove(ox, oy, -1, 0, turn, action);
+                        ForEachKomaContMove(ox, oy, 1,-1, turn, action);
+                        ForEachKomaContMove(ox, oy, 0, -1, turn, action);
+                        ForEachKomaContMove(ox, oy, -1, -1, turn, action);
                         break;
 
                     case ktype.Ryuuou:
-
+                        ForEachKomaContMove(ox, oy, 1, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, -1, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, 1, -1, turn, action);
+                        ForEachKomaContMove(ox, oy, -1, -1, turn, action);
+                        for (int i = 1; ForEachKomaContMove(ox, oy, 0, i, turn, action) < 2; i++) ;
+                        for (int i = 1; ForEachKomaContMove(ox, oy, 0, -i, turn, action) < 2; i++) ;
+                        for (int i = 1; ForEachKomaContMove(ox, oy, i, 0, turn, action) < 2; i++) ;
+                        for (int i = 1; ForEachKomaContMove(ox, oy, -i, 0, turn, action) < 2; i++) ;
                         break;
 
                     case ktype.Ryuuma:
-
+                        ForEachKomaContMove(ox, oy, 0, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, 1, 0, turn, action);
+                        ForEachKomaContMove(ox, oy, -1, 0, turn, action);
+                        ForEachKomaContMove(ox, oy, 0, -1, turn, action);
+                        for (int i = 1; ForEachKomaContMove(ox, oy, i, i, turn, action) < 2; i++) ;
+                        for (int i = 1; ForEachKomaContMove(ox, oy, i, -i, turn, action) < 2; i++) ;
+                        for (int i = 1; ForEachKomaContMove(ox, oy, -i, i, turn, action) < 2; i++) ;
+                        for (int i = 1; ForEachKomaContMove(ox, oy, -i, -i, turn, action) < 2; i++) ;
                         break;
 
                     default:
@@ -411,7 +435,7 @@ namespace TacoWin2 {
             int nx = ptuen.mvX(turn, ox, mx);
             int ny = ptuen.mvY(turn, oy, my);
             if ((nx < 0) || (nx > 8) || (ny < 0) || (ny > 8)) return 3;
-            if (onBoard[nx * 9 + ny] > 0) {
+            if (onBoard[nx + ny * 9] > 0) {
                 if (getOnBoardPturn(nx, ny) != turn) {
                     action(ox, oy, nx, ny, turn, false);
                     return 1; // 敵の駒(取れる)
@@ -428,11 +452,10 @@ namespace TacoWin2 {
         public string debugShow() {
             string str = "";
             for (int i = 0; i < 81; i++) {
-                if (onBoard[i] != 0) {
-                    str += "<" + onBoard[i] + ">";
+                if (onBoard[i / 9 * 9 + 8 - (i % 9) ] != 0) {
                     // 先手
-                    if (getOnBoardPturn(i / 9, i % 9) == pturn.Sente) {
-                        switch (getOnBoardKtype(i / 9, i % 9)) {
+                    if (getOnBoardPturn(8 - (i % 9), i / 9) == pturn.Sente) {
+                        switch (getOnBoardKtype(8 - (i % 9), i / 9)) {
                             case ktype.Fuhyou:
                                 str += "P_|";
                                 break;
@@ -480,7 +503,7 @@ namespace TacoWin2 {
                                 break;
                         }
                     } else {
-                        switch (getOnBoardKtype(i / 9, i % 9)) {
+                        switch (getOnBoardKtype(8 - (i % 9), i / 9)) {
                             case ktype.Fuhyou:
                                 str += "p_|";
                                 break;
@@ -528,7 +551,6 @@ namespace TacoWin2 {
                                 break;
                         }
                     }
-                    getOnBoardKtype(i / 9, i % 9);
 
                 } else {
                     str += "__|";
