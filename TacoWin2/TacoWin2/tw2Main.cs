@@ -4,10 +4,17 @@ using System.Threading;
 namespace TacoWin2 {
     class tw2Main {
         static void Main(string[] args) {
+            int tesuu = 0;
 
             tw2ban w;
             w.startpos();
-            Console.WriteLine(w.debugShow()); 
+            Console.WriteLine(w.debugShow());
+            w.ForEachAll(pturn.Sente, (int _ox, int _oy, int _nx, int _ny, pturn _turn, bool _nari) => {
+                Console.Write("S({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
+            });
+            w.ForEachAll(pturn.Gote, (int _ox, int _oy, int _nx, int _ny, pturn _turn, bool _nari) => {
+                Console.Write("G({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
+            });
 
             while (true) {
                 string str = Console.ReadLine();
@@ -32,10 +39,29 @@ namespace TacoWin2 {
                     // position 盤面情報
                 } else if ((str.Length > 7) && (str.Substring(0, 8) == "position")) {
                     string[] arr = str.Split(' ');
+                    int startStrPos = 0;
+
+                    // 平手
+                    if (arr[1] == "startpos") {
+                        startStrPos = 3;
+                        // 駒落ち・指定局面
+                    } else if (arr[1] == "sfen") {
+                        startStrPos = 7;
+                    }
+
+                    // 手を更新(差分のみ)
+                    for (tesuu = 0; tesuu + startStrPos < arr.Length; tesuu++) {
+                        int ox;
+                        int oy;
+                        int nx;
+                        int ny;
+                        bool nari;
+                        tw2usiIO.usi2pos(arr[tesuu + startStrPos], out ox, out oy, out nx, out ny, out nari);
 
 
+                    }
 
-                } else {
+                    } else {
 
                 }
 
