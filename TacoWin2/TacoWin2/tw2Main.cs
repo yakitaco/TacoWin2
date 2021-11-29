@@ -6,13 +6,13 @@ namespace TacoWin2 {
         static void Main(string[] args) {
             int tesuu = 0;
 
-            tw2ban w;
-            w.startpos();
-            Console.WriteLine(w.debugShow());
-            w.ForEachAll(pturn.Sente, (int _ox, int _oy, int _nx, int _ny, pturn _turn, bool _nari) => {
+            tw2ban ban;
+            ban.startpos();
+            Console.WriteLine(ban.debugShow());
+            ban.ForEachAll(Pturn.Sente, (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
                 Console.Write("S({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
             });
-            w.ForEachAll(pturn.Gote, (int _ox, int _oy, int _nx, int _ny, pturn _turn, bool _nari) => {
+            ban.ForEachAll(Pturn.Gote, (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
                 Console.Write("G({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
             });
 
@@ -40,6 +40,7 @@ namespace TacoWin2 {
                 } else if ((str.Length > 7) && (str.Substring(0, 8) == "position")) {
                     string[] arr = str.Split(' ');
                     int startStrPos = 0;
+                    Pturn turn = Pturn.Sente;
 
                     // 平手
                     if (arr[1] == "startpos") {
@@ -58,10 +59,22 @@ namespace TacoWin2 {
                         bool nari;
                         tw2usiIO.usi2pos(arr[tesuu + startStrPos], out ox, out oy, out nx, out ny, out nari);
 
+                        Console.Write("MV({0},{1})->({2},{3})\n", ox + 1, oy + 1, nx + 1, ny + 1);
+                        ban.moveKoma(ox, oy, nx, ny, turn, nari, false);
+
+                        turn = (Pturn)pturn.aturn((int)turn);
 
                     }
 
-                    } else {
+                    Console.WriteLine(ban.debugShow());
+                    ban.ForEachAll(Pturn.Sente, (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
+                        Console.Write("S({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
+                    });
+                    ban.ForEachAll(Pturn.Gote, (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
+                        Console.Write("G({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
+                    });
+
+                } else {
 
                 }
 
