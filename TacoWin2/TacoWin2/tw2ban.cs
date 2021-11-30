@@ -91,7 +91,7 @@ namespace TacoWin2 {
             if (ox > 8) {
                 // 合法手チェック
                 if (chk) if ((onBoard[nx + ny * 9] == 0)) return -1;
-                captPiece[oy + (int)turn * 7]--;
+                captPiece[oy - 1 + (int)turn * 7]--;
 
                 // 更新
                 onBoard[nx + ny * 9] = (byte)(((int)turn << 4) + oy);
@@ -117,7 +117,7 @@ namespace TacoWin2 {
                     }
 
                     // 追加
-                    captPiece[oy + (int)getOnBoardPturn(ox, oy) * 7]++;
+                    captPiece[(int)kNoNari(getOnBoardKtype(nx, ny)) - 1 + (int)getOnBoardPturn(ox, oy) * 7]++;
 
                 }
 
