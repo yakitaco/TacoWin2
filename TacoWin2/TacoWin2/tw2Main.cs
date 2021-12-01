@@ -5,6 +5,8 @@ namespace TacoWin2 {
     class tw2Main {
         static void Main(string[] args) {
             int tesuu = 0;
+            Pturn turn = Pturn.Sente;
+            tw2ai ai = new tw2ai();
 
             tw2ban ban;
             ban.startpos();
@@ -40,11 +42,13 @@ namespace TacoWin2 {
                 } else if ((str.Length > 7) && (str.Substring(0, 8) == "position")) {
                     string[] arr = str.Split(' ');
                     int startStrPos = 0;
-                    Pturn turn = Pturn.Sente;
+                    turn = Pturn.Sente;
+                    ban = new tw2ban();
 
                     // 平手
                     if (arr[1] == "startpos") {
                         startStrPos = 3;
+                        ban.startpos();
                         // 駒落ち・指定局面
                     } else if (arr[1] == "sfen") {
                         startStrPos = 7;
@@ -67,14 +71,21 @@ namespace TacoWin2 {
                     }
 
                     Console.WriteLine(ban.debugShow());
-                    ban.ForEachAll(Pturn.Sente, (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
-                        Console.Write("S({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
-                    });
-                    ban.ForEachAll(Pturn.Gote, (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
-                        Console.Write("G({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
-                    });
 
-                } else {
+                } else if ((str.Length > 1) && (str.Substring(0, 2) == "go")) {
+                    string[] arr = str.Split(' ');
+
+                    //通常読み
+                    if (arr[1] == "btime") {
+                        ai.RandomeMove(turn, ban);
+
+                        // 先読み
+                    } else if (arr[1] == "ponder") {
+
+
+                    }
+
+                    } else {
 
                 }
 

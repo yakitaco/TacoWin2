@@ -6,10 +6,10 @@
 
     public static class pturn {
 
-        // turn考慮位置(X) x 0 上 / 8 下
+        // turn考慮位置(X) x 0 下 / 8 上
         public static int psX(Pturn t, int x) {
             if (t == Pturn.Sente) {
-                return 9 - x;
+                return 8 - x;
             } else {
                 return x;
             }
@@ -18,7 +18,7 @@
         // turn考慮位置(Y) x 0 左 / 8 右
         public static int psY(Pturn t, int y) {
             if (t == Pturn.Sente) {
-                return 9 - y;
+                return 8 - y;
             } else {
                 return y;
             }
