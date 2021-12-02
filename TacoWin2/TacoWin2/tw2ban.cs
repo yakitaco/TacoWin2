@@ -20,6 +20,8 @@ namespace TacoWin2 {
         public fixed byte fuPos[18]; // 歩情報(0-9) 9:無し
         // [0-8]先手 / [9-17]後手
 
+        public fixed byte moveable[162]; //駒の移動可能リスト
+
         // 初期盤情報
         public void startpos() {
 
@@ -70,7 +72,32 @@ namespace TacoWin2 {
                 addKoma(i, 2, Pturn.Gote, ktype.Fuhyou);
             }
 
+            // 移動リスト新規作成
+            renewMoveable();
 
+        }
+
+        //移動可能リスト生成(先手・後手の駒が移動可能場所を加算する)
+        public void renewMoveable() {
+            //指せる手を全てリスト追加
+            tw2ban t = this;
+            int nx = 0, ny = 0;
+            byte[] _moveable = new byte[162];
+            for (int i = 0; i < 81; i++) {
+                if (onBoard[i] > 0) {
+                    ForEachKoma(i % 9, i / 9, getOnBoardPturn(i % 9, i / 9), (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
+                        nx = _nx;
+                        ny = _ny;
+                        _moveable[(int)_turn * 81 + nx + ny * 9]++;
+                    });
+                    Console.Write("LIST({0},{1},{2},{3},{4})\n", getOnBoardPturn(i % 9, i / 9), i % 9 + 1, i / 9 + 1,  nx + 1, ny + 1);
+                    moveable[(int)getOnBoardPturn(i % 9, i / 9) * 81 + nx + ny * 9]++;
+                }
+            }
+            fixed (byte *p = moveable) {
+                //Array.Copy(_moveable, p.ToArray(), 162);
+                *p = _moveable;
+            }
         }
 
         void addKoma(int x, int y, Pturn turn, ktype type) {
@@ -487,7 +514,7 @@ namespace TacoWin2 {
             if (onBoard[nx + ny * 9] > 0) {
                 if (getOnBoardPturn(nx, ny) != turn) {
                     if ((pturn.psY(turn, ny) > 5) && ((int)getOnBoardKtype(ox, oy) < 7)) {
-                        if ((getOnBoardKtype(ox, oy) == ktype.Ginsyou) || ((getOnBoardKtype(ox, oy) == ktype.Kyousha)&&(pturn.psY(turn, ny) < 8)) || ((getOnBoardKtype(ox, oy) == ktype.Kyousha) && (pturn.psY(turn, ny) < 7))) {
+                        if ((getOnBoardKtype(ox, oy) == ktype.Ginsyou) || ((getOnBoardKtype(ox, oy) == ktype.Kyousha) && (pturn.psY(turn, ny) < 8)) || ((getOnBoardKtype(ox, oy) == ktype.Kyousha) && (pturn.psY(turn, ny) < 7))) {
                             action(ox, oy, nx, ny, turn, false);
                         }
                         action(ox, oy, nx, ny, turn, true);
@@ -619,7 +646,18 @@ namespace TacoWin2 {
                 } else {
                     str += "__|";
                 }
-                if ((i + 1) % 9 == 0) str += "\n";
+                if ((i + 1) % 9 == 0) {
+                    str += "    ";
+                    // 移動可能リスト
+                    for (int j = 8; j >= 0; j--) {
+                        str += moveable[j + i / 9] + "" + moveable[81 + j + i / 9] + "|";
+
+                    }
+
+                    // 改行
+                    str += Environment.NewLine;
+
+                }
             }
 
             // 持ち駒情報
