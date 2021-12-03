@@ -83,20 +83,29 @@ namespace TacoWin2 {
             tw2ban t = this;
             int nx = 0, ny = 0;
             byte[] _moveable = new byte[162];
+
+
             for (int i = 0; i < 81; i++) {
                 if (onBoard[i] > 0) {
                     ForEachKoma(i % 9, i / 9, getOnBoardPturn(i % 9, i / 9), (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
                         nx = _nx;
                         ny = _ny;
+                        Console.Write("LIST1({0},{1},{2},{3},{4})\n", _turn, _ox + 1, _oy + 1, _nx + 1, _ny + 1);
                         _moveable[(int)_turn * 81 + nx + ny * 9]++;
                     });
-                    Console.Write("LIST({0},{1},{2},{3},{4})\n", getOnBoardPturn(i % 9, i / 9), i % 9 + 1, i / 9 + 1,  nx + 1, ny + 1);
-                    moveable[(int)getOnBoardPturn(i % 9, i / 9) * 81 + nx + ny * 9]++;
+                    Console.Write("LIST2({0},{1},{2},{3},{4})\n", getOnBoardPturn(i % 9, i / 9), i % 9 + 1, i / 9 + 1, nx + 1, ny + 1);
+                    //moveable[(int)getOnBoardPturn(i % 9, i / 9) * 81 + nx + ny * 9]++;
                 }
             }
-            fixed (byte *p = moveable) {
-                //Array.Copy(_moveable, p.ToArray(), 162);
-                *p = _moveable;
+
+            string str = "";
+            foreach (var ppp in _moveable) {
+                str += ppp + " ";
+            }
+            Console.Write("LIST2({0})\n", str);
+
+            fixed (byte* p = moveable, pp = _moveable) {
+                Buffer.MemoryCopy(pp, p, 162, 162);
             }
         }
 
@@ -122,6 +131,10 @@ namespace TacoWin2 {
         // chk : 移動整合性チェック(false チェック無 true チェック有)
         // 戻り値 0 OK / -1 NG(chk=true時のみ)
         public int moveKoma(int ox, int oy, int nx, int ny, Pturn turn, bool nari, bool chk) {
+
+            Span<int> renewMoveableList = stackalloc int[40];
+            int renewMoveableListNum = 0;
+
             // 駒打ち
             if (ox > 8) {
                 // 合法手チェック
@@ -145,6 +158,9 @@ namespace TacoWin2 {
                 if ((ktype)oy == ktype.Fuhyou) {
                     fuPos[(int)turn * 9 + nx] = (byte)ny;
                 }
+
+                renewMoveableList[renewMoveableListNum++] = ox + oy * 9;
+                renewMoveableLink(ox, oy, ref renewMoveableListNum, ref renewMoveableList);
 
                 // 駒移動
             } else {
@@ -344,6 +360,10 @@ namespace TacoWin2 {
             }
 
             return 0;
+        }
+
+        void renewMoveableLink(int x, int y, ref int num ,ref Span<int> list) {
+
         }
 
         // 処理軽減のためチェック省略
@@ -650,7 +670,7 @@ namespace TacoWin2 {
                     str += "    ";
                     // 移動可能リスト
                     for (int j = 8; j >= 0; j--) {
-                        str += moveable[j + i / 9] + "" + moveable[81 + j + i / 9] + "|";
+                        str += moveable[j + i - 8] + "" + moveable[81 + j + i - 8] + "|";
 
                     }
 
