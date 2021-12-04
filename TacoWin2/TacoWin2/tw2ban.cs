@@ -14,20 +14,31 @@ namespace TacoWin2 {
         // [0-39]先手 [40-79]後手
         // enum ktype
 
+        public fixed int putOusyou[2]; // 王将置き駒情報
+        public fixed int putKinsyou[8]; // 金将置き駒情報
+        public fixed int putKyousha[2]; // 香車置き駒情報
+        public fixed int putKeima[8]; // 桂馬置き駒情報
+        public fixed int putGinsyou[2]; // 銀将置き駒情報
+        public fixed int putHisya[8]; // 飛車置き駒情報
+        public fixed int putKakugyou[2]; // 角行置き駒情報
+        public fixed int putFuhyou[18]; // 歩兵置き駒情報(0-9) 9:無し
+        public fixed int putTokin[18]; // と金置き駒情報
+
+        // [0-8]先手 / [9-17]後手
+
         public fixed byte captPiece[14]; // 持ち駒情報
         // [0-6]先手 [7-13]後手
 
-        public fixed byte fuPos[18]; // 歩情報(0-9) 9:無し
-        // [0-8]先手 / [9-17]後手
 
         public fixed byte moveable[162]; //駒の移動可能リスト
 
         // 初期盤情報
         public void startpos() {
 
+
             for (int i = 0; i < 40; i++) {
-                putPieceNum[i] = 0xFF;
-                putPieceNum[i + 40] = 0xFF;
+                putPiece[i] = 0xFF;
+                putPiece[i + 40] = 0xFF;
             }
 
             //王の配置
@@ -75,46 +86,36 @@ namespace TacoWin2 {
             // 移動リスト新規作成
             renewMoveable();
 
+            for (int i = 0; i < 162; i++) {
+                Console.WriteLine(i + ":" + moveable[i]);
+            }
+
         }
 
         //移動可能リスト生成(先手・後手の駒が移動可能場所を加算する)
         public void renewMoveable() {
             //指せる手を全てリスト追加
-            tw2ban t = this;
-            int nx = 0, ny = 0;
-            byte[] _moveable = new byte[162];
-
-
-            for (int i = 0; i < 81; i++) {
-                if (onBoard[i] > 0) {
-                    ForEachKoma(i % 9, i / 9, getOnBoardPturn(i % 9, i / 9), (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
-                        nx = _nx;
-                        ny = _ny;
-                        Console.Write("LIST1({0},{1},{2},{3},{4})\n", _turn, _ox + 1, _oy + 1, _nx + 1, _ny + 1);
-                        _moveable[(int)_turn * 81 + nx + ny * 9]++;
-                    });
-                    Console.Write("LIST2({0},{1},{2},{3},{4})\n", getOnBoardPturn(i % 9, i / 9), i % 9 + 1, i / 9 + 1, nx + 1, ny + 1);
-                    //moveable[(int)getOnBoardPturn(i % 9, i / 9) * 81 + nx + ny * 9]++;
+            for (int i = 0, j = 0; j < putPieceNum[(int)Pturn.Sente]; i++) {
+                if (putPiece[(int)Pturn.Sente * 40 + i] != 0xFF) {
+                    chgMoveable(putPiece[(int)Pturn.Sente * 40 + i] % 9, putPiece[(int)Pturn.Sente * 40 + i] / 9, Pturn.Sente, 1);
+                    j++;
+                }
+            }
+            for (int i = 0, j = 0; j < putPieceNum[(int)Pturn.Gote]; i++) {
+                if (putPiece[(int)Pturn.Gote * 40 + i] != 0xFF) {
+                    chgMoveable(putPiece[(int)Pturn.Gote * 40 + i] % 9, putPiece[(int)Pturn.Gote * 40 + i] / 9, Pturn.Gote, 1);
+                    j++;
                 }
             }
 
-            string str = "";
-            foreach (var ppp in _moveable) {
-                str += ppp + " ";
-            }
-            Console.Write("LIST2({0})\n", str);
-
-            fixed (byte* p = moveable, pp = _moveable) {
-                Buffer.MemoryCopy(pp, p, 162, 162);
-            }
         }
 
         void addKoma(int x, int y, Pturn turn, ktype type) {
             onBoard[x + y * 9] = setOnBordDatat(turn, putPieceNum[(int)turn], type);
-            Console.WriteLine(onBoard[x + y * 9] + ":" + (int)turn + ":" + (int)putPieceNum[(int)turn] + ":" + (int)type);
+            Console.WriteLine(onBoard[x + y * 9].ToString("x4") + ":" + (int)turn + ":" + (int)putPieceNum[(int)turn] + ":" + (int)type);
             putPiece[40 * (int)turn + putPieceNum[(int)turn]] = (byte)(x + y * 9);
             putPieceNum[(int)turn]++;
-            if (type == ktype.Fuhyou) fuPos[(int)turn * 9 + x] = (byte)y;
+            if (type == ktype.Fuhyou) putFuhyou[(int)turn * 9 + x] = y;
 
         }
 
@@ -132,8 +133,8 @@ namespace TacoWin2 {
         // 戻り値 0 OK / -1 NG(chk=true時のみ)
         public int moveKoma(int ox, int oy, int nx, int ny, Pturn turn, bool nari, bool chk) {
 
-            Span<int> renewMoveableList = stackalloc int[40];
-            int renewMoveableListNum = 0;
+            //Span<int> renewMoveableList = stackalloc int[40];
+            //int renewMoveableListNum = 0;
 
             // 駒打ち
             if (ox > 8) {
@@ -156,11 +157,11 @@ namespace TacoWin2 {
 
                 // 歩情報更新
                 if ((ktype)oy == ktype.Fuhyou) {
-                    fuPos[(int)turn * 9 + nx] = (byte)ny;
+                    putFuhyou[(int)turn * 9 + nx] = ny;
                 }
 
-                renewMoveableList[renewMoveableListNum++] = ox + oy * 9;
-                renewMoveableLink(ox, oy, ref renewMoveableListNum, ref renewMoveableList);
+                //renewMoveableList[renewMoveableListNum++] = ox + oy * 9;
+                //renewMoveableLink(ox, oy, ref renewMoveableListNum, ref renewMoveableList);
 
                 // 駒移動
             } else {
@@ -174,7 +175,7 @@ namespace TacoWin2 {
 
                     // 歩情報更新
                     if (getOnBoardKtype(nx, ny) == ktype.Fuhyou) {
-                        fuPos[pturn.aturn((int)turn) * 9 + nx] = 9;
+                        putFuhyou[pturn.aturn((int)turn) * 9 + nx] = 9;
                     }
 
                     putPiece[pturn.aturn((int)turn) * 40 + getOnBoardPutPiece(nx, ny)] = 0xFF;
@@ -193,7 +194,7 @@ namespace TacoWin2 {
                 if (nari) {
                     // 歩情報更新
                     if (getOnBoardKtype(ox, oy) == ktype.Fuhyou) {
-                        fuPos[(int)turn * 9 + nx] = 9;
+                        putFuhyou[(int)turn * 9 + nx] = 9;
                     }
                     mk = (ushort)(((mk >> 4) << 4) + (ushort)kDoNari(getOnBoardKtype(ox, oy)));
                 }
@@ -362,7 +363,7 @@ namespace TacoWin2 {
             return 0;
         }
 
-        void renewMoveableLink(int x, int y, ref int num ,ref Span<int> list) {
+        void renewMoveableLink(int x, int y, ref int num, ref Span<int> list) {
 
         }
 
@@ -380,6 +381,107 @@ namespace TacoWin2 {
                 return t - 8;
             } else {
                 return t;
+            }
+        }
+
+        public void chgMoveable(int ox, int oy, Pturn turn, int val) {
+            switch (getOnBoardKtype(ox, oy)) {
+                case ktype.Fuhyou:
+                    //action(ox, oy, ox, ptuen.mvY(getOnBoardPturn(ox, oy), oy, 1), turn, false);
+                    addMoveableEachKoma(ox, oy, 0, 1, turn, val);
+                    break;
+
+                case ktype.Kyousha:
+                    for (int i = 1; addMoveableEachKoma(ox, oy, 0, i, turn, val) < 1; i++) ;
+                    break;
+
+                case ktype.Keima:
+                    addMoveableEachKoma(ox, oy, 1, 2, turn, val);
+                    addMoveableEachKoma(ox, oy, -1, 2, turn, val);
+                    break;
+
+                case ktype.Ginsyou:
+                    addMoveableEachKoma(ox, oy, 1, 1, turn, val);
+                    addMoveableEachKoma(ox, oy, 0, 1, turn, val);
+                    addMoveableEachKoma(ox, oy, -1, 1, turn, val);
+                    addMoveableEachKoma(ox, oy, 1, -1, turn, val);
+                    addMoveableEachKoma(ox, oy, -1, -1, turn, val);
+                    break;
+
+                case ktype.Hisya:
+                    for (int i = 1; addMoveableEachKoma(ox, oy, 0, i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(ox, oy, 0, -i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(ox, oy, i, 0, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(ox, oy, -i, 0, turn, val) < 1; i++) ;
+                    break;
+
+                case ktype.Kakugyou:
+                    for (int i = 1; addMoveableEachKoma(ox, oy, i, i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(ox, oy, i, -i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(ox, oy, -i, i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(ox, oy, -i, -i, turn, val) < 1; i++) ;
+                    break;
+
+                case ktype.Kinsyou:
+                case ktype.Tokin:
+                case ktype.Narikyou:
+                case ktype.Narikei:
+                case ktype.Narigin:
+                    addMoveableEachKoma(ox, oy, 1, 1, turn, val);
+                    addMoveableEachKoma(ox, oy, 0, 1, turn, val);
+                    addMoveableEachKoma(ox, oy, -1, 1, turn, val);
+                    addMoveableEachKoma(ox, oy, 1, 0, turn, val);
+                    addMoveableEachKoma(ox, oy, -1, 0, turn, val);
+                    addMoveableEachKoma(ox, oy, 0, -1, turn, val);
+                    break;
+
+                case ktype.Ousyou:
+                    addMoveableEachKoma(ox, oy, 1, 1, turn, val);
+                    addMoveableEachKoma(ox, oy, 0, 1, turn, val);
+                    addMoveableEachKoma(ox, oy, -1, 1, turn, val);
+                    addMoveableEachKoma(ox, oy, 1, 0, turn, val);
+                    addMoveableEachKoma(ox, oy, -1, 0, turn, val);
+                    addMoveableEachKoma(ox, oy, 1, -1, turn, val);
+                    addMoveableEachKoma(ox, oy, 0, -1, turn, val);
+                    addMoveableEachKoma(ox, oy, -1, -1, turn, val);
+                    break;
+
+                case ktype.Ryuuou:
+                    addMoveableEachKoma(ox, oy, 1, 1, turn, val);
+                    addMoveableEachKoma(ox, oy, -1, 1, turn, val);
+                    addMoveableEachKoma(ox, oy, 1, -1, turn, val);
+                    addMoveableEachKoma(ox, oy, -1, -1, turn, val);
+                    for (int i = 1; addMoveableEachKoma(ox, oy, 0, i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(ox, oy, 0, -i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(ox, oy, i, 0, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(ox, oy, -i, 0, turn, val) < 1; i++) ;
+                    break;
+
+                case ktype.Ryuuma:
+                    addMoveableEachKoma(ox, oy, 0, 1, turn, val);
+                    addMoveableEachKoma(ox, oy, 1, 0, turn, val);
+                    addMoveableEachKoma(ox, oy, -1, 0, turn, val);
+                    addMoveableEachKoma(ox, oy, 0, -1, turn, val);
+                    for (int i = 1; addMoveableEachKoma(ox, oy, i, i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(ox, oy, i, -i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(ox, oy, -i, i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(ox, oy, -i, -i, turn, val) < 1; i++) ;
+                    break;
+
+                default:
+                    break;
+            }
+        }
+
+        int addMoveableEachKoma(int ox, int oy, int mx, int my, Pturn turn, int val) {
+            int nx = pturn.mvX(turn, ox, mx);
+            int ny = pturn.mvY(turn, oy, my);
+            if ((nx < 0) || (nx > 8) || (ny < 0) || (ny > 8)) return 1; // 移動できない
+            moveable[(int)turn * 81 +nx + ny * 9]+= (byte)val;
+            if (onBoard[nx + ny * 9] > 0) {
+                return 1; // 駒がある
+            } else {
+                return 0; // 駒がない
             }
         }
 
@@ -412,7 +514,7 @@ namespace TacoWin2 {
                 for (int i = 0; i < 9; i++) {
 
                     // 二歩は打てない
-                    if ((oy == (int)ktype.Fuhyou) && (fuPos[(int)turn * 9 + i] < 9)) {
+                    if ((oy == (int)ktype.Fuhyou) && (putFuhyou[(int)turn * 9 + i] < 9)) {
                         continue;
 
                     }
@@ -670,7 +772,7 @@ namespace TacoWin2 {
                     str += "    ";
                     // 移動可能リスト
                     for (int j = 8; j >= 0; j--) {
-                        str += moveable[j + i - 8] + "" + moveable[81 + j + i - 8] + "|";
+                        str += /* "("+ i +","+j+")" + */ moveable[j + i - 8] + "," + moveable[81 + j + i - 8] + "|";
 
                     }
 
@@ -685,12 +787,12 @@ namespace TacoWin2 {
             str += "FU:" + captPiece[7] + "/KY:" + captPiece[8] + "/KE:" + captPiece[9] + "/GI:" + captPiece[10] + "/HI:" + captPiece[11] + "/KA:" + captPiece[12] + "/KI:" + captPiece[13] + "\n";
 
             for (int i = 0; i < 9; i++) {
-                str += fuPos[i] + " ";
+                str += putFuhyou[i] + " ";
 
             }
             str += "\n";
             for (int i = 0; i < 9; i++) {
-                str += fuPos[9 + i] + " ";
+                str += putFuhyou[9 + i] + " ";
 
             }
             str += "\n";
