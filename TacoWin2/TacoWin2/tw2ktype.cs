@@ -16,4 +16,23 @@
         Ryuuou = 0x0D,   //竜王
         Ryuuma = 0x0E,   //竜馬
     }
+
+    public enum kVal : int {
+        None = 0,        //なし
+        Fuhyou = 100,   //歩兵
+        Kyousha = 500,  //香車
+        Keima = 600,    //桂馬
+        Ginsyou = 800,  //銀将
+        Hisya = 1500,    //飛車
+        Kakugyou = 1200, //角行
+        Kinsyou = 900,  //金将
+        Ousyou = 99999,   //王将
+        Tokin = 200,    //と金(成歩兵)
+        Narikyou = 550, //成香
+        Narikei = 650,  //成桂
+        Narigin = 900,  //成銀
+        Ryuuou = 1800,   //竜王
+        Ryuuma = 1400,   //竜馬
+    }
+
 }
