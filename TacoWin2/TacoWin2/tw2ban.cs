@@ -595,7 +595,7 @@ namespace TacoWin2 {
                     // 不成or通常移動
                 } else {
                     moveKoma(nx, ny, getOnBoardPutPiece(ox, oy), turn, getOnBoardKtype(ox, oy));
-                    
+
                     onBoard[nx + ny * 9] = onBoard[ox + oy * 9];
                     onBoard[ox + oy * 9] = 0;
                     chgMoveable(nx, ny, getOnBoardPturn(nx, ny), 1);
@@ -883,67 +883,68 @@ namespace TacoWin2 {
         }
 
         // 全駒の移動可能位置を返す
-        public void ForEachAll(Pturn turn, Action<int, int, int, int, Pturn, bool> action) {
+        public void ForEachAll(Pturn turn, kmove[] kmv) {
+            int kCnt = 0;
             // 駒移動
 
             // 王将
             if (putOusyou[(int)turn] != 0xFF) {
-                ForEachKoma(putOusyou[(int)turn] % 9, putOusyou[(int)turn] / 9, turn, action);
+                ForEachKoma(putOusyou[(int)turn] % 9, putOusyou[(int)turn] / 9, turn, kmv, ref kCnt);
             }
 
             // 歩兵
             for (int i = 0; i < 9; i++) {
                 if (putFuhyou[(int)turn * 9 + i] != 9) {
-                    ForEachKoma(i, putFuhyou[(int)turn * 9 + i], turn, action);
+                    ForEachKoma(i, putFuhyou[(int)turn * 9 + i], turn, kmv, ref kCnt);
                 }
             }
 
             // 香車
             for (int i = 0; i < 4; i++) {
                 if (putKyousha[(int)turn * 4 + i] != 0xFF) {
-                    ForEachKoma(putKyousha[(int)turn * 4 + i] % 9, putKyousha[(int)turn * 4 + i] / 9, turn, action);
+                    ForEachKoma(putKyousha[(int)turn * 4 + i] % 9, putKyousha[(int)turn * 4 + i] / 9, turn, kmv, ref kCnt);
                 }
             }
 
             // 桂馬
             for (int i = 0; i < 4; i++) {
                 if (putKeima[(int)turn * 4 + i] != 0xFF) {
-                    ForEachKoma(putKeima[(int)turn * 4 + i] % 9, putKeima[(int)turn * 4 + i] / 9, turn, action);
+                    ForEachKoma(putKeima[(int)turn * 4 + i] % 9, putKeima[(int)turn * 4 + i] / 9, turn, kmv, ref kCnt);
                 }
             }
 
             // 銀将
             for (int i = 0; i < 4; i++) {
                 if (putGinsyou[(int)turn * 4 + i] != 0xFF) {
-                    ForEachKoma(putGinsyou[(int)turn * 4 + i] % 9, putGinsyou[(int)turn * 4 + i] / 9, turn, action);
+                    ForEachKoma(putGinsyou[(int)turn * 4 + i] % 9, putGinsyou[(int)turn * 4 + i] / 9, turn, kmv, ref kCnt);
                 }
             }
 
             // 飛車
             for (int i = 0; i < 2; i++) {
                 if (putHisya[(int)turn * 2 + i] != 0xFF) {
-                    ForEachKoma(putHisya[(int)turn * 2 + i] % 9, putHisya[(int)turn * 2 + i] / 9, turn, action);
+                    ForEachKoma(putHisya[(int)turn * 2 + i] % 9, putHisya[(int)turn * 2 + i] / 9, turn, kmv, ref kCnt);
                 }
             }
 
             // 角行
             for (int i = 0; i < 2; i++) {
                 if (putKakugyou[(int)turn * 2 + i] != 0xFF) {
-                    ForEachKoma(putKakugyou[(int)turn * 2 + i] % 9, putKakugyou[(int)turn * 2 + i] / 9, turn, action);
+                    ForEachKoma(putKakugyou[(int)turn * 2 + i] % 9, putKakugyou[(int)turn * 2 + i] / 9, turn, kmv, ref kCnt);
                 }
             }
 
             // 金将
             for (int i = 0; i < 4; i++) {
                 if (putKinsyou[(int)turn * 4 + i] != 0xFF) {
-                    ForEachKoma(putKinsyou[(int)turn * 4 + i] % 9, putKinsyou[(int)turn * 4 + i] / 9, turn, action);
+                    ForEachKoma(putKinsyou[(int)turn * 4 + i] % 9, putKinsyou[(int)turn * 4 + i] / 9, turn, kmv, ref kCnt);
                 }
             }
 
             // 成駒
             for (int i = 0, j = 0; j < putNarigomaNum[(int)turn]; i++) {
                 if (putNarigoma[(int)turn * 30 + i] != 0xFF) {
-                    ForEachKoma(putNarigoma[(int)turn * 30 + i] % 9, putNarigoma[(int)turn * 30 + i] / 9, turn, action);
+                    ForEachKoma(putNarigoma[(int)turn * 30 + i] % 9, putNarigoma[(int)turn * 30 + i] / 9, turn, kmv, ref kCnt);
                     j++;
                 }
             }
@@ -951,14 +952,14 @@ namespace TacoWin2 {
             // 駒打ち
             for (int i = 0; i < 7; i++) {
                 if (captPiece[(int)turn * 7 + i] > 0) {
-                    ForEachKoma(9, i + 1, turn, action);
+                    ForEachKoma(9, i + 1, turn, kmv, ref kCnt);
                 }
             }
 
         }
 
         // 指定駒の移動位置を返す
-        public void ForEachKoma(int ox, int oy, Pturn turn, Action<int, int, int, int, Pturn, bool> action) {
+        public void ForEachKoma(int ox, int oy, Pturn turn, kmove[] kmv, ref int kCnt) {
             // 駒打ち
             if (ox == 9) {
                 for (int i = 0; i < 9; i++) {
@@ -981,7 +982,7 @@ namespace TacoWin2 {
                             continue;
                         }
 
-                        action(ox, oy, i, j, turn, false);
+                        kmv[kCnt++].set(ox + oy * 9, i + j * 9, false, turn);
                     }
                 }
 
@@ -991,7 +992,7 @@ namespace TacoWin2 {
                 switch (getOnBoardKtype(ox, oy)) {
                     case ktype.Fuhyou:
                         //action(ox, oy, ox, ptuen.mvY(getOnBoardPturn(ox, oy), oy, 1), turn, false);
-                        ForEachKomaContMove(ox, oy, 0, 1, turn, action);
+                        ForEachKomaContMove(ox, oy, 0, 1, turn, kmv, ref int kCnt);
                         break;
 
                     case ktype.Kyousha:
@@ -1079,7 +1080,7 @@ namespace TacoWin2 {
 
         //指定移動先(mx,my)
         //移動できる 0 / 移動できる(敵駒取り) 1 / 移動できない(味方駒) 2 / 移動できない 3(範囲外)
-        public int ForEachKomaContMove(int ox, int oy, int mx, int my, Pturn turn, Action<int, int, int, int, Pturn, bool> action) {
+        public int ForEachKomaContMove(int ox, int oy, int mx, int my, Pturn turn, kmove[] kmv, ref int kCnt) {
             int nx = pturn.mvX(turn, ox, mx);
             int ny = pturn.mvY(turn, oy, my);
             if ((nx < 0) || (nx > 8) || (ny < 0) || (ny > 8)) return 3;
