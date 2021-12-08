@@ -1,9 +1,9 @@
 ﻿namespace TacoWin2 {
     public struct kmove {
-        int op;
-        int np;
-        bool nari;
-        Pturn turn;
+        public int op; // x + y * 10
+        public int np; // x + y * 10
+        public bool nari;
+        public Pturn turn;
 
         public void set(int _op, int _np, bool _nari, Pturn _turn) {
             op = _op;
