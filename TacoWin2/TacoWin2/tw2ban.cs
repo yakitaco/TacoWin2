@@ -98,7 +98,7 @@ namespace TacoWin2 {
             }
 
             // 移動リスト新規作成
-            renewMoveable();
+            //renewMoveable();
 
             for (int i = 0; i < 162; i++) {
                 Console.WriteLine(i + ":" + moveable[i]);
@@ -112,7 +112,7 @@ namespace TacoWin2 {
             for (int p = 0; p < 2; p++) {
                 // 王将
                 if (putOusyou[p] != 0xFF) {
-                    chgMoveable(putOusyou[p]  / 9, putOusyou[p] % 9, (Pturn)p, 1);
+                    chgMoveable(putOusyou[p] / 9, putOusyou[p] % 9, (Pturn)p, 1);
                 }
 
                 // 歩兵
@@ -125,35 +125,35 @@ namespace TacoWin2 {
                 // 香車
                 for (int i = 0; i < 4; i++) {
                     if (putKyousha[p * 4 + i] != 0xFF) {
-                        chgMoveable(putKyousha[p * 4 + i] / 9, putKyousha[p * 4 + i]  % 9, (Pturn)p, 1);
+                        chgMoveable(putKyousha[p * 4 + i] / 9, putKyousha[p * 4 + i] % 9, (Pturn)p, 1);
                     }
                 }
 
                 // 桂馬
                 for (int i = 0; i < 4; i++) {
                     if (putKeima[p * 4 + i] != 0xFF) {
-                        chgMoveable(putKeima[p * 4 + i] / 9, putKeima[p * 4 + i]  % 9, (Pturn)p, 1);
+                        chgMoveable(putKeima[p * 4 + i] / 9, putKeima[p * 4 + i] % 9, (Pturn)p, 1);
                     }
                 }
 
                 // 銀将
                 for (int i = 0; i < 4; i++) {
                     if (putGinsyou[p * 4 + i] != 0xFF) {
-                        chgMoveable(putGinsyou[p * 4 + i] / 9, putGinsyou[p * 4 + i]  % 9, (Pturn)p, 1);
+                        chgMoveable(putGinsyou[p * 4 + i] / 9, putGinsyou[p * 4 + i] % 9, (Pturn)p, 1);
                     }
                 }
 
                 // 飛車
                 for (int i = 0; i < 2; i++) {
                     if (putHisya[p * 2 + i] != 0xFF) {
-                        chgMoveable(putHisya[p * 2 + i] / 9, putHisya[p * 2 + i]  % 9, (Pturn)p, 1);
+                        chgMoveable(putHisya[p * 2 + i] / 9, putHisya[p * 2 + i] % 9, (Pturn)p, 1);
                     }
                 }
 
                 // 角行
                 for (int i = 0; i < 2; i++) {
                     if (putKakugyou[p * 2 + i] != 0xFF) {
-                        chgMoveable(putKakugyou[p * 2 + i]  / 9, putKakugyou[p * 2 + i] % 9, (Pturn)p, 1);
+                        chgMoveable(putKakugyou[p * 2 + i] / 9, putKakugyou[p * 2 + i] % 9, (Pturn)p, 1);
                     }
                 }
 
@@ -175,7 +175,7 @@ namespace TacoWin2 {
 
         }
 
-        public void changeMoveable(int x, int y, int val) {
+        public void changeMoveableDir(int x, int y, int val) {
             //上
             for (int i = 1; y - i >= 0; i++) {
                 if (onBoard[x * 9 + (y - i)] == 0) continue;
@@ -272,7 +272,7 @@ namespace TacoWin2 {
                 if (onBoard[(x + i) * 9 + y + i] == 0) continue;
                 if ((getOnBoardKtype(x + i, y + i) == ktype.Kakugyou) || (getOnBoardKtype(x + i, y + i) == ktype.Ryuuma)) {
                     // 左を更新
-                    for (int j = 1; x + j < 9 && y - j >= 0; j++) {
+                    for (int j = 1; x - j >= 0 && y - j >= 0; j++) {
                         moveable[(int)getOnBoardPturn(x + i, y + i) * 81 + (x - j) * 9 + y - j] += (byte)val;
                         if (onBoard[(x - j) * 9 + y - j] > 0) break;
                     }
@@ -486,7 +486,7 @@ namespace TacoWin2 {
         // nari : 成り(false 不成 true 成)
         // chk : 移動整合性チェック(false チェック無 true チェック有)
         // 戻り値 0 OK / -1 NG(chk=true時のみ)
-        public int moveKoma(int ox, int oy, int nx, int ny, Pturn turn, bool nari, bool chk) {
+        public int moveKoma(int ox, int oy, int nx, int ny, Pturn turn, bool nari, bool chk, bool renewMoveable) {
 
             //Span<int> renewMoveableList = stackalloc int[40];
             //int renewMoveableListNum = 0;
@@ -503,8 +503,10 @@ namespace TacoWin2 {
                 //置き駒情報・盤上情報を更新
                 putKoma(nx, ny, turn, (ktype)oy);
 
-                changeMoveable(nx, ny, -1);
-                chgMoveable(nx, ny, getOnBoardPturn(nx, ny), 1);
+                if (renewMoveable == true) {
+                    changeMoveableDir(nx, ny, -1);
+                    chgMoveable(nx, ny, getOnBoardPturn(nx, ny), 1);
+                }
 
                 //renewMoveableList[renewMoveableListNum++] = ox + oy * 9;
                 //renewMoveableLink(ox, oy, ref renewMoveableListNum, ref renewMoveableList);
@@ -518,22 +520,22 @@ namespace TacoWin2 {
                 if (onBoard[nx * 9 + ny] > 0) {
                     // 味方駒は取れない
                     if (chk) if (getOnBoardPturn(ox, oy) == getOnBoardPturn(nx, ny)) return -1;
-                    chgMoveable(nx, ny, getOnBoardPturn(nx, ny), -1);
+                    if (renewMoveable == true) chgMoveable(nx, ny, getOnBoardPturn(nx, ny), -1);
                     removeKoma(nx, getOnBoardPutPiece(nx, ny), (Pturn)pturn.aturn((int)turn), getOnBoardKtype(nx, ny));
 
                     // 追加
                     captPiece[(int)kNoNari(getOnBoardKtype(nx, ny)) - 1 + (int)getOnBoardPturn(ox, oy) * 7]++;
 
                 } else {
-                    changeMoveable(nx, ny, -1);
+                    //changeMoveableDir(nx, ny, -1);
                 }
 
                 // 成れる位置ではない
                 if (chk) if ((pturn.psX(getOnBoardPturn(ox, oy), nx) > 5) && (nari == true)) return -1;
 
-                ushort mk = onBoard[ox * 9 + oy];
+                ushort mk = 0;
 
-                chgMoveable(ox, oy, getOnBoardPturn(ox, oy), -1);
+                if (renewMoveable == true) chgMoveable(ox, oy, getOnBoardPturn(ox, oy), -1);
 
                 // 成り
                 if (nari) {
@@ -544,7 +546,7 @@ namespace TacoWin2 {
                             for (int i = 0; i < 30; i++) {
                                 if (putNarigoma[(int)turn * 30 + i] == 0xFF) {
                                     putNarigoma[(int)turn * 30 + i] = (byte)(nx * 9 + ny);
-                                    onBoard[nx * 9 + ny] = setOnBordDatat(turn, i, ktype.Tokin);
+                                    mk = setOnBordDatat(turn, i, ktype.Tokin);
                                     putNarigomaNum[(int)turn]++;
                                     break;
                                 }
@@ -556,7 +558,7 @@ namespace TacoWin2 {
                             for (int i = 0; i < 30; i++) {
                                 if (putNarigoma[(int)turn * 30 + i] == 0xFF) {
                                     putNarigoma[(int)turn * 30 + i] = (byte)(nx * 9 + ny);
-                                    onBoard[nx * 9 + ny] = setOnBordDatat(turn, i, ktype.Tokin);
+                                    mk = setOnBordDatat(turn, i, ktype.Narikyou);
                                     putNarigomaNum[(int)turn]++;
                                     break;
                                 }
@@ -567,7 +569,7 @@ namespace TacoWin2 {
                             for (int i = 0; i < 30; i++) {
                                 if (putNarigoma[(int)turn * 30 + i] == 0xFF) {
                                     putNarigoma[(int)turn * 30 + i] = (byte)(nx * 9 + ny);
-                                    onBoard[nx * 9 + ny] = setOnBordDatat(turn, i, ktype.Narikyou);
+                                    mk = setOnBordDatat(turn, i, ktype.Narikei);
                                     putNarigomaNum[(int)turn]++;
                                     break;
                                 }
@@ -578,30 +580,47 @@ namespace TacoWin2 {
                             for (int i = 0; i < 30; i++) {
                                 if (putNarigoma[(int)turn * 30 + i] == 0xFF) {
                                     putNarigoma[(int)turn * 30 + i] = (byte)(nx * 9 + ny);
-                                    onBoard[nx * 9 + ny] = setOnBordDatat(turn, i, ktype.Narigin);
+                                    mk = setOnBordDatat(turn, i, ktype.Narigin);
                                     putNarigomaNum[(int)turn]++;
                                     break;
                                 }
                             }
                             break;
                         default:
+                            moveKoma(nx, ny, getOnBoardPutPiece(ox, oy), turn, getOnBoardKtype(ox, oy));
+                            mk = setOnBordDatat(turn, getOnBoardPutPiece(ox, oy), kDoNari(getOnBoardKtype(ox, oy)));
                             break;
                     }
-                    mk = (ushort)(((mk >> 4) << 4) + (ushort)kDoNari(getOnBoardKtype(ox, oy)));
-                    onBoard[nx * 9 + ny] = mk;
                     onBoard[ox * 9 + oy] = 0;
-                    chgMoveable(nx, ny, getOnBoardPturn(nx, ny), 1);
+                    if (renewMoveable == true) {
+                        if (onBoard[nx * 9 + ny] == 0) {
+                            changeMoveableDir(nx, ny, -1);
+                        }
+                        changeMoveableDir(ox, oy, 1);
+                    }
+
+                    onBoard[nx * 9 + ny] = mk;
+
+                    if (renewMoveable == true) chgMoveable(nx, ny, getOnBoardPturn(nx, ny), 1);
 
                     // 不成or通常移動
                 } else {
                     moveKoma(nx, ny, getOnBoardPutPiece(ox, oy), turn, getOnBoardKtype(ox, oy));
-
-                    onBoard[nx * 9 + ny] = onBoard[ox * 9 + oy];
+                    mk = onBoard[ox * 9 + oy];
                     onBoard[ox * 9 + oy] = 0;
-                    chgMoveable(nx, ny, getOnBoardPturn(nx, ny), 1);
+                    if (renewMoveable == true) {
+                        if (onBoard[nx * 9 + ny] == 0) {
+                            changeMoveableDir(nx, ny, -1);
+                        }
+                        changeMoveableDir(ox, oy, 1);
+                    }
+
+                    onBoard[nx * 9 + ny] = mk;
+
+                    if (renewMoveable == true) chgMoveable(nx, ny, getOnBoardPturn(nx, ny), 1);
                 }
 
-                changeMoveable(ox, oy, 1);
+
 
             }
 
@@ -1118,8 +1137,8 @@ namespace TacoWin2 {
             for (int i = 0; i < 81; i++) {
                 if (onBoard[(i / 9) + (8 - i % 9) * 9] != 0) {
                     // 先手
-                    if (getOnBoardPturn(8 - i % 9,  (i / 9)) == Pturn.Sente) {
-                        switch (getOnBoardKtype(8 - i % 9,  (i / 9))) {
+                    if (getOnBoardPturn(8 - i % 9, (i / 9)) == Pturn.Sente) {
+                        switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
                             case ktype.Fuhyou:
                                 str += "P_|";
                                 break;
@@ -1167,7 +1186,7 @@ namespace TacoWin2 {
                                 break;
                         }
                     } else {
-                        switch (getOnBoardKtype(8 - i % 9,  (i / 9))) {
+                        switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
                             case ktype.Fuhyou:
                                 str += "p_|";
                                 break;
@@ -1223,7 +1242,7 @@ namespace TacoWin2 {
                     str += "    ";
                     // 移動可能リスト
                     for (int j = 8; j >= 0; j--) {
-                        str += /* "("+ i +","+j+")" + */ moveable[j + i - 8] + "," + moveable[81 + j + i - 8] + "|";
+                        str +=  /* "("+ j + ","+ ((i + 1)/9-1) + ")" + */ moveable[j * 9 + ((i + 1) / 9 - 1)] + "," + moveable[81 + j * 9 + ((i + 1) / 9 - 1)] + "|";
 
                     }
 

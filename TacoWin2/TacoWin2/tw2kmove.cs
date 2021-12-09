@@ -1,4 +1,6 @@
-﻿namespace TacoWin2 {
+﻿using System;
+
+namespace TacoWin2 {
     public struct kmove {
         public int op; // x + y * 10
         public int np; // x + y * 10
@@ -12,5 +14,8 @@
             turn = _turn;
         }
 
+        public static implicit operator kmove(int v) {
+            throw new NotImplementedException();
+        }
     }
 }
