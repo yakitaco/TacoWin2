@@ -7,7 +7,7 @@
 
         static mList() {
             for (int i = 0; i < 100; i++) {
-                ls[i] = new kmove[250];
+                ls[i] = new kmove[500];
             }
         }
 

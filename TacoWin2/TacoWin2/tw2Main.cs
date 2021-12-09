@@ -9,8 +9,8 @@ namespace TacoWin2 {
             tw2ai ai = new tw2ai();
 
             tw2ban ban;
-            ban.startpos();
-            Console.WriteLine(ban.debugShow());
+            //ban.startpos();
+            //Console.WriteLine(ban.debugShow());
             //ban.ForEachAll(Pturn.Sente, (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
             //    Console.Write("S({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
             //});
@@ -64,11 +64,12 @@ namespace TacoWin2 {
                         tw2usiIO.usi2pos(arr[tesuu + startStrPos], out ox, out oy, out nx, out ny, out nari);
 
                         Console.Write("MV({0},{1})->({2},{3})\n", ox + 1, oy + 1, nx + 1, ny + 1);
-                        ban.moveKoma(ox, oy, nx, ny, turn, nari, false);
+                        ban.moveKoma(ox, oy, nx, ny, turn, nari, false, false);
 
                         turn = (Pturn)pturn.aturn((int)turn);
 
                     }
+                    ban.renewMoveable();
 
                     Console.WriteLine(ban.debugShow());
 
@@ -77,7 +78,13 @@ namespace TacoWin2 {
 
                     //通常読み
                     if (arr[1] == "btime") {
-                        ai.RandomeMove(turn, ban);
+                        (kmove km, int best) = ai.RandomeMove(turn, ban);
+
+                        if (best < -500) {
+                            Console.WriteLine("bestmove resign");
+                        } else {
+                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km.op / 9, km.op % 9, km.np / 9, km.np % 9, km.nari));
+                        }
 
                         // 先読み
                     } else if (arr[1] == "ponder") {
