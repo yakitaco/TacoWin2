@@ -51,6 +51,10 @@
             return 1 - turn;
         }
 
+        public static Pturn aturn(Pturn turn) {
+            return 1 - turn;
+        }
+
     }
 
 }
