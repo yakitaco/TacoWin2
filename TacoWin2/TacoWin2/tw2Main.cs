@@ -23,7 +23,7 @@ namespace TacoWin2 {
 
                 // usi 起動
                 if ((str.Length == 3) && (str.Substring(0, 3) == "usi")) {
-                    Console.WriteLine("id name TACO WINNER 2.0");
+                    Console.WriteLine("id name たこウインナー 2.0.0");
                     Console.WriteLine("id authoer YAKITACO");
                     Console.WriteLine("option name BookFile type string default default.ytj");
                     Console.WriteLine("option name UseBook type check default true");
