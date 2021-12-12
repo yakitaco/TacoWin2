@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 
 namespace TacoWin2 {
@@ -7,6 +9,8 @@ namespace TacoWin2 {
             int tesuu = 0;
             Pturn turn = Pturn.Sente;
             tw2ai ai = new tw2ai();
+
+            Process thisProcess = System.Diagnostics.Process.GetCurrentProcess();
 
             tw2ban ban;
             //ban.startpos();
@@ -17,13 +21,13 @@ namespace TacoWin2 {
             //ban.ForEachAll(Pturn.Gote, (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
             //    Console.Write("G({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
             //});
-
+            Console.SetIn(new StreamReader(Console.OpenStandardInput(8192)));
             while (true) {
                 string str = Console.ReadLine();
 
                 // usi 起動
                 if ((str.Length == 3) && (str.Substring(0, 3) == "usi")) {
-                    Console.WriteLine("id name たこウインナー 2.0.0");
+                    Console.WriteLine("id name たこウインナー 2.1.0");
                     Console.WriteLine("id authoer YAKITACO");
                     Console.WriteLine("option name BookFile type string default default.ytj");
                     Console.WriteLine("option name UseBook type check default true");
@@ -78,12 +82,13 @@ namespace TacoWin2 {
 
                     //通常読み
                     if (arr[1] == "btime") {
-                        (kmove km, int best) = ai.RandomeMove(turn, ban);
-
-                        if (best < -500) {
+                        thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
+                        (kmove[] km, int best) = ai.thinkMove(turn, ban, 4);
+                        thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
+                        if (best < -5000) {
                             Console.WriteLine("bestmove resign");
                         } else {
-                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km.op / 9, km.op % 9, km.np / 9, km.np % 9, km.nari));
+                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
                         }
 
                         // 先読み
