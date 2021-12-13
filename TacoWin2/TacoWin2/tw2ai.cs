@@ -29,7 +29,7 @@ namespace TacoWin2 {
         1400,   //竜馬
     };
 
-    Random rnds = new System.Random();
+        Random rnds = new System.Random();
 
         // thread同時数
         static int workMin;
@@ -90,7 +90,7 @@ namespace TacoWin2 {
                             teCnt++;
                         }
                         mList.ls[cnt_local + 1][0] = mList.ls[0][cnt_local];
-                        int retval = think(pturn.aturn(turn), ban, ref mList.ls[cnt_local+1], 1, depth);
+                        int retval = think(pturn.aturn(turn), ban, ref mList.ls[cnt_local + 1], -99999, 99999, 0, 1, depth);
 
                         Console.Write("MV[{0}]({1},{2})->({3},{4})/({5},{6})->({7},{8})\n", retval,
                             mList.ls[cnt_local + 1][0].op / 9 + 1, mList.ls[cnt_local + 1][0].op % 9 + 1, mList.ls[cnt_local + 1][0].np / 9 + 1, mList.ls[cnt_local + 1][0].np % 9 + 1,
@@ -110,10 +110,8 @@ namespace TacoWin2 {
             return (bestmove, best);
         }
 
-        public int think(Pturn turn, tw2ban ban, ref kmove[] mList, int depth, int depMax) {
+        public int think(Pturn turn, tw2ban ban, ref kmove[] mList, int alpha, int beta, int pVal, int depth, int depMax) {
             int val = 0;
-
-
 
             int ln = 0;
             int best = -999999;
@@ -136,11 +134,15 @@ namespace TacoWin2 {
                     if (depth < depMax) {
                         kmove[] tmpList_ = new kmove[500];
                         tmpList_[0] = tmpList[i];
-                        _val = think(pturn.aturn(turn), ban, ref tmpList_, depth + 1, depMax);
-                        if (_val > best) {
-                            best = _val;
+                        _val = think(pturn.aturn(turn), ban, ref tmpList_, -beta, -alpha, val, depth + 1, depMax);
+                        if (best > alpha) {
+                            alpha = best;
                             mList[depth] = tmpList[i];
                         }
+                        if (best >= beta) {
+                            return best;
+                        }
+
                     } else {
 
 
