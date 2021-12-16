@@ -83,7 +83,7 @@ namespace TacoWin2 {
                     //通常読み
                     if (arr[1] == "btime") {
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-                        (kmove[] km, int best) = ai.thinkMove(turn, ban, 4);
+                        (kmove[] km, int best) = ai.thinkMove(turn, ban, 6);
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
                         if (best < -5000) {
                             Console.WriteLine("bestmove resign");
