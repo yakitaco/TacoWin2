@@ -11,7 +11,7 @@ namespace TacoWin2 {
     class tw2ai {
 
 
-        static int[] kVal = {
+        public static int[] kVal = {
         0,        //なし
         100,   //歩兵
         500,  //香車
@@ -48,21 +48,21 @@ namespace TacoWin2 {
             int best = -1000;
 
             unsafe {
-                int vla = ban.ForEachAll(turn, mList.ls[0]);
+                (int vla, int sp) = ban.ForEachAll(turn, mList.ls[0]);
                 for (int i = 0; i < vla; i++) {
                     int _rnd = rnds.Next(0, 100);
                     tw2ban tmps = ban;
-                    if ((tmps.moveable[pturn.aturn((int)turn) * 81 + mList.ls[0][i].np] >= tmps.moveable[(int)turn * 81 + mList.ls[0][i].np])) {
+                    if ((tmps.moveable[pturn.aturn((int)turn) * 81 + mList.ls[0][sp+i].np] >= tmps.moveable[(int)turn * 81 + mList.ls[0][sp + i].np])) {
                         _rnd -= 50;
                     }
-                    if (tmps.onBoard[mList.ls[0][i].np] > 0) {
+                    if (tmps.onBoard[mList.ls[0][sp + i].np] > 0) {
                         _rnd += 100;
                     }
-                    tmps.moveKoma(mList.ls[0][i].op / 9, mList.ls[0][i].op % 9, mList.ls[0][i].np / 9, mList.ls[0][i].np % 9, mList.ls[0][i].turn, mList.ls[0][i].nari, false, true);
-                    if (tmps.moveable[pturn.aturn((int)turn) * 81 + tmps.putOusyou[(int)mList.ls[0][i].turn]] > 0) _rnd -= 900;
+                    tmps.moveKoma(mList.ls[0][sp + i].op / 9, mList.ls[0][i].op % 9, mList.ls[0][sp + i].np / 9, mList.ls[0][sp + i].np % 9, mList.ls[0][sp + i].turn, mList.ls[0][sp + i].nari, false, true);
+                    if (tmps.moveable[pturn.aturn((int)turn) * 81 + tmps.putOusyou[(int)mList.ls[0][sp + i].turn]] > 0) _rnd -= 900;
                     if (_rnd > best) {
                         best = _rnd;
-                        ln = i;
+                        ln = sp + i;
                     }
                 }
             }
@@ -81,7 +81,7 @@ namespace TacoWin2 {
             Object lockObj = new Object();
 
             unsafe {
-                int vla = ban.ForEachAll(turn, mList.ls[0]);
+                (int vla, int sp) = ban.ForEachAll(turn, mList.ls[0]);
 
                 Parallel.For(0, workMin, id => {
                     int cnt_local;
@@ -93,10 +93,10 @@ namespace TacoWin2 {
                             cnt_local = teCnt;
                             teCnt++;
                         }
-                        mList.ls[cnt_local + 1][0] = mList.ls[0][cnt_local];
+                        mList.ls[cnt_local + 1][0] = mList.ls[0][sp + cnt_local];
                         int retval = -think(pturn.aturn(turn), ban, ref mList.ls[cnt_local + 1], -beta, -alpha, 0, 1, depth);
 
-                        Console.Write("TASK[{0}:{1}]MV[{2}]({3},{4})->({5},{6})/({7},{8})->({9},{10})\n", Task.CurrentId, cnt_local,retval,
+                        Console.Write("TASK[{0}:{1}]MV[{2}]({3},{4})->({5},{6})/({7},{8})->({9},{10})\n", Task.CurrentId, sp + cnt_local, retval,
                             mList.ls[cnt_local + 1][0].op / 9 + 1, mList.ls[cnt_local + 1][0].op % 9 + 1, mList.ls[cnt_local + 1][0].np / 9 + 1, mList.ls[cnt_local + 1][0].np % 9 + 1,
                             mList.ls[cnt_local + 1][1].op / 9 + 1, mList.ls[cnt_local + 1][1].op % 9 + 1, mList.ls[cnt_local + 1][1].np / 9 + 1, mList.ls[cnt_local + 1][1].np % 9 + 1);
 
@@ -138,17 +138,17 @@ namespace TacoWin2 {
                 // 持ち駒がある
                 // どこかに打つ
                 kmove[] tmpList = new kmove[500];
-                int vla = ban.ForEachAll(turn, tmpList);
+                (int vla, int sp) = ban.ForEachAll(turn, tmpList);
                 int _val = 0;
                 for (int i = 0; i < vla; i++) {
 
                     if (depth < depMax) {
                         kmove[] tmpList_ = new kmove[500];
-                        tmpList_[0] = tmpList[i];
+                        tmpList_[0] = tmpList[sp+i];
                         _val = -think(pturn.aturn(turn), ban, ref tmpList_, -beta, -alpha, val, depth + 1, depMax);
                         if (_val > best) {
                             best = _val;
-                            mList[depth] = tmpList[i];
+                            mList[depth] = tmpList[sp + i];
                             if (best > alpha) {
                                 alpha = best;
                                 //mList[depth] = tmpList[i];
@@ -159,28 +159,29 @@ namespace TacoWin2 {
                         }
                     } else {
 
-
-                        tw2ban tmps = ban;
-                        if (ban.onBoard[tmpList[i].np] > 0) {
-                            //if (depth % 2 == 1) {
-                                _val = kVal[(int)ban.getOnBoardKtype(tmpList[i].np / 9, tmpList[i].np % 9)] - pVal;
-                            //} else {
-                            //    _val = val - kVal[(int)ban.getOnBoardKtype(tmpList[i].np / 9, tmpList[i].np % 9)];
-                            //}
-                            //Console.Write("kVal({0},{1})={2}\n", tmpList[i].np / 9, tmpList[i].np % 9, _val);
-                        } else {
-                            //if (depth % 2 == 1) {
-                                _val = -pVal;
-                            //} else {
-                            //    _val = val;
-                            //}
-                        }
-                        tmps.moveKoma(tmpList[i].op / 9, tmpList[i].op % 9, tmpList[i].np / 9, tmpList[i].np % 9, tmpList[i].turn, tmpList[i].nari, false, true);
-                        //if (tmps.moveable[pturn.aturn((int)turn) * 81 + tmps.putOusyou[(int)tmpList[i].turn]] > 0) _val -= 99999;
-                        if (_val > best) {
-                            best = _val;
-                            mList[depth] = tmpList[i];
-                        }
+                        best = val - tmpList[sp].val;
+                        mList[depth] = tmpList[sp];
+                        //tw2ban tmps = ban;
+                        //if (ban.onBoard[tmpList[i].np] > 0) {
+                        //    //if (depth % 2 == 1) {
+                        //        _val = kVal[(int)ban.getOnBoardKtype(tmpList[i].np / 9, tmpList[i].np % 9)] - pVal;
+                        //    //} else {
+                        //    //    _val = val - kVal[(int)ban.getOnBoardKtype(tmpList[i].np / 9, tmpList[i].np % 9)];
+                        //    //}
+                        //    //Console.Write("kVal({0},{1})={2}\n", tmpList[i].np / 9, tmpList[i].np % 9, _val);
+                        //} else {
+                        //    //if (depth % 2 == 1) {
+                        //        _val = -pVal;
+                        //    //} else {
+                        //    //    _val = val;
+                        //    //}
+                        //}
+                        //tmps.moveKoma(tmpList[i].op / 9, tmpList[i].op % 9, tmpList[i].np / 9, tmpList[i].np % 9, tmpList[i].turn, tmpList[i].nari, false, true);
+                        ////if (tmps.moveable[pturn.aturn((int)turn) * 81 + tmps.putOusyou[(int)tmpList[i].turn]] > 0) _val -= 99999;
+                        //if (_val > best) {
+                        //    best = _val;
+                        //    mList[depth] = tmpList[i];
+                        //}
 
                     }
 
