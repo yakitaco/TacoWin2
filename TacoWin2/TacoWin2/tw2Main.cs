@@ -40,7 +40,7 @@ namespace TacoWin2 {
 
                     //usinewgame 新規
                 } else if ((str.Length == 10) && (str.Substring(0, 10) == "usinewgame")) {
-                    // 何もしない
+                    tw2stval.reset();
 
                     // position 盤面情報
                 } else if ((str.Length > 7) && (str.Substring(0, 8) == "position")) {
@@ -83,7 +83,7 @@ namespace TacoWin2 {
                     //通常読み
                     if (arr[1] == "btime") {
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-                        (kmove[] km, int best) = ai.thinkMove(turn, ban, 6);
+                        (kmove[] km, int best) = ai.thinkMove(turn, ban, 4);
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
                         if (best < -5000) {
                             Console.WriteLine("bestmove resign");
@@ -97,7 +97,7 @@ namespace TacoWin2 {
 
                     }
 
-                    } else {
+                } else {
 
                 }
 
