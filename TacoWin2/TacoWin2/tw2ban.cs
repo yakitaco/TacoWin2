@@ -1128,10 +1128,10 @@ namespace TacoWin2 {
                             val = tw2ai.kVal[(int)getOnBoardKtype(nx, ny)] + 250;
                         }
                         if (val >= kmv[startPoint].val) {
-                            kmv[--startPoint].set(ox * 9 + oy, nx * 9 + ny, val, false, turn);
+                            kmv[--startPoint].set(ox * 9 + oy, nx * 9 + ny, val, true, turn);
                             kCnt++;
                         } else {
-                            kmv[startPoint + kCnt++].set(ox * 9 + oy, nx * 9 + ny, val, false, turn);
+                            kmv[startPoint + kCnt++].set(ox * 9 + oy, nx * 9 + ny, val, true, turn);
                         }
                     } else {
 

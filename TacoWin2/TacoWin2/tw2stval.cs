@@ -127,7 +127,7 @@ namespace TacoWin2 {
                                 setType(OPLIST.MIGICHIKATETU, (int)Pturn.Sente, 0);
                                 break;
                             case 1:    // 2筋 (居飛車？)
-                                if ((ban.putFuhyou[1] < 6)||(ban.putFuhyou[1] == 9)) setType(OPLIST.IBISYA, (int)Pturn.Sente, 0);
+                                if ((ban.putFuhyou[1] < 6) || (ban.putFuhyou[1] == 9)) setType(OPLIST.IBISYA, (int)Pturn.Sente, 0);
                                 break;
                             case 2:    // 3筋 (袖飛車？)
                                 if ((ban.putFuhyou[2] < 6) || (ban.putFuhyou[2] == 9)) setType(OPLIST.SODEBISYA, (int)Pturn.Sente, 0);
@@ -153,7 +153,7 @@ namespace TacoWin2 {
                         }
                     }
 
-                    hisya_x = ban.putHisya[(int)Pturn.Gote];
+                    hisya_x = ban.putHisya[(int)Pturn.Gote * 2];
                     if (hisya_x != 0xFF) {
                         switch (hisya_x / 9) {
                             case 8:    // 1筋 (右地下鉄？)
@@ -223,6 +223,7 @@ namespace TacoWin2 {
         public static int get(ktype type, int nx, int ny, int ox, int oy, int turn) {
             if (stage == 0) {
                 if (turn == (int)Pturn.Sente) {
+                    Console.WriteLine("VAL[=" + mV[senTeNum].val[(int)type - 1, ny, 8 - nx] +"-"+ mV[senTeNum].val[(int)type - 1, oy, 8 - ox] +  "/" + nx + "," + ny + "/" + ox + "," + oy + "/" + (int)type);
                     return mV[senTeNum].val[(int)type - 1, ny, 8 - nx] - mV[senTeNum].val[(int)type - 1, oy, 8 - ox];
                 } else {
                     return mV[goTeNum].val[(int)type - 1, 8 - ny, nx] - mV[goTeNum].val[(int)type - 1, 8 - oy, ox];

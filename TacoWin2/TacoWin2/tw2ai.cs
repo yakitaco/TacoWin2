@@ -129,12 +129,12 @@ namespace TacoWin2 {
             unsafe {
 
                 /* ひとつ前の駒移動 */
-                if (ban.onBoard[mList[0].np] > 0) {
+                if ((ban.onBoard[mList[0].np] > 0)) {
                     val += - kVal[(int)ban.getOnBoardKtype(mList[0].np / 9, mList[0].np % 9)] - tw2stval.get(ban.getOnBoardKtype(mList[0].op / 9, mList[0].op % 9), mList[0].np / 9, mList[0].np % 9, mList[0].op / 9, mList[0].op % 9, (int)turn);
                     //Console.Write("kVal[{0}]{1}", val, (int)ban.getOnBoardKtype(mList[0].np / 9, mList[0].np % 9));
                     if (val < -5000) return val;
-                } else if ( mList[0].op < 9 ) {
-                    val +=  -tw2stval.get(ban.getOnBoardKtype(mList[0].op / 9, mList[0].op % 9), mList[0].np / 9, mList[0].np % 9, mList[0].op / 9, mList[0].op % 9, (int)turn);
+                } else if ( ((mList[0].op / 9) < 9 )) {
+                    val +=  -tw2stval.get(ban.getOnBoardKtype(mList[0].op / 9, mList[0].op % 9), mList[0].np / 9, mList[0].np % 9, mList[0].op / 9, mList[0].op % 9, (int)pturn.aturn(turn));
                 }
                 ban.moveKoma(mList[0].op / 9, mList[0].op % 9, mList[0].np / 9, mList[0].np % 9, mList[0].turn, mList[0].nari, false, true);
 
