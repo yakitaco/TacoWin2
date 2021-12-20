@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28803.352
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TacoWin2", "TacoWin2\TacoWin2.csproj", "{A04D5FAC-8961-4307-9932-014CF093AF4B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TacoWin2", "TacoWin2\TacoWin2.csproj", "{A04D5FAC-8961-4307-9932-014CF093AF4B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TacoWin2_SMV", "TacoWin2_SMV\TacoWin2_SMV.csproj", "{7F99664E-B95E-4554-BB41-F84A762FB70B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{A04D5FAC-8961-4307-9932-014CF093AF4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A04D5FAC-8961-4307-9932-014CF093AF4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A04D5FAC-8961-4307-9932-014CF093AF4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F99664E-B95E-4554-BB41-F84A762FB70B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F99664E-B95E-4554-BB41-F84A762FB70B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F99664E-B95E-4554-BB41-F84A762FB70B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F99664E-B95E-4554-BB41-F84A762FB70B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
