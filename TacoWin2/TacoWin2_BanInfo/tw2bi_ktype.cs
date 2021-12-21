@@ -1,5 +1,9 @@
-﻿namespace TacoWin2 {
-    public enum ktype7 : byte {
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace TacoWin2_BanInfo {
+    public enum ktype : byte {
         None = 0x00,     //なし
         Fuhyou = 0x01,   //歩兵
         Kyousha = 0x02,  //香車

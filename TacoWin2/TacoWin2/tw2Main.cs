@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using TacoWin2_SMV;
 
 namespace TacoWin2 {
     class tw2Main {
@@ -22,6 +23,9 @@ namespace TacoWin2 {
             //    Console.Write("G({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
             //});
             Console.SetIn(new StreamReader(Console.OpenStandardInput(8192)));
+
+            sMove.load("s.txt");
+
             while (true) {
                 string str = Console.ReadLine();
 

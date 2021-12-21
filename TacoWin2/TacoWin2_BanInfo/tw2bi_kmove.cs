@@ -1,8 +1,9 @@
 ﻿using System;
-using TacoWin2_BanInfo;
+using System.Collections.Generic;
+using System.Text;
 
-namespace TacoWin2 {
-    public struct kmo3ve {
+namespace TacoWin2_BanInfo {
+    public struct kmove {
         public int op;  // x + y * 10
         public int np;  // x + y * 10
         public int val; // 相対価値
