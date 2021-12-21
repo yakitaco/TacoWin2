@@ -1,10 +1,7 @@
 ﻿using System;
-using TacoWin2_BanInfo;
 
-namespace TacoWin2 {
-
-    //1局面での将棋盤情報
-    public unsafe struct tw2ban {
+namespace TacoWin2_BanInfo {
+    public unsafe struct ban {
         public fixed ushort onBoard[81]; // 盤上情報(X*9+Y)
         // WWWWWWWW000XYYYY [X]0:先手/1:後手 [Y]enum ktype [W]置き駒情報
 
@@ -781,9 +778,9 @@ namespace TacoWin2 {
             return 0;
         }
 
-        void renewMoveableLink(int x, int y, ref int num, ref Span<int> list) {
-
-        }
+        //void renewMoveableLink(int x, int y, ref int num, ref Span<int> list) {
+        //
+        //}
 
         // 処理軽減のためチェック省略
         public ktype kDoNari(ktype t) {
@@ -1306,6 +1303,6 @@ namespace TacoWin2 {
             return str;
         }
 
-    }
 
+    }
 }

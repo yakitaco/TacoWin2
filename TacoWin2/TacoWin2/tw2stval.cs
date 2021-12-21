@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using TacoWin2_BanInfo;
 
 namespace TacoWin2 {
 
