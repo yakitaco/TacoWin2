@@ -28,6 +28,8 @@ namespace TacoWin2_BanInfo {
             }
         }
 
+
+
         // turn考慮移動(X) moval +右 -左
         public static int mvX(Pturn t, int x, int moval) {
             if (t == Pturn.Sente) {
@@ -49,6 +51,15 @@ namespace TacoWin2_BanInfo {
         // 前後の移動
         public static (int, int) mvXY(Pturn t, int x, int y, int movalx, int movaly) {
             return (mvX(t, x, movalx), mvY(t, y, movaly));
+        }
+
+        // 前後の移動(XY統合)[pos=x*9+y/move=movalx*9+movaly]
+        public static int mvXY(Pturn t, int pos, int move) {
+            if (t == Pturn.Sente) {
+                return pos - move;
+            } else {
+                return pos + move;
+            }
         }
 
         public static int aturn(int turn) {

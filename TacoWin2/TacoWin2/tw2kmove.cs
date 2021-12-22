@@ -2,7 +2,7 @@
 using TacoWin2_BanInfo;
 
 namespace TacoWin2 {
-    public struct kmo3ve {
+    public struct kmove {
         public int op;  // x + y * 10
         public int np;  // x + y * 10
         public int val; // 相対価値

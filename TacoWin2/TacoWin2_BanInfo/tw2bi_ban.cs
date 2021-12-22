@@ -625,14 +625,23 @@ namespace TacoWin2_BanInfo {
             return 0;
         }
 
-        // 盤上情報上の駒情報を取得
+        // 盤上情報上の駒情報を取得**将来廃止
         public ktype getOnBoardKtype(int x, int y) {
             return (ktype)(onBoard[x * 9 + y] & 0x0F);
         }
 
-        // 盤上情報上の駒所有者を取得
+        // 盤上情報上の駒情報を取得
+        public ktype getOnBoardKtype(int pos) {
+            return (ktype)(onBoard[pos] & 0x0F);
+        }
+
+        // 盤上情報上の駒所有者を取得**将来廃止
         public Pturn getOnBoardPturn(int x, int y) {
             return (Pturn)((onBoard[x * 9 + y] & 0xF0) >> 4);
+        }
+
+        public Pturn getOnBoardPturn(int pos) {
+            return (Pturn)((onBoard[pos] & 0xF0) >> 4);
         }
 
         // 盤上情報上の置き駒情報を取得
@@ -897,272 +906,6 @@ namespace TacoWin2_BanInfo {
             } else {
                 return 0; // 駒がない
             }
-        }
-
-        // 全駒の移動可能位置を返す
-        public (int, int) ForEachAll(Pturn turn, kmove[] kmv) {
-            int startPoint = 100;
-            int kCnt = 0;
-            // 駒移動
-
-            // 王将
-            if (putOusyou[(int)turn] != 0xFF) {
-                ForEachKoma(putOusyou[(int)turn] / 9, putOusyou[(int)turn] % 9, turn, kmv, ref kCnt, ref startPoint);
-            }
-
-            // 歩兵
-            for (int i = 0; i < 9; i++) {
-                if (putFuhyou[(int)turn * 9 + i] != 9) {
-                    ForEachKoma(i, putFuhyou[(int)turn * 9 + i], turn, kmv, ref kCnt, ref startPoint);
-                }
-            }
-
-            // 香車
-            for (int i = 0; i < 4; i++) {
-                if (putKyousha[(int)turn * 4 + i] != 0xFF) {
-                    ForEachKoma(putKyousha[(int)turn * 4 + i] / 9, putKyousha[(int)turn * 4 + i] % 9, turn, kmv, ref kCnt, ref startPoint);
-                }
-            }
-
-            // 桂馬
-            for (int i = 0; i < 4; i++) {
-                if (putKeima[(int)turn * 4 + i] != 0xFF) {
-                    ForEachKoma(putKeima[(int)turn * 4 + i] / 9, putKeima[(int)turn * 4 + i] % 9, turn, kmv, ref kCnt, ref startPoint);
-                }
-            }
-
-            // 銀将
-            for (int i = 0; i < 4; i++) {
-                if (putGinsyou[(int)turn * 4 + i] != 0xFF) {
-                    ForEachKoma(putGinsyou[(int)turn * 4 + i] / 9, putGinsyou[(int)turn * 4 + i] % 9, turn, kmv, ref kCnt, ref startPoint);
-                }
-            }
-
-            // 飛車
-            for (int i = 0; i < 2; i++) {
-                if (putHisya[(int)turn * 2 + i] != 0xFF) {
-                    ForEachKoma(putHisya[(int)turn * 2 + i] / 9, putHisya[(int)turn * 2 + i] % 9, turn, kmv, ref kCnt, ref startPoint);
-                }
-            }
-
-            // 角行
-            for (int i = 0; i < 2; i++) {
-                if (putKakugyou[(int)turn * 2 + i] != 0xFF) {
-                    ForEachKoma(putKakugyou[(int)turn * 2 + i] / 9, putKakugyou[(int)turn * 2 + i] % 9, turn, kmv, ref kCnt, ref startPoint);
-                }
-            }
-
-            // 金将
-            for (int i = 0; i < 4; i++) {
-                if (putKinsyou[(int)turn * 4 + i] != 0xFF) {
-                    ForEachKoma(putKinsyou[(int)turn * 4 + i] / 9, putKinsyou[(int)turn * 4 + i] % 9, turn, kmv, ref kCnt, ref startPoint);
-                }
-            }
-
-            // 成駒
-            for (int i = 0, j = 0; j < putNarigomaNum[(int)turn]; i++) {
-                if (putNarigoma[(int)turn * 30 + i] != 0xFF) {
-                    ForEachKoma(putNarigoma[(int)turn * 30 + i] / 9, putNarigoma[(int)turn * 30 + i] % 9, turn, kmv, ref kCnt, ref startPoint);
-                    j++;
-                }
-            }
-
-            // 駒打ち
-            for (int i = 0; i < 7; i++) {
-                if (captPiece[(int)turn * 7 + i] > 0) {
-                    ForEachKoma(9, i + 1, turn, kmv, ref kCnt, ref startPoint);
-                }
-            }
-            return (kCnt, startPoint);
-        }
-
-        // 指定駒の移動位置を返す
-        public void ForEachKoma(int ox, int oy, Pturn turn, kmove[] kmv, ref int kCnt, ref int startPoint) {
-            // 駒打ち
-            if (ox == 9) {
-                for (int i = 0; i < 9; i++) {
-
-                    // 二歩は打てない
-                    if ((oy == (int)ktype.Fuhyou) && (putFuhyou[(int)turn * 9 + i] < 9)) {
-                        continue;
-
-                    }
-                    for (int j = 0; j < 9; j++) {
-                        // 1段目には打てない
-                        if (((oy == (int)ktype.Fuhyou) || (oy == (int)ktype.Kyousha)) && (pturn.psX(turn, j) > 7)) {
-                            continue;
-                            // 2段目には打てない
-                        } else if ((oy == (int)ktype.Keima) && (pturn.psX(turn, j) > 6)) {
-                            continue;
-                        }
-                        // 駒があると打てない
-                        if (onBoard[i * 9 + j] > 0) {
-                            continue;
-                        }
-
-                        kmv[startPoint + kCnt++].set(ox * 9 + oy, i * 9 + j, 0, false, turn);
-                    }
-                }
-
-                // 移動
-            } else {
-
-                switch (getOnBoardKtype(ox, oy)) {
-                    case ktype.Fuhyou:
-                        //action(ox, oy, ox, ptuen.mvY(getOnBoardPturn(ox, oy), oy, 1), turn, false);
-                        ForEachKomaContMove(ox, oy, 0, 1, turn, kmv, ref kCnt, ref startPoint);
-                        break;
-
-                    case ktype.Kyousha:
-                        for (int i = 1; ForEachKomaContMove(ox, oy, 0, i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        break;
-
-                    case ktype.Keima:
-                        ForEachKomaContMove(ox, oy, 1, 2, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, -1, 2, turn, kmv, ref kCnt, ref startPoint);
-                        break;
-
-                    case ktype.Ginsyou:
-                        ForEachKomaContMove(ox, oy, 1, 1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, 0, 1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, -1, 1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, 1, -1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, -1, -1, turn, kmv, ref kCnt, ref startPoint);
-                        break;
-
-                    case ktype.Hisya:
-                        for (int i = 1; ForEachKomaContMove(ox, oy, 0, i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        for (int i = 1; ForEachKomaContMove(ox, oy, 0, -i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        for (int i = 1; ForEachKomaContMove(ox, oy, i, 0, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        for (int i = 1; ForEachKomaContMove(ox, oy, -i, 0, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        break;
-
-                    case ktype.Kakugyou:
-                        for (int i = 1; ForEachKomaContMove(ox, oy, i, i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        for (int i = 1; ForEachKomaContMove(ox, oy, i, -i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        for (int i = 1; ForEachKomaContMove(ox, oy, -i, i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        for (int i = 1; ForEachKomaContMove(ox, oy, -i, -i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        break;
-
-                    case ktype.Kinsyou:
-                    case ktype.Tokin:
-                    case ktype.Narikyou:
-                    case ktype.Narikei:
-                    case ktype.Narigin:
-                        ForEachKomaContMove(ox, oy, 1, 1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, 0, 1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, -1, 1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, 1, 0, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, -1, 0, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, 0, -1, turn, kmv, ref kCnt, ref startPoint);
-                        break;
-
-                    case ktype.Ousyou:
-                        ForEachKomaContMove(ox, oy, 1, 1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, 0, 1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, -1, 1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, 1, 0, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, -1, 0, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, 1, -1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, 0, -1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, -1, -1, turn, kmv, ref kCnt, ref startPoint);
-                        break;
-
-                    case ktype.Ryuuou:
-                        ForEachKomaContMove(ox, oy, 1, 1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, -1, 1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, 1, -1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, -1, -1, turn, kmv, ref kCnt, ref startPoint);
-                        for (int i = 1; ForEachKomaContMove(ox, oy, 0, i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        for (int i = 1; ForEachKomaContMove(ox, oy, 0, -i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        for (int i = 1; ForEachKomaContMove(ox, oy, i, 0, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        for (int i = 1; ForEachKomaContMove(ox, oy, -i, 0, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        break;
-
-                    case ktype.Ryuuma:
-                        ForEachKomaContMove(ox, oy, 0, 1, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, 1, 0, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, -1, 0, turn, kmv, ref kCnt, ref startPoint);
-                        ForEachKomaContMove(ox, oy, 0, -1, turn, kmv, ref kCnt, ref startPoint);
-                        for (int i = 1; ForEachKomaContMove(ox, oy, i, i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        for (int i = 1; ForEachKomaContMove(ox, oy, i, -i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        for (int i = 1; ForEachKomaContMove(ox, oy, -i, i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        for (int i = 1; ForEachKomaContMove(ox, oy, -i, -i, turn, kmv, ref kCnt, ref startPoint) < 1; i++) ;
-                        break;
-
-                    default:
-                        break;
-                }
-            }
-        }
-
-        //指定移動先(mx,my)
-        //移動できる 0 / 移動できる(敵駒取り) 1 / 移動できない(味方駒) 2 / 移動できない 3(範囲外)
-        public int ForEachKomaContMove(int ox, int oy, int mx, int my, Pturn turn, kmove[] kmv, ref int kCnt, ref int startPoint) {
-            int nx = pturn.mvX(turn, ox, mx);
-            int ny = pturn.mvY(turn, oy, my);
-            int val;
-            if ((nx < 0) || (nx > 8) || (ny < 0) || (ny > 8)) return 3;
-            if (onBoard[nx * 9 + ny] > 0) {
-                if (getOnBoardPturn(nx, ny) != turn) {
-                    if ((pturn.psY(turn, ny) > 5) && ((int)getOnBoardKtype(ox, oy) < 7)) {
-                        if ((getOnBoardKtype(ox, oy) == ktype.Ginsyou) || ((getOnBoardKtype(ox, oy) == ktype.Kyousha) && (pturn.psY(turn, ny) < 8)) || ((getOnBoardKtype(ox, oy) == ktype.Kyousha) && (pturn.psY(turn, ny) < 7))) {
-
-                            if (moveable[pturn.aturn((int)turn) * 81 + nx * 9 + ny] > 0) {
-                                val = tw2ai.kVal[(int)getOnBoardKtype(nx, ny)] - tw2ai.kVal[(int)getOnBoardKtype(ox, oy)];
-                            } else {
-                                val = tw2ai.kVal[(int)getOnBoardKtype(nx, ny)];
-                            }
-                            if (val >= kmv[startPoint].val) {
-                                kmv[--startPoint].set(ox * 9 + oy, nx * 9 + ny, val, false, turn);
-                                kCnt++;
-                            } else {
-                                kmv[startPoint + kCnt++].set(ox * 9 + oy, nx * 9 + ny, val, false, turn);
-                            }
-                        }
-                        if (moveable[pturn.aturn((int)turn) * 81 + nx * 9 + ny] > 0) {
-                            val = tw2ai.kVal[(int)getOnBoardKtype(nx, ny)] - tw2ai.kVal[(int)getOnBoardKtype(ox, oy)] + 250;
-                        } else {
-                            val = tw2ai.kVal[(int)getOnBoardKtype(nx, ny)] + 250;
-                        }
-                        if (val >= kmv[startPoint].val) {
-                            kmv[--startPoint].set(ox * 9 + oy, nx * 9 + ny, val, true, turn);
-                            kCnt++;
-                        } else {
-                            kmv[startPoint + kCnt++].set(ox * 9 + oy, nx * 9 + ny, val, true, turn);
-                        }
-                    } else {
-
-                        if (moveable[pturn.aturn((int)turn) * 81 + nx * 9 + ny] > 0) {
-                            val = tw2ai.kVal[(int)getOnBoardKtype(nx, ny)] - tw2ai.kVal[(int)getOnBoardKtype(ox, oy)];
-                        } else {
-                            val = tw2ai.kVal[(int)getOnBoardKtype(nx, ny)];
-                        }
-                        if (val >= kmv[startPoint].val) {
-                            kmv[--startPoint].set(ox * 9 + oy, nx * 9 + ny, val, false, turn);
-                            kCnt++;
-                        } else {
-                            kmv[startPoint + kCnt++].set(ox * 9 + oy, nx * 9 + ny, val, false, turn);
-                        }
-
-
-                    }
-
-                    return 1; // 敵の駒(取れる)
-                } else {
-                    return 2; // 味方の駒
-                }
-
-            }
-            if ((pturn.psY(turn, ny) > 5) && ((int)getOnBoardKtype(ox, oy) < 7)) {
-                if ((getOnBoardKtype(ox, oy) == ktype.Ginsyou) || ((getOnBoardKtype(ox, oy) == ktype.Kyousha) && (pturn.psY(turn, ny) < 8)) || ((getOnBoardKtype(ox, oy) == ktype.Kyousha) && (pturn.psY(turn, ny) < 7))) {
-                    kmv[startPoint + kCnt++].set(ox * 9 + oy, nx * 9 + ny, 250, false, turn);
-                }
-                kmv[startPoint + kCnt++].set(ox * 9 + oy, nx * 9 + ny, 0, true, turn);
-            } else {
-                kmv[startPoint + kCnt++].set(ox * 9 + oy, nx * 9 + ny, 0, false, turn);
-            }
-            return 0; // 駒がない
         }
 
         // ban情報のデバッグ表示

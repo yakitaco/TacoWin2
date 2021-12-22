@@ -116,7 +116,7 @@ namespace TacoWin2 {
 
 
         // 局面のチェック★暫定版
-        public static void tmpChk(tw2ban ban) {
+        public static void tmpChk(ban ban) {
             unsafe {
                 //序盤のみ
                 if (stage == 0) {
@@ -224,7 +224,7 @@ namespace TacoWin2 {
         public static int get(ktype type, int nx, int ny, int ox, int oy, int turn) {
             if (stage == 0) {
                 if (turn == (int)Pturn.Sente) {
-                    Console.WriteLine("VAL[=" + mV[senTeNum].val[(int)type - 1, ny, 8 - nx] +"-"+ mV[senTeNum].val[(int)type - 1, oy, 8 - ox] +  "/" + nx + "," + ny + "/" + ox + "," + oy + "/" + (int)type);
+                    //Console.WriteLine("VAL[=" + mV[senTeNum].val[(int)type - 1, ny, 8 - nx] +"-"+ mV[senTeNum].val[(int)type - 1, oy, 8 - ox] +  "/" + nx + "," + ny + "/" + ox + "," + oy + "/" + (int)type);
                     return mV[senTeNum].val[(int)type - 1, ny, 8 - nx] - mV[senTeNum].val[(int)type - 1, oy, 8 - ox];
                 } else {
                     return mV[goTeNum].val[(int)type - 1, 8 - ny, nx] - mV[goTeNum].val[(int)type - 1, 8 - oy, ox];
