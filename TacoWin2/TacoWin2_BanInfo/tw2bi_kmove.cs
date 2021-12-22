@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace TacoWin2_BanInfo {
-    public struct kmove {
+    public struct kmsove {
         public int op;  // x + y * 10
         public int np;  // x + y * 10
         public int val; // 相対価値
@@ -17,11 +17,6 @@ namespace TacoWin2_BanInfo {
             nari = _nari;
             turn = _turn;
         }
-
-        public static implicit operator kmove(int v) {
-            throw new NotImplementedException();
-        }
-
 
     }
 }

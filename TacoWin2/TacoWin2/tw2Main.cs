@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using TacoWin2_BanInfo;
 using TacoWin2_SMV;
 
 namespace TacoWin2 {
@@ -11,9 +12,11 @@ namespace TacoWin2 {
             Pturn turn = Pturn.Sente;
             tw2ai ai = new tw2ai();
 
+            var sw = new System.Diagnostics.Stopwatch();  // 時間計測用
+
             Process thisProcess = System.Diagnostics.Process.GetCurrentProcess();
 
-            tw2ban ban;
+            ban ban = new ban();
             //ban.startpos();
             //Console.WriteLine(ban.debugShow());
             //ban.ForEachAll(Pturn.Sente, (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
@@ -51,7 +54,7 @@ namespace TacoWin2 {
                     string[] arr = str.Split(' ');
                     int startStrPos = 0;
                     turn = Pturn.Sente;
-                    ban = new tw2ban();
+                    ban = new ban();
 
                     // 平手
                     if (arr[1] == "startpos") {
@@ -87,18 +90,31 @@ namespace TacoWin2 {
                     //通常読み
                     if (arr[1] == "btime") {
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-                        (kmove[] km, int best) = ai.thinkMove(turn, ban, 4);
+                        sw.Restart();
+                        (kmove[] km, int best) = ai.thinkMove(turn, ban, 6);
+                        sw.Stop();
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
                         if (best < -5000) {
                             Console.WriteLine("bestmove resign");
                         } else {
                             Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
                         }
+                        TimeSpan ts = sw.Elapsed;
+                        Console.WriteLine($"　{ts}");
+
+                        // 最後にメモリ初期化
+                        mList.reset();
 
                         // 先読み
                     } else if (arr[1] == "ponder") {
 
 
+
+
+
+
+                        // 最後にメモリ初期化
+                        mList.reset();
                     }
 
                 } else {

@@ -4,7 +4,7 @@ using TacoWin2_BanInfo;
 namespace TacoWin2 {
 
     //1局面での将棋盤情報
-    public unsafe struct tw2ban {
+    public unsafe struct tw24ban {
         public fixed ushort onBoard[81]; // 盤上情報(X*9+Y)
         // WWWWWWWW000XYYYY [X]0:先手/1:後手 [Y]enum ktype [W]置き駒情報
 

@@ -24,17 +24,17 @@ namespace TacoWin2_SMV {
         }
 
         public static void load(string filePath) {
-            Console.WriteLine("test.");
-            if (System.IO.File.Exists(filePath)) {
-                sList = File.ReadAllLines(filePath).Where(line => !string.IsNullOrWhiteSpace(line))
-                .Select(line => line.Split(','), sList[0,0]= line[0]);
-
-                sList.ToArray().ForEach(line => {
-                    Console.WriteLine(string.Join(" ", line));
-                });
-            } else {
-                Console.WriteLine("error.");
-            }
+            //Console.WriteLine("test.");
+            //if (System.IO.File.Exists(filePath)) {
+            //    sList = File.ReadAllLines(filePath).Where(line => !string.IsNullOrWhiteSpace(line))
+            //    .Select(line => line.Split(','), sList[0,0]= line[0]);
+            //
+            //    sList.ToArray().ForEach(line => {
+            //        Console.WriteLine(string.Join(" ", line));
+            //    });
+            //} else {
+            //    Console.WriteLine("error.");
+            //}
         }
 
         //ファイルへセーブ
