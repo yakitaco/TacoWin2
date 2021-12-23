@@ -126,7 +126,7 @@ namespace TacoWin2 {
                             retList[0] = moveList[cnt_local];
 
                             string str = "";
-                            for (int i = 0; i < depth; i++) {
+                            for (int i = 0; retList[i].op > 0 || retList[i].np > 0; i++) {
                                 str += "(" + (retList[i].op / 9 + 1) + "," + (retList[i].op % 9 + 1) + ")->(" + (retList[i].np / 9 + 1) + "," + (retList[i].np % 9 + 1) + ")/";
                             }
 
@@ -302,11 +302,11 @@ namespace TacoWin2 {
         public void getEachMoveList(ref ban ban, int oPos, Pturn turn, kmove[] kmv, ref int kCnt, ref int startPoint) {
             // 駒打ち
             unsafe {
-                if ((oPos/9) == 9) {
+                if ((oPos / 9) == 9) {
                     for (int i = 0; i < 9; i++) {
 
                         // 二歩は打てない
-                        if (((oPos%9) == (int)ktype.Fuhyou) && (ban.putFuhyou[(int)turn * 9 + i] < 9)) {
+                        if (((oPos % 9) == (int)ktype.Fuhyou) && (ban.putFuhyou[(int)turn * 9 + i] < 9)) {
                             continue;
 
                         }
