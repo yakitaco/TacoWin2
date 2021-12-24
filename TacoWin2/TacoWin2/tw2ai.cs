@@ -36,6 +36,7 @@ namespace TacoWin2 {
         static int workMin;
         static int ioMin;
         public bool stopFlg = false;
+        Object lockObj = new Object();
 
         static tw2ai() {
             // thread同時数取得
@@ -48,7 +49,7 @@ namespace TacoWin2 {
             int ln = 0;
             int best = -1000;
 
-            kmove[] moveList = mList.assignAlist();
+            int aid = mList.assignAlist(out kmove[] moveList);
 
             unsafe {
                 (int vla, int sp) = getAllMoveList(ref ban, turn, moveList);
@@ -70,6 +71,7 @@ namespace TacoWin2 {
                 }
             }
 
+            mList.freeAlist(aid);
             return (moveList[ln], best);
         }
 
@@ -81,13 +83,13 @@ namespace TacoWin2 {
             kmove[] bestmove = null;
 
             int teCnt = 0; //手の進捗
-            Object lockObj = new Object();
+
             tw2stval.tmpChk(ban);
 
             unsafe {
 
-                kmove[] moveList = new kmove[500];
-                //kmove[] moveList = mList.assignAlist();
+                //kmove[] moveList = new kmove[500];
+                int aid = mList.assignAlist(out kmove[] moveList);
 
                 (int vla, int sp) = getAllMoveList(ref ban, turn, moveList);
 
@@ -147,6 +149,7 @@ namespace TacoWin2 {
                     }
                 });
 
+                mList.freeAlist(aid);
             }
 
             return (bestmove, best);
@@ -162,8 +165,12 @@ namespace TacoWin2 {
 
                 // 持ち駒がある
                 // どこかに打つ
-                kmove[] moveList = new kmove[500];
-                //kmove[] moveList = mList.assignAlist();
+                //kmove[] moveList = new kmove[500];
+                kmove[] moveList;
+                int aid;
+                lock (lockObj) {
+                    aid = mList.assignAlist(out moveList);
+                }
 
                 (int vla, int sp) = getAllMoveList(ref ban, turn, moveList);
                 if (depth < depMax) {
@@ -197,6 +204,9 @@ namespace TacoWin2 {
                                 //mList[depth] = tmpList[i];
                             }
                             if (best >= beta) {
+                                lock (lockObj) {
+                                    mList.freeAlist(aid);
+                                }
                                 return best;
                             }
                         }
@@ -207,13 +217,15 @@ namespace TacoWin2 {
                     //best = val - moveList[sp + vla - 1].val;
                     best = val + moveList[sp].val;
 
-                    bestMoveList = new kmove[500];
+                    bestMoveList = new kmove[10];
                     //bestMoveList = mList.assignRlist();
 
                     //bestMoveList[depth] = moveList[sp + vla - 1];
                     bestMoveList[depth] = moveList[sp];
                 }
-
+                lock (lockObj) {
+                    mList.freeAlist(aid);
+                }
             }
 
             return best;
