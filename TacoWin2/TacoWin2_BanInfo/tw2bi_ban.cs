@@ -280,7 +280,7 @@ namespace TacoWin2_BanInfo {
         }
 
         //盤上に駒を置く
-        void putKoma(int x, int y, Pturn turn, ktype type) {
+        public void putKoma(int x, int y, Pturn turn, ktype type) {
             switch (type) {
                 case ktype.Fuhyou:
                     putFuhyou[(int)turn * 9 + x] = y;
