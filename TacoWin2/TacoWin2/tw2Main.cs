@@ -94,7 +94,7 @@ namespace TacoWin2 {
                         (kmove[] km, int best) = ai.thinkMove(turn, ban, 6);
                         sw.Stop();
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
-                        if (best < -5000) {
+                        if (best < -10000) {
                             Console.WriteLine("bestmove resign");
                         } else {
                             Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
