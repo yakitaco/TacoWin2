@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TacoWin2_BanInfo\TacoWin2_BanInfo.csproj" />
+    <ProjectReference Include="..\TacoWin2_sfenIO\TacoWin2_sfenIO.csproj" />
     <ProjectReference Include="..\TacoWin2_SMV\TacoWin2_SMV.csproj" />
   </ItemGroup>
 
