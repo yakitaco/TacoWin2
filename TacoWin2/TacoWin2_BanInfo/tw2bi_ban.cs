@@ -98,9 +98,9 @@ namespace TacoWin2_BanInfo {
             // 移動リスト新規作成
             //renewMoveable();
 
-            for (int i = 0; i < 162; i++) {
-                Console.WriteLine(i + ":" + moveable[i]);
-            }
+            //for (int i = 0; i < 162; i++) {
+            //    Console.WriteLine(i + ":" + moveable[i]);
+            //}
 
         }
 
@@ -792,7 +792,7 @@ namespace TacoWin2_BanInfo {
         //}
 
         // 処理軽減のためチェック省略
-        public ktype kDoNari(ktype t) {
+        public static ktype kDoNari(ktype t) {
             //if (( t > 0 )&&( t < ktype.Kinsyou)) {
             return t + 8;
             //} else {

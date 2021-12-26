@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using TacoWin2_BanInfo;
+using TacoWin2_sfenIO;
 using TacoWin2_SMV;
 
 namespace TacoWin2 {
@@ -63,6 +64,14 @@ namespace TacoWin2 {
                         // 駒落ち・指定局面
                     } else if (arr[1] == "sfen") {
                         startStrPos = 7;
+                        sfenIO.sfen2ban(ref ban, arr[2], arr[4]);
+
+                        if (arr[3] == "b") {
+                            turn = Pturn.Sente;
+                        } else {
+                            turn = Pturn.Gote;
+                        }
+                        Console.WriteLine(ban.debugShow());
                     }
 
                     // 手を更新(差分のみ)

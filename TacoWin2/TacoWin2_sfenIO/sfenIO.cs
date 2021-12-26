@@ -1,37 +1,128 @@
 ﻿using TacoWin2_BanInfo;
 
 namespace TacoWin2_sfenIO {
-    public class sfenIO {
+    public unsafe class sfenIO {
 
-        public static ban sfen2ban(string sfen) {
-            ban retBan = new ban();
+        public static void sfen2ban(ref ban ban, string oki, string mochi) {
+
+            ban.putOusyou[0] = 0xFF;
+            ban.putOusyou[1] = 0xFF;
+            for (int i = 0; i < 4; i++) {
+                ban.putHisya[i] = 0xFF;
+                ban.putKakugyou[i] = 0xFF;
+            }
+            for (int i = 0; i < 8; i++) {
+                ban.putKinsyou[i] = 0xFF;
+                ban.putKyousha[i] = 0xFF;
+                ban.putKeima[i] = 0xFF;
+                ban.putGinsyou[i] = 0xFF;
+            }
+            for (int i = 0; i < 18; i++) {
+                ban.putFuhyou[i] = 9;
+            }
+            for (int i = 0; i < 60; i++) {
+                ban.putNarigoma[i] = 0xFF;
+            }
 
             // 場面の設定
             int j = 0;
-            for (int i = 0; i < 81; i++) {
-                int suzi = TEIGI.SIZE_SUZI - 1;
+            for (int i = 0; i < 9; i++) {
+                int suzi = 9 - 1;
                 while (suzi > -1) {
                     // 数字(空白の数)
-                    if (int.TryParse(sfen.Substring(j, 1), out var n)) {
+                    if (int.TryParse(oki.Substring(j, 1), out var n)) {
                         suzi -= n;
                         j++;
                     } else {
                         // 駒配置
-                        toKoma(retBan, sfen, ref j, suzi, i);
+                        (ktype k, Pturn p) = toKoma(oki, ref j);
+                        ban.putKoma(suzi, i, p, k);
                         suzi--;
                     }
                 }
                 j++;
             }
 
-            // 持ち駒
+            // 持ち駒の設定
+            j = 0;
+            int num = 0;
+            while ((j < mochi.Length) && (mochi[j] != '-')) {
+                // 数字(駒の数) ★2桁もアリ
+                if (int.TryParse(mochi.Substring(j, 1), out var tmp)) {
+                    j++;
+                    num = num * 10 + tmp;
+                } else {
+                    if (num == 0) num = 1;
+                    // 持ち駒追加(複数駒ありを考慮)
+                    (ktype k, Pturn p) = toKoma(mochi, ref j);
+                    ban.captPiece[(int)p * 7 + (int)k - 1] += (byte)num;
+                    num = 0;
+                }
 
-            return retBan;
+            }
+
+
         }
 
-        public static void toKoma(ban ban, string str, ref int cnt, int suzi, int dan) {
+        public static void ban2sfen(ref ban ban, ref string oki, ref string mochi) {
+            // 場面の設定
+            int j = 0;
+            int empty = 0;
+            for (int i = 0; i < 9; i++) {
+                int suzi = 9 - 1;
+                while (suzi > -1) {
+                    // 数字(空白の数)
+                    if (ban.onBoard[i * 9 + suzi] == 0) {
+                        empty++;
+                    } else {
+                        // 駒配置
+                        if (empty > 0) {
+                            oki += empty;
+                            empty = 0;
+                        }
+
+
+                    }
+
+
+
+                    if (int.TryParse(oki.Substring(j, 1), out var n)) {
+                        suzi -= n;
+                        j++;
+                    } else {
+                        // 駒配置
+                        (ktype k, Pturn p) = toKoma(oki, ref j);
+                        ban.putKoma(suzi, i, p, k);
+                        suzi--;
+                    }
+                }
+                j++;
+            }
+
+            // 持ち駒の設定
+            j = 0;
+            int num = 0;
+            while ((j < mochi.Length) && (mochi[j] != '-')) {
+                // 数字(駒の数) ★2桁もアリ
+                if (int.TryParse(mochi.Substring(j, 1), out var tmp)) {
+                    j++;
+                    num = num * 10 + tmp;
+                } else {
+                    if (num == 0) num = 1;
+                    // 持ち駒追加(複数駒ありを考慮)
+                    (ktype k, Pturn p) = toKoma(mochi, ref j);
+                    ban.captPiece[(int)p * 7 + (int)k - 1] += (byte)num;
+                    num = 0;
+                }
+
+            }
+
+        }
+
+        public static (ktype, Pturn) toKoma(string str, ref int cnt) {
             bool nari = false;
-            ktype k;
+            ktype k = ktype.None;
+            Pturn p = Pturn.Sente;
 
             // 成り
             if (str[cnt] == '+') {
@@ -42,74 +133,181 @@ namespace TacoWin2_sfenIO {
             switch (str[cnt]) {
                 case 'P':
                     k = ktype.Fuhyou;
-                    teban = TEIGI.TEBAN_SENTE;
+                    p = Pturn.Sente;
                     break;
                 case 'L':
                     k = ktype.Kyousha;
-                    teban = TEIGI.TEBAN_SENTE;
+                    p = Pturn.Sente;
                     break;
                 case 'N':
                     k = ktype.Keima;
-                    teban = TEIGI.TEBAN_SENTE;
+                    p = Pturn.Sente;
                     break;
                 case 'S':
                     k = ktype.Ginsyou;
-                    teban = TEIGI.TEBAN_SENTE;
+                    p = Pturn.Sente;
                     break;
                 case 'R':
                     k = ktype.Hisya;
-                    teban = TEIGI.TEBAN_SENTE;
+                    p = Pturn.Sente;
                     break;
                 case 'B':
                     k = ktype.Kakugyou;
-                    teban = TEIGI.TEBAN_SENTE;
+                    p = Pturn.Sente;
                     break;
                 case 'G':
                     k = ktype.Kinsyou;
-                    teban = TEIGI.TEBAN_SENTE;
+                    p = Pturn.Sente;
                     break;
                 case 'K':
                     k = ktype.Ousyou;
-                    teban = TEIGI.TEBAN_SENTE;
+                    p = Pturn.Sente;
                     break;
                 case 'p':
                     k = ktype.Fuhyou;
-                    teban = TEIGI.TEBAN_GOTE;
+                    p = Pturn.Gote;
                     break;
                 case 'l':
                     k = ktype.Kyousha;
-                    teban = TEIGI.TEBAN_GOTE;
+                    p = Pturn.Gote;
                     break;
                 case 'n':
                     k = ktype.Keima;
-                    teban = TEIGI.TEBAN_GOTE;
+                    p = Pturn.Gote;
                     break;
                 case 's':
                     k = ktype.Ginsyou;
-                    teban = TEIGI.TEBAN_GOTE;
+                    p = Pturn.Gote;
                     break;
                 case 'r':
                     k = ktype.Hisya;
-                    teban = TEIGI.TEBAN_GOTE;
+                    p = Pturn.Gote;
                     break;
                 case 'b':
                     k = ktype.Kakugyou;
-                    teban = TEIGI.TEBAN_GOTE;
+                    p = Pturn.Gote;
                     break;
                 case 'g':
                     k = ktype.Kinsyou;
-                    teban = TEIGI.TEBAN_GOTE;
+                    p = Pturn.Gote;
                     break;
                 case 'k':
                     k = ktype.Ousyou;
-                    teban = TEIGI.TEBAN_GOTE;
+                    p = Pturn.Gote;
                     break;
                 default:
                     break;
             }
             cnt++;
+            if (nari == true) k = ban.kDoNari(k);
 
-            ban.putKoma(0,0, Pturn.Gote, ktype.Fuhyou);
+            return (k, p);
+        }
+
+        public static string fromKoma(ktype k, Pturn p) {
+            bool nari = false;
+            string str = "";
+
+            // 駒
+            if (p == Pturn.Sente) {
+                switch (k) {
+                    case ktype.Fuhyou:
+                        str = "P";
+                        break;
+                    case ktype.Kyousha:
+                        str = "L";
+                        break;
+                    case ktype.Keima:
+                        str = "N";
+                        break;
+                    case ktype.Ginsyou:
+                        str = "S";
+                        break;
+                    case ktype.Hisya:
+                        str = "R";
+                        break;
+                    case ktype.Kakugyou:
+                        str = "B";
+                        break;
+                    case ktype.Kinsyou:
+                        str = "G";
+                        break;
+                    case ktype.Ousyou:
+                        str = "K";
+                        break;
+                    case ktype.Tokin:
+                        str = "+P";
+                        break;
+                    case ktype.Narikyou:
+                        str = "+L";
+                        break;
+                    case ktype.Narikei:
+                        str = "+N";
+                        break;
+                    case ktype.Narigin:
+                        str = "+S";
+                        break;
+                    case ktype.Ryuuou:
+                        str = "+R";
+                        break;
+                    case ktype.Ryuuma:
+                        str = "+B";
+                        break;
+                    default:
+                        break;
+                }
+
+
+            } else {
+                switch (k) {
+                    case ktype.Fuhyou:
+                        str = "P";
+                        break;
+                    case ktype.Kyousha:
+                        str = "L";
+                        break;
+                    case ktype.Keima:
+                        str = "N";
+                        break;
+                    case ktype.Ginsyou:
+                        str = "S";
+                        break;
+                    case ktype.Hisya:
+                        str = "R";
+                        break;
+                    case ktype.Kakugyou:
+                        str = "B";
+                        break;
+                    case ktype.Kinsyou:
+                        str = "G";
+                        break;
+                    case ktype.Ousyou:
+                        str = "K";
+                        break;
+                    case ktype.Tokin:
+                        str = "+P";
+                        break;
+                    case ktype.Narikyou:
+                        str = "+L";
+                        break;
+                    case ktype.Narikei:
+                        str = "+N";
+                        break;
+                    case ktype.Narigin:
+                        str = "+S";
+                        break;
+                    case ktype.Ryuuou:
+                        str = "+R";
+                        break;
+                    case ktype.Ryuuma:
+                        str = "+B";
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return str;
         }
     }
 }
