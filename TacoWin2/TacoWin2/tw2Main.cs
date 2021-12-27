@@ -30,6 +30,9 @@ namespace TacoWin2 {
 
             sMove.load("s.txt");
 
+            string test = sMove.addList("ASBA","",0,0,0);
+            Console.WriteLine(test);
+
             while (true) {
                 string str = Console.ReadLine();
 
@@ -72,6 +75,12 @@ namespace TacoWin2 {
                             turn = Pturn.Gote;
                         }
                         Console.WriteLine(ban.debugShow());
+
+                        string oki = "";
+                        string mochi = "";
+                        sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
+                        Console.WriteLine(oki + " / " + mochi);
+
                     }
 
                     // 手を更新(差分のみ)

@@ -72,7 +72,7 @@ namespace TacoWin2_sfenIO {
                 int suzi = 9 - 1;
                 while (suzi > -1) {
                     // 数字(空白の数)
-                    if (ban.onBoard[i * 9 + suzi] == 0) {
+                    if (ban.onBoard[suzi * 9 + i] == 0) {
                         empty++;
                     } else {
                         // 駒配置
@@ -80,42 +80,70 @@ namespace TacoWin2_sfenIO {
                             oki += empty;
                             empty = 0;
                         }
-
-
+                        oki += fromKoma(ban.getOnBoardKtype(suzi * 9 + i), ban.getOnBoardPturn(suzi * 9 + i));
                     }
-
-
-
-                    if (int.TryParse(oki.Substring(j, 1), out var n)) {
-                        suzi -= n;
-                        j++;
-                    } else {
-                        // 駒配置
-                        (ktype k, Pturn p) = toKoma(oki, ref j);
-                        ban.putKoma(suzi, i, p, k);
-                        suzi--;
-                    }
+                    suzi--;
                 }
-                j++;
+                if (empty > 0) {
+                    oki += empty;
+                    empty = 0;
+                }
+                if (i < 8) oki += "/";
             }
 
-            // 持ち駒の設定
-            j = 0;
-            int num = 0;
-            while ((j < mochi.Length) && (mochi[j] != '-')) {
-                // 数字(駒の数) ★2桁もアリ
-                if (int.TryParse(mochi.Substring(j, 1), out var tmp)) {
-                    j++;
-                    num = num * 10 + tmp;
-                } else {
-                    if (num == 0) num = 1;
-                    // 持ち駒追加(複数駒ありを考慮)
-                    (ktype k, Pturn p) = toKoma(mochi, ref j);
-                    ban.captPiece[(int)p * 7 + (int)k - 1] += (byte)num;
-                    num = 0;
+            // 持ち駒の設定(先手→後手、飛車→角→金→銀→桂→香→歩の順)
+            for (int i = 0; i < 2; i++) {
+                if (ban.captPiece[(int)i * 7 + (int)ktype.Hisya - 1] > 0) {
+                    if (ban.captPiece[(int)i * 7 + (int)ktype.Hisya - 1] > 1) {
+                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Hisya - 1];
+                    }
+                    mochi += fromKoma(ktype.Hisya, (Pturn)i);
                 }
 
+                if (ban.captPiece[(int)i * 7 + (int)ktype.Kakugyou - 1] > 0) {
+                    if (ban.captPiece[(int)i * 7 + (int)ktype.Kakugyou - 1] > 1) {
+                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Kakugyou - 1];
+                    }
+                    mochi += fromKoma(ktype.Kakugyou, (Pturn)i);
+                }
+
+                if (ban.captPiece[(int)i * 7 + (int)ktype.Kinsyou - 1] > 0) {
+                    if (ban.captPiece[(int)i * 7 + (int)ktype.Kinsyou - 1] > 1) {
+                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Kinsyou - 1];
+                    }
+                    mochi += fromKoma(ktype.Kinsyou, (Pturn)i);
+                }
+
+                if (ban.captPiece[(int)i * 7 + (int)ktype.Ginsyou - 1] > 0) {
+                    if (ban.captPiece[(int)i * 7 + (int)ktype.Ginsyou - 1] > 1) {
+                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Ginsyou - 1];
+                    }
+                    mochi += fromKoma(ktype.Ginsyou, (Pturn)i);
+                }
+
+                if (ban.captPiece[(int)i * 7 + (int)ktype.Keima - 1] > 0) {
+                    if (ban.captPiece[(int)i * 7 + (int)ktype.Keima - 1] > 1) {
+                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Keima - 1];
+                    }
+                    mochi += fromKoma(ktype.Keima, (Pturn)i);
+                }
+
+                if (ban.captPiece[(int)i * 7 + (int)ktype.Kyousha - 1] > 0) {
+                    if (ban.captPiece[(int)i * 7 + (int)ktype.Kyousha - 1] > 1) {
+                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Kyousha - 1];
+                    }
+                    mochi += fromKoma(ktype.Kyousha, (Pturn)i);
+                }
+
+                if (ban.captPiece[(int)i * 7 + (int)ktype.Fuhyou - 1] > 0) {
+                    if (ban.captPiece[(int)i * 7 + (int)ktype.Fuhyou - 1] > 1) {
+                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Fuhyou - 1];
+                    }
+                    mochi += fromKoma(ktype.Fuhyou, (Pturn)i);
+                }
             }
+
+            if (mochi.Length < 1) mochi = "-";
 
         }
 
@@ -205,7 +233,6 @@ namespace TacoWin2_sfenIO {
         }
 
         public static string fromKoma(ktype k, Pturn p) {
-            bool nari = false;
             string str = "";
 
             // 駒
@@ -261,46 +288,46 @@ namespace TacoWin2_sfenIO {
             } else {
                 switch (k) {
                     case ktype.Fuhyou:
-                        str = "P";
+                        str = "p";
                         break;
                     case ktype.Kyousha:
-                        str = "L";
+                        str = "l";
                         break;
                     case ktype.Keima:
-                        str = "N";
+                        str = "n";
                         break;
                     case ktype.Ginsyou:
-                        str = "S";
+                        str = "s";
                         break;
                     case ktype.Hisya:
-                        str = "R";
+                        str = "r";
                         break;
                     case ktype.Kakugyou:
-                        str = "B";
+                        str = "b";
                         break;
                     case ktype.Kinsyou:
-                        str = "G";
+                        str = "g";
                         break;
                     case ktype.Ousyou:
-                        str = "K";
+                        str = "k";
                         break;
                     case ktype.Tokin:
-                        str = "+P";
+                        str = "+p";
                         break;
                     case ktype.Narikyou:
-                        str = "+L";
+                        str = "+l";
                         break;
                     case ktype.Narikei:
-                        str = "+N";
+                        str = "+n";
                         break;
                     case ktype.Narigin:
-                        str = "+S";
+                        str = "+s";
                         break;
                     case ktype.Ryuuou:
-                        str = "+R";
+                        str = "+r";
                         break;
                     case ktype.Ryuuma:
-                        str = "+B";
+                        str = "+b";
                         break;
                     default:
                         break;

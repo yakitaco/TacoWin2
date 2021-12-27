@@ -1,11 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace TacoWin2_SMV {
     public class sMove {
-        public static string[][] sList = new string[500][];
+        public static string[] sList = new string[500];
         public int sListNum = 0;
+        static SHA1CryptoServiceProvider algorithm = new SHA1CryptoServiceProvider();
 
         //ファイルから読み取り
         public static void load() {
@@ -65,7 +68,39 @@ namespace TacoWin2_SMV {
             return true;
         }
 
+        public static string addList(string position, string move, int value, int weight, int type) {
+            byte[] data = Encoding.UTF8.GetBytes(position);
 
+            // SHA1ハッシュアルゴリズム生成
+            //var algorithm = new SHA1CryptoServiceProvider();
+            byte[] bs = algorithm.ComputeHash(data);
+
+            // バイト型配列を16進数文字列に変換
+            var result = new StringBuilder();
+            foreach (byte b in bs) {
+                result.Append(b.ToString("X2"));
+            }
+
+            string str = result.ToString() + "," + position + "," + move + "," + value + "," + weight + "/" + type;
+
+            return str;
+        }
+
+        public static string getList(string position) {
+            // SHA1ハッシュアルゴリズム生成
+            //var algorithm = new SHA1CryptoServiceProvider();
+            byte[] data = Encoding.UTF8.GetBytes(position);
+            byte[] bs = algorithm.ComputeHash(data);
+
+            int myIndex = Array.BinarySearch(sList, 1);
+            if (myIndex < 0) {
+                Console.WriteLine("The object to search for ({0}) is not found. The next larger object is at index {1}.", 1, ~myIndex);
+            } else {
+                Console.WriteLine("The object to search for ({0}) is at index {1}.", 1, myIndex);
+            }
+
+            return null;
+        }
 
 
 
