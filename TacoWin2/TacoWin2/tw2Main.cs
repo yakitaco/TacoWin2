@@ -28,10 +28,11 @@ namespace TacoWin2 {
             //});
             Console.SetIn(new StreamReader(Console.OpenStandardInput(8192)));
 
-            sMove.load("s.txt");
+            smvCtl.load("s.txt");
 
-            string test = sMove.addList("ASBA","",0,0,0);
+            string test = smvCtl.addList("ASBA","",0,0,0);
             Console.WriteLine(test);
+            smvCtl.getList("ASBA");
 
             while (true) {
                 string str = Console.ReadLine();

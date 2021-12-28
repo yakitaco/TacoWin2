@@ -1,14 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace TacoWin2_SMV {
-    public class sMove {
-        public static string[] sList = new string[500];
+    public class smvCtl {
+        public static List<sMove> sList = new List<sMove>();
         public int sListNum = 0;
         static SHA1CryptoServiceProvider algorithm = new SHA1CryptoServiceProvider();
+
+        static smvCtl() {
+            sList.Add(new sMove("11","AAA"));
+            sList.Add(new sMove("13", "BBB"));
+            sList.Add(new sMove("15", "CCC"));
+            sList.Add(new sMove("17", "DDD"));
+            sList.Add(new sMove("18", "EEE"));
+        }
 
         //ファイルから読み取り
         public static void load() {
@@ -92,11 +101,11 @@ namespace TacoWin2_SMV {
             byte[] data = Encoding.UTF8.GetBytes(position);
             byte[] bs = algorithm.ComputeHash(data);
 
-            int myIndex = Array.BinarySearch(sList, 1);
+            int myIndex = sList.BinarySearch(new sMove("15", "VVV"));
             if (myIndex < 0) {
-                Console.WriteLine("The object to search for ({0}) is not found. The next larger object is at index {1}.", 1, ~myIndex);
+                Console.WriteLine("The object to search for ({0}) is not found. The next larger object is at index {1}.", 0, ~myIndex);
             } else {
-                Console.WriteLine("The object to search for ({0}) is at index {1}.", 1, myIndex);
+                Console.WriteLine("The object to search for ({0}) is at index {1}.", 0, myIndex);
             }
 
             return null;
