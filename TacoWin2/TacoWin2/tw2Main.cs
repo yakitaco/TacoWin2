@@ -28,7 +28,7 @@ namespace TacoWin2 {
             //});
             Console.SetIn(new StreamReader(Console.OpenStandardInput(8192)));
 
-            smvCtl.load("s.txt");
+            //smvCtl.load("s.txt");
 
             string test = smvCtl.addList("ASBA","",0,0,0);
             Console.WriteLine(test);
@@ -108,6 +108,17 @@ namespace TacoWin2 {
 
                     //通常読み
                     if (arr[1] == "btime") {
+
+                        // 定跡チェック
+                        string oki = "";
+                        string mochi = "";
+                        sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
+                        string strs = sMove.get(oki + " " + mochi, turn);
+                        if (strs != null) {
+                            Console.WriteLine("bestmove " + strs.Substring(1));
+                            continue;
+                        }
+
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
                         sw.Restart();
                         (kmove[] km, int best) = ai.thinkMove(turn, ban, 6);
@@ -120,6 +131,14 @@ namespace TacoWin2 {
                         }
                         TimeSpan ts = sw.Elapsed;
                         Console.WriteLine($"　{ts}");
+
+                        //★テスト
+                        if (turn == Pturn.Sente) {
+                            sMove.set(oki + " " + mochi, "+" + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari), 1, 1, 0);
+                        } else {
+                            sMove.set(oki + " " + mochi, "-" + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari), 1, 1, 0);
+                        }
+                        sMove.save("s2.txt");
 
                         // 最後にメモリ初期化
                         mList.reset();

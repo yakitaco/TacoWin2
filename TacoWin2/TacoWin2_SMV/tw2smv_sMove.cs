@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using TacoWin2_BanInfo;
@@ -8,8 +10,10 @@ namespace TacoWin2_SMV {
     public class sMove : IComparable {
         public static List<sMove> sList = new List<sMove>();
         static SHA1CryptoServiceProvider algorithm = new SHA1CryptoServiceProvider();
+        static Random rnd = new Random();
 
         private string hash;
+        // <SFEN>,<move1>/<value1>/<weight1>/<type1>,<move2>/<value2>/<weight2>/<type2>,...
         private string contents;
 
         public sMove(string _hash, string _contents) {
@@ -17,23 +21,87 @@ namespace TacoWin2_SMV {
             contents = _contents;
         }
 
+        //ファイルから読み取り
+        public static void load(string filePath) {
+            if (System.IO.File.Exists(filePath)) {
+                string[] tmpList = File.ReadAllLines(filePath);
+
+                foreach (var tmp in tmpList) {
+                    sList.Add(new sMove(tmp.Substring(0, 16), tmp.Substring(17)));
+                }
+
+                Console.WriteLine("[OK]Load " + filePath);
+
+            } else {
+                Console.WriteLine("[NG]Load " + filePath);
+            }
+
+        }
+
+        //ファイルへセーブ
+        public static void save(string filePath) {
+            File.WriteAllLines(filePath, sList.Select(str => str.hash + "," + str.contents));
+
+        }
+
+        public static void addDummyData() {
+            byte[] m_Buff = new byte[32];
+            byte[] m_Buff2 = new byte[0x02];
+            rnd.NextBytes(m_Buff);
+            rnd.NextBytes(m_Buff2);
+            set(BytesToString(m_Buff) + " -", "+" + BytesToString(m_Buff2), 1, 1, 0);
+        }
+
+        public static string BytesToString(byte[] bs) {
+            var str = BitConverter.ToString(bs);
+            // "-"がいらないなら消しておく
+            str = str.Replace("-", string.Empty);
+            return str;
+        }
+
         // 次の手リストを追加or更新
-        public void set(string position, string move, int value, int weight, int type) {
-            int idx = sList.BinarySearch(new sMove(sha1(position, 8), ""));
+        public static void set(string position, string move, int value, int weight, int type) {
+            sMove tmpSmv = new sMove(sha1(position, 8), position + "," + move + "/" + value + "/" + weight + "/" + type);
+
+            int idx = sList.BinarySearch(tmpSmv);
             if (idx < 0) {
                 /* 新規 */
-                Console.WriteLine("The object to search for ({0}) is not found. The next larger object is at index {1}.", 0, ~idx);
+                //Console.WriteLine("The object to search for ({0}) is not found. The next larger object is at index {1}.", 0, ~idx);
+
+                sList.Insert(~idx, tmpSmv);
+
             } else {
                 /* 更新 */
                 string[] arr = sList[idx].contents.Split(',');
 
+                // シノニムチェック(TODO)
+                //bool ret = position.Equals(arr[0]);
+                int i;
+                for (i = 1; i < arr.Length; i++) {
+                    string[] arr2 = arr[i].Split('/');
+                    // 一致移動候補あり
+                    if (move.Equals(arr2[0])) {
+                        int _weight = int.Parse(arr2[2]) + weight;
+                        int _value = int.Parse(arr2[1]) + value / _weight;
+                        int _type = int.Parse(arr2[3]);
+                        if (_type < type) _type = type;
+                        arr[i] = arr2[0] + "/" + _value + "/" + _weight + "/" + _type;
+                        sList[idx].contents = string.Join(",", arr);
+                        break;
+                    }
+                }
+                // 一致なし
+                if (i == arr.Length) {
+                    sList[idx].contents += "," + move + "/" + value + "/" + weight + "/" + type;
+                }
 
-                Console.WriteLine("The object to search for ({0}) is at index {1}.", 0, idx);
+
+                //Console.WriteLine("The object to search for ({0}) is at index {1}.", 0, idx);
             }
         }
 
         // 次の手を取得
-        public string get(string position, Pturn turn) {
+        public static string get(string position, Pturn turn) {
 
             int idx = sList.BinarySearch(new sMove(sha1(position, 8), ""));
             if (idx < 0) {
@@ -45,16 +113,52 @@ namespace TacoWin2_SMV {
                 string[] arr = sList[idx].contents.Split(',');
 
                 // シノニムチェック
-                bool ret = position.Equals(arr[0]);
+                //bool ret = position.Equals(arr[0]);
+
+                // 要改善
+                int sum = 0;
+                for (int i = 1; i < arr.Length; i++) {
+                    string[] arr2 = arr[i].Split('/');
+                    if (((arr2[0].Substring(0, 1) == "+") && (turn == Pturn.Sente)) ||
+                        ((arr2[0].Substring(0, 1) == "-") && (turn == Pturn.Gote))) {
+                        if (int.Parse(arr2[1]) > 0) sum += int.Parse(arr2[1]);
+                    }
+                }
+                if (sum < 1) return null;
+
+                int rVal = rnd.Next(0, sum);
+
+                for (int i = 1; i < arr.Length; i++) {
+                    string[] arr2 = arr[i].Split('/');
+                    if (((arr2[0].Substring(0, 1) == "+") && (turn == Pturn.Gote)) ||
+                        ((arr2[0].Substring(0, 1) == "-") && (turn == Pturn.Sente))) {
+                        continue;
+                    }
+                    if (int.Parse(arr2[1]) < 1) continue;
+                    if (rVal > int.Parse(arr2[1])) {
+                        rVal -= int.Parse(arr2[1]);
+                        continue;
+                    }
+                    return arr2[0];
+                }
 
 
                 Console.WriteLine("The object to search for ({0}) is at index {1}.", 0, idx);
+
+                return null;
             }
-            return null;
+
+        }
+
+        public static void debugShow() {
+            foreach (var s in sList) {
+                Console.WriteLine("[{0}]{1}", s.hash, s.contents);
+            }
+
         }
 
         //指定した文字列のSHA1を取得
-        public string sha1(string str, int length) {
+        public static string sha1(string str, int length) {
             byte[] data = Encoding.UTF8.GetBytes(str);
             byte[] bs = algorithm.ComputeHash(data);
 
