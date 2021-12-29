@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using TacoWin2_BanInfo;
 
 namespace TacoWin2_SMV {
     public class smvCtl {
@@ -12,11 +11,31 @@ namespace TacoWin2_SMV {
         static SHA1CryptoServiceProvider algorithm = new SHA1CryptoServiceProvider();
 
         static smvCtl() {
-            sList.Add(new sMove("11","AAA"));
-            sList.Add(new sMove("13", "BBB"));
-            sList.Add(new sMove("15", "CCC"));
-            sList.Add(new sMove("17", "DDD"));
-            sList.Add(new sMove("18", "EEE"));
+            sMove.load("s.txt");
+
+            //for (int i = 0; i < 1000000; i++) {
+            //    sMove.addDummyData();
+            //}
+            //sMove.set("lnsgkgsnl/1r5b1/1pppppppp/p8/9/9/PPPPPPPPP/1B5RL/LNSGKGSN1 -", "+9i9h", 1, 1, 0);
+            //sMove.save("s2.txt");
+            //sMove.set("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL -", "+1i1h", 1, 1, 0);
+            //sMove.set("BBB", "+WWW", 2, 1, 0);
+            //sMove.set("CCC", "+XXX", 3, 1, 0);
+            //sMove.set("DDD", "+YYY", 4, 1, 0);
+            //sMove.set("AAA", "+ZZZ", 5, 1, 0);
+            //sMove.set("BBB", "+CCC", 5, 1, 0);
+            //sMove.set("BBB", "-GGG", 10, 1, 0);
+            //
+            //
+            //string str = sMove.get("BBB", Pturn.Sente);
+            //Console.WriteLine("str = " + str);
+            //str = sMove.get("BBB", Pturn.Sente);
+            //Console.WriteLine("str = " + str);
+            string str = sMove.get("lnsgkgsnl/1r5b1/ppppppppp/9/9/9/PPPPPPPPP/1B5R1/LNSGKGSNL -", Pturn.Sente);
+            Console.WriteLine("str = " + str);
+
+            //sMove.debugShow();
+
         }
 
         //ファイルから読み取り
