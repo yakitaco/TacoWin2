@@ -44,6 +44,18 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="TacoWin2_BanInfo, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\TacoWin2\TacoWin2_sfenIO\bin\Debug\netstandard2.0\TacoWin2_BanInfo.dll</HintPath>
+    </Reference>
+    <Reference Include="TacoWin2_sfenIO, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\TacoWin2\TacoWin2_sfenIO\bin\Debug\netstandard2.0\TacoWin2_sfenIO.dll</HintPath>
+    </Reference>
+    <Reference Include="TacoWin2_SMV, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\TacoWin2\TacoWin2_SMV\bin\Debug\netstandard2.0\TacoWin2_SMV.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="tw2mkjs_csaIO.cs" />
@@ -79,20 +91,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\TacoWin2_BanInfo\TacoWin2_BanInfo.csproj">
-      <Project>{a8c379dc-67ac-47bc-b60b-e2d7a75cdde9}</Project>
-      <Name>TacoWin2_BanInfo</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TacoWin2_sfenIO\TacoWin2_sfenIO.csproj">
-      <Project>{8a550459-be09-4f5d-9ac8-231d3fb54079}</Project>
-      <Name>TacoWin2_sfenIO</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TacoWin2_SMV\TacoWin2_SMV.csproj">
-      <Project>{7f99664e-b95e-4554-bb41-f84a762fb70b}</Project>
-      <Name>TacoWin2_SMV</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

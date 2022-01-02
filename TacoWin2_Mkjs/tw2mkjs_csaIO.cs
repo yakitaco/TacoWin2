@@ -11,18 +11,27 @@ namespace TacoWin2_Mkjs {
             return Directory.GetFiles(dirPath, "*.csa");
         }
 
+        // ret 0 先手勝ち 1:後手勝ち 2:その他(千日手)
+        public static int loadFile(string filePath, int num, out List<string>[] outStr) {
+            outStr = new List<string>[2];
+            outStr[0] = new List<string>();
+            outStr[1] = new List<string>();
 
-        public static List<string>[] loadFile(string filePath, int num) {
-            List<string>[] ret = new List<string>[2];
-            ret[0] = new List<string>();
-            ret[1] = new List<string>();
-
+            int ret = 2;
             ban ban;
             ban.startpos();
+            Pturn turn = Pturn.Sente;
             int count = 0;
 
             foreach (string line in System.IO.File.ReadLines(@filePath)) {
                 if (((line[0] == '+') || (line[0] == '-')) && (line.Length > 4)) {
+
+                    if (line[0] == '+') {
+                        turn = Pturn.Sente;
+                    } else {
+                        turn = Pturn.Gote;
+                    }
+
                     string oki = "";
                     string mochi = "";
                     sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
@@ -43,19 +52,20 @@ namespace TacoWin2_Mkjs {
                     //前と駒タイプが異なる->駒が成った
                     if ((ox > 0) && (oy > 0) && (ban.getOnBoardKtype(ox - 1, oy - 1) != a)) nari = true;
 
-                    ret[0].Add(oki + " " + mochi);
+                    outStr[0].Add(oki + " " + mochi);
                     if (nari == true) {
-                        ret[1].Add(line[0] + ox + "" + int2Dafb(oy) + "" + nx + "" + int2Dafb(ny) + "+");
+                        outStr[1].Add(line[0].ToString() + ox + "" + int2Dafb(oy - 1) + "" + nx + "" + int2Dafb(ny - 1) + "+");
                     } else if (ox == 0) {
-                        ret[1].Add(line[0] + ox + "*" + nx + "" + int2Dafb(ny));
+                        outStr[1].Add(line[0].ToString() + csa2usit(line.Substring(5, 2)) + "*" + nx + "" + int2Dafb(ny - 1));
                     } else {
-                        ret[1].Add(line[0] + ox + "" + int2Dafb(oy) + "" + nx + "" + int2Dafb(ny));
+                        outStr[1].Add(line[0].ToString() + ox + "" + int2Dafb(oy - 1) + "" + nx + "" + int2Dafb(ny - 1));
                     }
 
-                    if (line[0] == '+') {
-                        ban.moveKoma(ox, oy, nx, ny, Pturn.Sente, nari, false, false);
+
+                    if (ox == 0) {
+                        ban.moveKoma(9, csa2num(line.Substring(5, 2)), nx - 1, ny - 1, turn, nari, false, false);
                     } else {
-                        ban.moveKoma(ox, oy, nx, ny, Pturn.Gote, nari, false, false);
+                        ban.moveKoma(ox - 1, oy - 1, nx - 1, ny - 1, turn, nari, false, false);
                     }
 
                     int cnt;
@@ -63,7 +73,11 @@ namespace TacoWin2_Mkjs {
 
 
                     if ((num > 0) && (count > num)) break;
+                } else if ((line.Length == 6) && (line.Substring(0, 6) == "%TORYO")) {
+                    ret = (int)turn;
+                    break;
                 }
+
             }
 
             return ret;
@@ -160,9 +174,43 @@ namespace TacoWin2_Mkjs {
             return ret;
         }
 
+        public static string csa2usit(string str) {
+            string ret = "";
 
+            switch (str) {
+                case "FU":    // 歩兵
+                    ret = "P";
+                    break;
+                case "KY":    // 香車
+                    ret = "L";
+                    break;
+                case "KE":    // 桂馬
+                    ret = "N";
+                    break;
+                case "GI":    // 銀将
+                    ret = "S";
+                    break;
+                case "HI":    // 飛車
+                    ret = "R";
+                    break;
+                case "KA":    // 角行
+                    ret = "B";
+                    break;
+                case "KI":    // 金将
+                    ret = "G";
+                    break;
+                case "OU":    // 王将
+                    ret = "K";
+                    break;
+                default:
+                    ret = "";
+                    break;
+            }
 
-        int csa2num(string str) {
+            return ret;
+        }
+
+        public static int csa2num(string str) {
             int ret;
 
             switch (str) {
