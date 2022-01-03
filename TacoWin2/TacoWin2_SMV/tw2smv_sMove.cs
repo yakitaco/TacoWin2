@@ -12,11 +12,11 @@ namespace TacoWin2_SMV {
         static SHA1CryptoServiceProvider algorithm = new SHA1CryptoServiceProvider();
         static Random rnd = new Random();
 
-        private string hash;
+        private ulong hash;
         // <SFEN>,<move1>/<value1>/<weight1>/<type1>,<move2>/<value2>/<weight2>/<type2>,...
         private string contents;
 
-        public sMove(string _hash, string _contents) {
+        public sMove(ulong _hash, string _contents) {
             hash = _hash;
             contents = _contents;
         }
@@ -27,7 +27,7 @@ namespace TacoWin2_SMV {
                 string[] tmpList = File.ReadAllLines(filePath);
 
                 foreach (var tmp in tmpList) {
-                    sList.Add(new sMove(tmp.Substring(0, 16), tmp.Substring(17)));
+                    sList.Add(new sMove(Convert.ToUInt64(tmp.Substring(0, 16), 16), tmp.Substring(17)));
                 }
 
                 Console.WriteLine("[OK]Load " + filePath);
@@ -40,8 +40,7 @@ namespace TacoWin2_SMV {
 
         //ファイルへセーブ
         public static void save(string filePath) {
-            File.WriteAllLines(filePath, sList.Select(str => str.hash + "," + str.contents));
-
+            File.WriteAllLines(filePath, sList.Select(str => String.Format("{0},{1}", str.hash.ToString("X16"), str.contents)));
         }
 
         public static void addDummyData() {
@@ -82,7 +81,9 @@ namespace TacoWin2_SMV {
                     // 一致移動候補あり
                     if (move.Equals(arr2[0])) {
                         int _weight = int.Parse(arr2[2]) + weight;
-                        int _value = int.Parse(arr2[1]) + value / _weight;
+                        int _value = int.Parse(arr2[1]) + value;// / _weight;
+                        if (_value == 100) _value += 100;
+                        if (_value > 500) _value = 500;
                         int _type = int.Parse(arr2[3]);
                         if (_type < type) _type = type;
                         arr[i] = arr2[0] + "/" + _value + "/" + _weight + "/" + _type;
@@ -158,7 +159,7 @@ namespace TacoWin2_SMV {
         }
 
         //指定した文字列のSHA1を取得
-        public static string sha1(string str, int length) {
+        public static ulong sha1(string str, int length) {
             byte[] data = Encoding.UTF8.GetBytes(str);
             byte[] bs = algorithm.ComputeHash(data);
 
@@ -167,7 +168,7 @@ namespace TacoWin2_SMV {
             for (int i = 0; i < length && i < bs.Length; i++) {
                 result.Append(bs[i].ToString("X2"));
             }
-            return result.ToString();
+            return Convert.ToUInt64(result.ToString(), 16);
         }
 
         //自分自身がobjより小さいときはマイナスの数、大きいときはプラスの数、

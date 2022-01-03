@@ -32,7 +32,7 @@ namespace TacoWin2 {
 
             string test = smvCtl.addList("ASBA","",0,0,0);
             Console.WriteLine(test);
-            smvCtl.getList("ASBA");
+            //smvCtl.getList("ASBA");
 
             while (true) {
                 string str = Console.ReadLine();
