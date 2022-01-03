@@ -24,6 +24,8 @@ namespace TacoWin2_Mkjs {
             int count = 0;
 
             foreach (string line in System.IO.File.ReadLines(@filePath)) {
+                if ((line.Length == 1) && (line[0] == '-')) return 3; //後手開始(駒落ち)はスキップ
+
                 if (((line[0] == '+') || (line[0] == '-')) && (line.Length > 4)) {
 
                     if (line[0] == '+') {
@@ -36,10 +38,7 @@ namespace TacoWin2_Mkjs {
                     string mochi = "";
                     sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
 
-                    bool hitMove = false;
                     bool nari = false;
-                    //System.Console.WriteLine(line);
-
 
                     var ox = int.Parse(line[1].ToString());
                     var oy = int.Parse(line[2].ToString());
@@ -67,10 +66,6 @@ namespace TacoWin2_Mkjs {
                     } else {
                         ban.moveKoma(ox - 1, oy - 1, nx - 1, ny - 1, turn, nari, false, false);
                     }
-
-                    int cnt;
-
-
 
                     if ((num > 0) && (count > num)) break;
                 } else if ((line.Length == 6) && (line.Substring(0, 6) == "%TORYO")) {

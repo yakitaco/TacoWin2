@@ -1,11 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using TacoWin2_SMV;
 
@@ -38,23 +32,22 @@ namespace TacoWin2_Mkjs {
                 button1.Text = "START";
             }
 
-            listBox1.Items.Clear();
-            var ret = tw2mkjs_csaIO.loadFile(textBox1.Text , 0, out var str);
-            for (int i = 0; i < str[0].Count; i++) {
-                listBox1.Items.Add("" + str[0][i] + "/" + str[1][i]);
-            }
-            if (ret == 0) {
-                label1.Text = "先手勝ち";
-            } else if (ret == 1) {
-                label1.Text = "後手勝ち";
-            } else {
-                label1.Text = "その他";
-            }
+            //listBox1.Items.Clear();
+            //var ret = tw2mkjs_csaIO.loadFile(textBox1.Text, 0, out var str);
+            //for (int i = 0; i < str[0].Count; i++) {
+            //    listBox1.Items.Add("" + str[0][i] + "/" + str[1][i]);
+            //}
+            //if (ret == 0) {
+            //    label1.Text = "先手勝ち";
+            //} else if (ret == 1) {
+            //    label1.Text = "後手勝ち";
+            //} else {
+            //    label1.Text = "その他";
+            //}
         }
 
         private void csaLoad_DoWork(object sender, DoWorkEventArgs e) {
             WorkerParams wp = (WorkerParams)e.Argument;
-
             // senderの値はbgWorkerの値と同じ
             BackgroundWorker worker = (BackgroundWorker)sender;
 
@@ -62,9 +55,32 @@ namespace TacoWin2_Mkjs {
 
             string[] csrDirFiles = tw2mkjs_csaIO.loadDir(wp.csaDirPath);
 
+            foreach (string line in csrDirFiles) {
+                // キャンセルされてないか定期的にチェック
+                if (worker.CancellationPending) {
+                    e.Cancel = true;
+                    return;
+                }
 
+                var ret = tw2mkjs_csaIO.loadFile(line, 0, out var str);
 
+                Console.WriteLine("["+ str[0].Count + "]" +line);
 
+                for (int i = 0; i < str[0].Count; i++) {
+                    //Console.WriteLine("" + str[0][i] + "/" + str[1][i]);
+                    if (ret == i % 2) {
+                        sMove.set(str[0][i], str[1][i], 2, 1, 999);
+                    } else if ( i > str[0].Count / 2 ) {
+                        sMove.set(str[0][i], str[1][i], 0, 1, 999);
+                    } else {
+                        sMove.set(str[0][i], str[1][i], 1, 1, 999);
+                    }
+                }
+
+            }
+
+            // 保存
+            sMove.save(textBox3.Text);
 
         }
 

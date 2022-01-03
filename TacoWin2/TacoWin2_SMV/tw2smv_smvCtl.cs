@@ -114,21 +114,21 @@ namespace TacoWin2_SMV {
             return str;
         }
 
-        public static string getList(string position) {
-            // SHA1ハッシュアルゴリズム生成
-            //var algorithm = new SHA1CryptoServiceProvider();
-            byte[] data = Encoding.UTF8.GetBytes(position);
-            byte[] bs = algorithm.ComputeHash(data);
-
-            int myIndex = sList.BinarySearch(new sMove("15", "VVV"));
-            if (myIndex < 0) {
-                Console.WriteLine("The object to search for ({0}) is not found. The next larger object is at index {1}.", 0, ~myIndex);
-            } else {
-                Console.WriteLine("The object to search for ({0}) is at index {1}.", 0, myIndex);
-            }
-
-            return null;
-        }
+        //public static string getList(string position) {
+        //    // SHA1ハッシュアルゴリズム生成
+        //    //var algorithm = new SHA1CryptoServiceProvider();
+        //    byte[] data = Encoding.UTF8.GetBytes(position);
+        //    byte[] bs = algorithm.ComputeHash(data);
+        //
+        //    int myIndex = sList.BinarySearch(new sMove("15", "VVV"));
+        //    if (myIndex < 0) {
+        //        Console.WriteLine("The object to search for ({0}) is not found. The next larger object is at index {1}.", 0, ~myIndex);
+        //    } else {
+        //        Console.WriteLine("The object to search for ({0}) is at index {1}.", 0, myIndex);
+        //    }
+        //
+        //    return null;
+        //}
 
 
 
