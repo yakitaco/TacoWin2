@@ -2,6 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 using TacoWin2_BanInfo;
+using TacoWin2_sfenIO;
+using TacoWin2_SMV;
 
 namespace TacoWin2 {
 
@@ -88,6 +90,41 @@ namespace TacoWin2 {
 
             unsafe {
 
+                // 定跡チェック
+                string oki = "";
+                string mochi = "";
+                sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
+                string strs = sMove.get(oki + " " + mochi, turn);
+                if (strs != null) {
+                    int ox;
+                    int oy;
+                    int nx;
+                    int ny;
+                    bool nari;
+                    int val = 0;
+
+                    tw2usiIO.usi2pos(strs.Substring(1), out ox, out oy, out nx, out ny, out nari);
+                    ban tmp_ban = ban;
+                    if ((tmp_ban.onBoard[nx * 9 + ny] > 0)) {
+                        val += kVal[(int)ban.getOnBoardKtype(nx * 9 + ny)] + tw2stval.get(ban.getOnBoardKtype(ox * 9 + oy), nx, ny, ox, oy, (int)turn);
+                    } else if ((ox < 9)) {
+                        val += tw2stval.get(ban.getOnBoardKtype(ox * 9 + oy), nx, ny, ox, oy, (int)turn);
+                    }
+
+                    ban.moveKoma(ox, oy, nx, ny, turn, nari, false, false);
+
+                    best = -think(pturn.aturn(turn), ref ban, out bestmove, -beta, -alpha, val, 1, depth);
+                    bestmove[0].set(ox * 9 + oy, nx * 9 + ny, best, nari, turn);
+
+                    string str = "";
+                    for (int i = 0; bestmove[i].op > 0 || bestmove[i].np > 0; i++) {
+                        str += "(" + (bestmove[i].op / 9 + 1) + "," + (bestmove[i].op % 9 + 1) + ")->(" + (bestmove[i].np / 9 + 1) + "," + (bestmove[i].np % 9 + 1) + ")/";
+                    }
+                    Console.Write("JOSEKI MV[{0}]{1}\n", best, str);
+
+                    return (bestmove, best);
+                }
+
                 //kmove[] moveList = new kmove[500];
                 int aid = mList.assignAlist(out kmove[] moveList);
 
@@ -163,6 +200,38 @@ namespace TacoWin2 {
 
             unsafe {
 
+                //定跡チェック
+                string oki = "";
+                string mochi = "";
+                sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
+                string strs = sMove.get(oki + " " + mochi, turn);
+                if (strs != null) {
+                    int ox;
+                    int oy;
+                    int nx;
+                    int ny;
+                    bool nari;
+
+                    tw2usiIO.usi2pos(strs.Substring(1), out ox, out oy, out nx, out ny, out nari);
+
+                    if ((ban.onBoard[nx * 9 + ny] > 0)) {
+                        val += kVal[(int)ban.getOnBoardKtype(nx * 9 + ny)] + tw2stval.get(ban.getOnBoardKtype(ox * 9 + oy), nx, ny, ox, oy, (int)turn);
+                    } else if ((ox < 9)) {
+                        val += tw2stval.get(ban.getOnBoardKtype(ox * 9 + oy), nx, ny, ox, oy, (int)turn);
+                    }
+                    ban.moveKoma(ox, oy, nx, ny, turn, nari, false, false);
+                    if (depth < 20) {
+                        best = -think(pturn.aturn(turn), ref ban, out retList, -999999, 999999, val, depth + 1, depth);
+                        bestMoveList = retList;
+                    } else {
+                        bestMoveList = new kmove[30];
+                        best = val;
+                    }
+
+                    bestMoveList[depth].set(ox * 9 + oy, nx * 9 + ny, best, nari, turn);
+                    return best;
+                }
+
                 // 持ち駒がある
                 // どこかに打つ
                 //kmove[] moveList = new kmove[500];
@@ -217,7 +286,7 @@ namespace TacoWin2 {
                     //best = val - moveList[sp + vla - 1].val;
                     best = val + moveList[sp].val;
 
-                    bestMoveList = new kmove[10];
+                    bestMoveList = new kmove[30];
                     //bestMoveList = mList.assignRlist();
 
                     //bestMoveList[depth] = moveList[sp + vla - 1];

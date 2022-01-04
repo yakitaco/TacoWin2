@@ -110,14 +110,14 @@ namespace TacoWin2 {
                     if (arr[1] == "btime") {
 
                         // 定跡チェック
-                        string oki = "";
-                        string mochi = "";
-                        sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
-                        string strs = sMove.get(oki + " " + mochi, turn);
-                        if (strs != null) {
-                            Console.WriteLine("bestmove " + strs.Substring(1));
-                            continue;
-                        }
+                        //string oki = "";
+                        //string mochi = "";
+                        //sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
+                        //string strs = sMove.get(oki + " " + mochi, turn);
+                        //if (strs != null) {
+                        //    Console.WriteLine("bestmove " + strs.Substring(1));
+                        //    continue;
+                        //}
 
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
                         sw.Restart();
@@ -133,12 +133,12 @@ namespace TacoWin2 {
                         Console.WriteLine($"　{ts}");
 
                         //★テスト
-                        if (turn == Pturn.Sente) {
-                            sMove.set(oki + " " + mochi, "+" + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari), 1, 1, 0);
-                        } else {
-                            sMove.set(oki + " " + mochi, "-" + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari), 1, 1, 0);
-                        }
-                        sMove.save("s2.txt");
+                        //if (turn == Pturn.Sente) {
+                        //    sMove.set(oki + " " + mochi, "+" + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari), 1, 1, 0);
+                        //} else {
+                        //    sMove.set(oki + " " + mochi, "-" + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari), 1, 1, 0);
+                        //}
+                        //sMove.save("s2.txt");
 
                         // 最後にメモリ初期化
                         mList.reset();
