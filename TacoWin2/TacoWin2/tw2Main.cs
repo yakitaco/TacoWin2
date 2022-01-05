@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using TacoWin2_BanInfo;
 using TacoWin2_sfenIO;
 using TacoWin2_SMV;
@@ -13,26 +14,17 @@ namespace TacoWin2 {
             Pturn turn = Pturn.Sente;
             tw2ai ai = new tw2ai();
 
+            Task<(kmove[], int)> aiTaskMain = null;
+
             var sw = new System.Diagnostics.Stopwatch();  // 時間計測用
 
             Process thisProcess = System.Diagnostics.Process.GetCurrentProcess();
 
             ban ban = new ban();
-            //ban.startpos();
-            //Console.WriteLine(ban.debugShow());
-            //ban.ForEachAll(Pturn.Sente, (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
-            //    Console.Write("S({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
-            //});
-            //ban.ForEachAll(Pturn.Gote, (int _ox, int _oy, int _nx, int _ny, Pturn _turn, bool _nari) => {
-            //    Console.Write("G({0},{1})->({2},{3})\n", _ox + 1, _oy + 1, _nx + 1, _ny + 1);
-            //});
             Console.SetIn(new StreamReader(Console.OpenStandardInput(8192)));
 
-            //smvCtl.load("s.txt");
-
-            string test = smvCtl.addList("ASBA","",0,0,0);
-            Console.WriteLine(test);
-            //smvCtl.getList("ASBA");
+            // 定跡ファイル
+            sMove.load("default.ytj");
 
             while (true) {
                 string str = Console.ReadLine();
@@ -121,13 +113,21 @@ namespace TacoWin2 {
 
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
                         sw.Restart();
-                        (kmove[] km, int best) = ai.thinkMove(turn, ban, 6);
+                        aiTaskMain = Task.Run(() => {
+                            return ai.thinkMove(turn, ban, 6);
+                        });
+                        (kmove[] km, int best) = aiTaskMain.Result;
+                        //(kmove[] km, int best) = ai.thinkMove(turn, ban, 6);
                         sw.Stop();
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
                         if (best < -10000) {
                             Console.WriteLine("bestmove resign");
                         } else {
-                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
+                            if ((km[1].op > 0)||(km[1].np > 0)) {
+                                Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari));
+                            } else {
+                                Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
+                            }
                         }
                         TimeSpan ts = sw.Elapsed;
                         Console.WriteLine($"　{ts}");
@@ -146,14 +146,44 @@ namespace TacoWin2 {
                         // 先読み
                     } else if (arr[1] == "ponder") {
 
+                        aiTaskMain = Task.Run(() => {
+                            return ai.thinkMove(turn, ban, 6);
+                        });
 
 
 
 
-
-                        // 最後にメモリ初期化
-                        mList.reset();
                     }
+
+                } else if ((str.Length > 8) && (str.Substring(0, 9) == "ponderhit")) {
+
+                    (kmove[] km, int best) = aiTaskMain.Result;
+                    thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
+                    if (best < -10000) {
+                        Console.WriteLine("bestmove resign");
+                    } else {
+                        if ((km[1].op > 0) || (km[1].np > 0)) {
+                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari));
+                        } else {
+                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
+                        }
+                    }
+
+                    // 最後にメモリ初期化
+                    mList.reset();
+
+                } else if ((str.Length == 4) && (str.Substring(0, 4) == "stop")) {
+
+                    ai.stopFlg = true;
+
+                    (kmove[] km, int best) = aiTaskMain.Result;
+
+                    Console.WriteLine("bestmove 4a3b");  //標準出力
+
+                    ai.stopFlg = false;
+
+                    // 最後にメモリ初期化
+                    mList.reset();
 
                 } else {
 
