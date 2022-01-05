@@ -105,9 +105,9 @@ namespace TacoWin2 {
 
                     tw2usiIO.usi2pos(strs.Substring(1), out ox, out oy, out nx, out ny, out nari);
                     ban tmp_ban = ban;
-                    if ((tmp_ban.onBoard[nx * 9 + ny] > 0)) {
+                    if (tmp_ban.onBoard[nx * 9 + ny] > 0) {
                         val += kVal[(int)ban.getOnBoardKtype(nx * 9 + ny)] + tw2stval.get(ban.getOnBoardKtype(ox * 9 + oy), nx, ny, ox, oy, (int)turn);
-                    } else if ((ox < 9)) {
+                    } else if (ox < 9) {
                         val += tw2stval.get(ban.getOnBoardKtype(ox * 9 + oy), nx, ny, ox, oy, (int)turn);
                     }
 
@@ -198,6 +198,11 @@ namespace TacoWin2 {
             int best = -999999;
             kmove[] retList;
 
+            if (stopFlg) {
+                bestMoveList = new kmove[30];
+                return 0;
+            }
+
             unsafe {
 
                 //定跡チェック
@@ -213,10 +218,11 @@ namespace TacoWin2 {
                     bool nari;
 
                     tw2usiIO.usi2pos(strs.Substring(1), out ox, out oy, out nx, out ny, out nari);
+                    //Console.Write("JOSEKI HIT:({0},{1})->({2},{3})\n", ox, oy, nx, ny);
 
-                    if ((ban.onBoard[nx * 9 + ny] > 0)) {
+                    if (ban.onBoard[nx * 9 + ny] > 0) {
                         val += kVal[(int)ban.getOnBoardKtype(nx * 9 + ny)] + tw2stval.get(ban.getOnBoardKtype(ox * 9 + oy), nx, ny, ox, oy, (int)turn);
-                    } else if ((ox < 9)) {
+                    } else if (ox < 9) {
                         val += tw2stval.get(ban.getOnBoardKtype(ox * 9 + oy), nx, ny, ox, oy, (int)turn);
                     }
                     ban.moveKoma(ox, oy, nx, ny, turn, nari, false, false);
@@ -250,7 +256,7 @@ namespace TacoWin2 {
                         ban tmp_ban = ban;
                         if ((tmp_ban.onBoard[moveList[sp + cnt].np] > 0)) {
                             val += kVal[(int)tmp_ban.getOnBoardKtype(moveList[sp + cnt].np)] + tw2stval.get(tmp_ban.getOnBoardKtype(moveList[sp + cnt].op), moveList[sp + cnt].np / 9, moveList[sp + cnt].np % 9, moveList[sp + cnt].op / 9, moveList[sp + cnt].op % 9, (int)turn);
-                        } else if (((moveList[sp + cnt].op / 9) < 9)) {
+                        } else if ((moveList[sp + cnt].op / 9) < 9) {
                             val += tw2stval.get(tmp_ban.getOnBoardKtype(moveList[sp + cnt].op), moveList[sp + cnt].np / 9, moveList[sp + cnt].np % 9, moveList[sp + cnt].op / 9, moveList[sp + cnt].op % 9, (int)turn);
                         }
                         tmp_ban.moveKoma(moveList[sp + cnt].op / 9, moveList[sp + cnt].op % 9, moveList[sp + cnt].np / 9, moveList[sp + cnt].np % 9, turn, moveList[sp + cnt].nari, false, true);
