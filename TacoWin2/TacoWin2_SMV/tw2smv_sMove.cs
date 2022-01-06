@@ -180,14 +180,21 @@ namespace TacoWin2_SMV {
             }
 
             //違う型とは比較できない
-            if (this.GetType() != obj.GetType()) {
-                throw new ArgumentException("別の型とは比較できません。", "obj");
-            }
+            //if (this.GetType() != obj.GetType()) {
+            //    throw new ArgumentException("別の型とは比較できません。", "obj");
+            //}
             //このクラスが継承されることが無い（構造体など）ならば、次のようにできる
             //if (!(other is TestClass)) { }
 
             //Priceを比較する
-            return this.hash.CompareTo(((sMove)obj).hash);
+            if (this.hash > ((sMove)obj).hash) {
+                return 1;
+            } else if (this.hash == ((sMove)obj).hash) {
+                return 0;
+            } else {
+                return -1;
+            }
+            //return this.hash.CompareTo(((sMove)obj).hash);
             //または、次のようにもできる
             //return this.Price - ((Product)other).Price;
         }

@@ -250,21 +250,21 @@ namespace TacoWin2 {
                 (int vla, int sp) = getAllMoveList(ref ban, turn, moveList);
                 if (depth < depMax) {
 
-                    for (int cnt = 0; cnt < vla; cnt++) {
+                    for (int cnt = sp; cnt < vla + sp; cnt++) {
 
                         //駒を動かす
                         ban tmp_ban = ban;
-                        if ((tmp_ban.onBoard[moveList[sp + cnt].np] > 0)) {
-                            val += kVal[(int)tmp_ban.getOnBoardKtype(moveList[sp + cnt].np)] + tw2stval.get(tmp_ban.getOnBoardKtype(moveList[sp + cnt].op), moveList[sp + cnt].np / 9, moveList[sp + cnt].np % 9, moveList[sp + cnt].op / 9, moveList[sp + cnt].op % 9, (int)turn);
-                        } else if ((moveList[sp + cnt].op / 9) < 9) {
-                            val += tw2stval.get(tmp_ban.getOnBoardKtype(moveList[sp + cnt].op), moveList[sp + cnt].np / 9, moveList[sp + cnt].np % 9, moveList[sp + cnt].op / 9, moveList[sp + cnt].op % 9, (int)turn);
+                        if ((tmp_ban.onBoard[moveList[cnt].np] > 0)) {
+                            val += kVal[(int)tmp_ban.getOnBoardKtype(moveList[cnt].np)] + tw2stval.get(tmp_ban.getOnBoardKtype(moveList[cnt].op), moveList[cnt].np / 9, moveList[cnt].np % 9, moveList[cnt].op / 9, moveList[cnt].op % 9, (int)turn);
+                        } else if ((moveList[cnt].op / 9) < 9) {
+                            val += tw2stval.get(tmp_ban.getOnBoardKtype(moveList[cnt].op), moveList[cnt].np / 9, moveList[cnt].np % 9, moveList[cnt].op / 9, moveList[cnt].op % 9, (int)turn);
                         }
-                        tmp_ban.moveKoma(moveList[sp + cnt].op / 9, moveList[sp + cnt].op % 9, moveList[sp + cnt].np / 9, moveList[sp + cnt].np % 9, turn, moveList[sp + cnt].nari, false, true);
+                        tmp_ban.moveKoma(moveList[cnt].op / 9, moveList[cnt].op % 9, moveList[cnt].np / 9, moveList[cnt].np % 9, turn, moveList[cnt].nari, false, true);
 
                         if (tmp_ban.moveable[pturn.aturn((int)turn) * 81 + tmp_ban.putOusyou[(int)turn]] > 0) {
                             if (bestMoveList == null) {
                                 bestMoveList = new kmove[500];
-                                bestMoveList[depth] = moveList[sp + cnt];
+                                bestMoveList[depth] = moveList[cnt];
                             }
                             continue;
                         }
@@ -273,7 +273,7 @@ namespace TacoWin2 {
                         if (retVal > best) {
                             best = retVal;
                             bestMoveList = retList;
-                            bestMoveList[depth] = moveList[sp + cnt];
+                            bestMoveList[depth] = moveList[cnt];
                             if (best > alpha) {
                                 alpha = best;
                                 //mList[depth] = tmpList[i];
