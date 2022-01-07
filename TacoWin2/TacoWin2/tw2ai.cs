@@ -159,14 +159,15 @@ namespace TacoWin2 {
                         // 王手はスキップ
                         if (tmp_ban.moveable[pturn.aturn((int)turn) * 81 + tmp_ban.putOusyou[(int)turn]] > 0) {
                             retVal = val - 99999;
-                            Console.Write("TASK[{0}:{1}]MV[{2}]({3},{4})->({5},{6})\n", Task.CurrentId, cnt_local, retVal, moveList[cnt_local].op / 9 + 1, moveList[cnt_local].op % 9 + 1, moveList[cnt_local].np / 9 + 1, moveList[cnt_local].np % 9 + 1);
+                            Console.Write("TASK[{0}:{1}]MV[{2}]({3},{4})->({5},{6})[{7}]\n", Task.CurrentId, cnt_local, retVal, moveList[cnt_local].op / 9 + 1, moveList[cnt_local].op % 9 + 1, moveList[cnt_local].np / 9 + 1, moveList[cnt_local].np % 9 + 1, moveList[cnt_local].val);
                         } else {
+                            moveList[cnt_local].val = val;
                             retVal = -think(pturn.aturn(turn), ref tmp_ban, out retList, -beta, -alpha, val, 1, depth);
                             retList[0] = moveList[cnt_local];
 
                             string str = "";
                             for (int i = 0; retList[i].op > 0 || retList[i].np > 0; i++) {
-                                str += "(" + (retList[i].op / 9 + 1) + "," + (retList[i].op % 9 + 1) + ")->(" + (retList[i].np / 9 + 1) + "," + (retList[i].np % 9 + 1) + ")/";
+                                str += "(" + (retList[i].op / 9 + 1) + "," + (retList[i].op % 9 + 1) + ")->(" + (retList[i].np / 9 + 1) + "," + (retList[i].np % 9 + 1) + "):" + retList[i].val + "/";
                             }
 
                             Console.Write("TASK[{0}:{1}]MV[{2}]{3}\n", Task.CurrentId, cnt_local, retVal, str);
@@ -247,17 +248,16 @@ namespace TacoWin2 {
                     aid = mList.assignAlist(out moveList);
                 }
 
-                (int vla, int sp) = getAllMoveList(ref ban, turn, moveList);
                 if (depth < depMax) {
-
+                    (int vla, int sp) = getAllMoveList(ref ban, turn, moveList);
                     for (int cnt = sp; cnt < vla + sp; cnt++) {
 
                         //駒を動かす
                         ban tmp_ban = ban;
                         if ((tmp_ban.onBoard[moveList[cnt].np] > 0)) {
-                            val += kVal[(int)tmp_ban.getOnBoardKtype(moveList[cnt].np)] + tw2stval.get(tmp_ban.getOnBoardKtype(moveList[cnt].op), moveList[cnt].np / 9, moveList[cnt].np % 9, moveList[cnt].op / 9, moveList[cnt].op % 9, (int)turn);
+                            val = kVal[(int)tmp_ban.getOnBoardKtype(moveList[cnt].np)] + tw2stval.get(tmp_ban.getOnBoardKtype(moveList[cnt].op), moveList[cnt].np / 9, moveList[cnt].np % 9, moveList[cnt].op / 9, moveList[cnt].op % 9, (int)turn) - pVal;
                         } else if ((moveList[cnt].op / 9) < 9) {
-                            val += tw2stval.get(tmp_ban.getOnBoardKtype(moveList[cnt].op), moveList[cnt].np / 9, moveList[cnt].np % 9, moveList[cnt].op / 9, moveList[cnt].op % 9, (int)turn);
+                            val = tw2stval.get(tmp_ban.getOnBoardKtype(moveList[cnt].op), moveList[cnt].np / 9, moveList[cnt].np % 9, moveList[cnt].op / 9, moveList[cnt].op % 9, (int)turn) - pVal;
                         }
                         tmp_ban.moveKoma(moveList[cnt].op / 9, moveList[cnt].op % 9, moveList[cnt].np / 9, moveList[cnt].np % 9, turn, moveList[cnt].nari, false, true);
 
@@ -268,7 +268,7 @@ namespace TacoWin2 {
                             }
                             continue;
                         }
-
+                        moveList[cnt].val = val;
                         int retVal = -think(pturn.aturn(turn), ref tmp_ban, out retList, -beta, -alpha, val, depth + 1, depMax);
                         if (retVal > best) {
                             best = retVal;
@@ -289,9 +289,11 @@ namespace TacoWin2 {
 
                 } else {
 
+                    (int vla, int sp) = getBestMove(ref ban, turn, moveList);
+
                     //best = val - moveList[sp + vla - 1].val;
                     best = val + moveList[sp].val;
-
+                    moveList[sp].val = best;
                     bestMoveList = new kmove[30];
                     //bestMoveList = mList.assignRlist();
 
@@ -306,7 +308,157 @@ namespace TacoWin2 {
             return best;
         }
 
+        // 最深
+        public (int, int) getBestMove(ref ban ban, Pturn turn, kmove[] kmv) {
+            int startPoint = 100;
+            int kCnt = 0;
+            unsafe {
+                // 駒移動
 
+                // 王将
+                if (ban.putOusyou[(int)turn] != 0xFF) {
+                    getEachMoveList(ref ban, ban.putOusyou[(int)turn], turn, kmv, ref kCnt, ref startPoint);
+                }
+
+                // 歩兵
+                for (int i = 0; i < 9; i++) {
+                    if (ban.putFuhyou[(int)turn * 9 + i] != 9) {
+                        getEachMoveList(ref ban, i * 9 + ban.putFuhyou[(int)turn * 9 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 香車
+                for (int i = 0; i < 4; i++) {
+                    if (ban.putKyousha[(int)turn * 4 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putKyousha[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 桂馬
+                for (int i = 0; i < 4; i++) {
+                    if (ban.putKeima[(int)turn * 4 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putKeima[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 銀将
+                for (int i = 0; i < 4; i++) {
+                    if (ban.putGinsyou[(int)turn * 4 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putGinsyou[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 飛車
+                for (int i = 0; i < 2; i++) {
+                    if (ban.putHisya[(int)turn * 2 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putHisya[(int)turn * 2 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 角行
+                for (int i = 0; i < 2; i++) {
+                    if (ban.putKakugyou[(int)turn * 2 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putKakugyou[(int)turn * 2 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 金将
+                for (int i = 0; i < 4; i++) {
+                    if (ban.putKinsyou[(int)turn * 4 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putKinsyou[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 成駒
+                for (int i = 0, j = 0; j < ban.putNarigomaNum[(int)turn]; i++) {
+                    if (ban.putNarigoma[(int)turn * 30 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putNarigoma[(int)turn * 30 + i], turn, kmv, ref kCnt, ref startPoint);
+                        j++;
+                    }
+                }
+            }
+
+            return (kCnt, startPoint);
+        }
+
+        public (int, int) getAllMoveListDepth(ref ban ban, Pturn turn, kmove[] kmv) {
+            int startPoint = 100;
+            int kCnt = 0;
+            unsafe {
+                // 駒移動
+
+                // 王将
+                if (ban.putOusyou[(int)turn] != 0xFF) {
+                    getEachMoveList(ref ban, ban.putOusyou[(int)turn], turn, kmv, ref kCnt, ref startPoint);
+                }
+
+                // 歩兵
+                for (int i = 0; i < 9; i++) {
+                    if (ban.putFuhyou[(int)turn * 9 + i] != 9) {
+                        getEachMoveList(ref ban, i * 9 + ban.putFuhyou[(int)turn * 9 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 香車
+                for (int i = 0; i < 4; i++) {
+                    if (ban.putKyousha[(int)turn * 4 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putKyousha[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 桂馬
+                for (int i = 0; i < 4; i++) {
+                    if (ban.putKeima[(int)turn * 4 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putKeima[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 銀将
+                for (int i = 0; i < 4; i++) {
+                    if (ban.putGinsyou[(int)turn * 4 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putGinsyou[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 飛車
+                for (int i = 0; i < 2; i++) {
+                    if (ban.putHisya[(int)turn * 2 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putHisya[(int)turn * 2 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 角行
+                for (int i = 0; i < 2; i++) {
+                    if (ban.putKakugyou[(int)turn * 2 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putKakugyou[(int)turn * 2 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 金将
+                for (int i = 0; i < 4; i++) {
+                    if (ban.putKinsyou[(int)turn * 4 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putKinsyou[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 成駒
+                for (int i = 0, j = 0; j < ban.putNarigomaNum[(int)turn]; i++) {
+                    if (ban.putNarigoma[(int)turn * 30 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putNarigoma[(int)turn * 30 + i], turn, kmv, ref kCnt, ref startPoint);
+                        j++;
+                    }
+                }
+
+                // 駒打ち
+                for (int i = 0; i < 7; i++) {
+                    if (ban.captPiece[(int)turn * 7 + i] > 0) {
+                        getEachMoveList(ref ban, 81 + i + 1, turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+            }
+
+            return (kCnt, startPoint);
+        }
         public (int, int) getAllMoveList(ref ban ban, Pturn turn, kmove[] kmv) {
             int startPoint = 100;
             int kCnt = 0;
@@ -384,6 +536,34 @@ namespace TacoWin2 {
             }
 
             return (kCnt, startPoint);
+        }
+
+        public void getEachMoveListDepth(ref ban ban, int oPos, Pturn turn, kmove[] kmv, ref int kCnt, ref int startPoint) {
+            unsafe {
+                for (int i = 0; i < 9; i++) {
+
+                    // 二歩は打てない
+                    if (((oPos % 9) == (int)ktype.Fuhyou) && (ban.putFuhyou[(int)turn * 9 + i] < 9)) {
+                        continue;
+
+                    }
+                    for (int j = 0; j < 9; j++) {
+                        // 1段目には打てない
+                        if ((((oPos % 9) == (int)ktype.Fuhyou) || ((oPos % 9) == (int)ktype.Kyousha)) && (pturn.psX(turn, j) > 7)) {
+                            continue;
+                            // 2段目には打てない
+                        } else if (((oPos % 9) == (int)ktype.Keima) && (pturn.psX(turn, j) > 6)) {
+                            continue;
+                        }
+                        // 駒があると打てない
+                        if (ban.onBoard[i * 9 + j] > 0) {
+                            continue;
+                        }
+
+                        kmv[startPoint + kCnt++].set(oPos, i * 9 + j, 0, false, turn);
+                    }
+                }
+            }
         }
 
         public void getEachMoveList(ref ban ban, int oPos, Pturn turn, kmove[] kmv, ref int kCnt, ref int startPoint) {
