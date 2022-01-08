@@ -22,18 +22,19 @@ namespace TacoWin2_SMV {
         }
 
         //ファイルから読み取り
-        public static void load(string filePath) {
+        public static int load(string filePath) {
             if (System.IO.File.Exists(filePath)) {
                 string[] tmpList = File.ReadAllLines(filePath);
 
                 foreach (var tmp in tmpList) {
                     sList.Add(new sMove(Convert.ToUInt64(tmp.Substring(0, 16), 16), tmp.Substring(17)));
                 }
-
-                Console.WriteLine("[OK]Load " + filePath);
+                return tmpList.Length;
+                //Console.WriteLine("[OK]Load " + filePath);
 
             } else {
-                Console.WriteLine("[NG]Load " + filePath);
+                return -1;
+                //Console.WriteLine("[NG]Load " + filePath);
             }
 
         }

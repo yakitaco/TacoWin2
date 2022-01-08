@@ -186,7 +186,7 @@ namespace TacoWin2 {
                                 break;
                         }
                     }
-                    Console.WriteLine("SENKEI[" + senTeNum + ":" + mV[senTeNum].type + "]-[" + goTeNum + ":" + mV[goTeNum].type + "]");
+                    DebugForm.instance.addMsg("SENKEI[" + senTeNum + ":" + mV[senTeNum].type + "]-[" + goTeNum + ":" + mV[goTeNum].type + "]");
                 }
             }
 

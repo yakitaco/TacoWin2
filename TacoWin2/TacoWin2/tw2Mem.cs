@@ -24,7 +24,7 @@ namespace TacoWin2 {
         }
 
         public static void reset() {
-            Console.Write("mList[a={0}/r={1}]", aListCnt, rListCnt);
+            //Console.Write("mList[a={0}/r={1}]", aListCnt, rListCnt);
             aListCnt = 0;
             //rListCnt = 0;
             for (int i = 0; i < aListMax; i++) {

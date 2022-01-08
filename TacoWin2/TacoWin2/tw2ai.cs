@@ -159,7 +159,7 @@ namespace TacoWin2 {
                         // 王手はスキップ
                         if (tmp_ban.moveable[pturn.aturn((int)turn) * 81 + tmp_ban.putOusyou[(int)turn]] > 0) {
                             retVal = val - 99999;
-                            Console.Write("TASK[{0}:{1}]MV[{2}]({3},{4})->({5},{6})[{7}]\n", Task.CurrentId, cnt_local, retVal, moveList[cnt_local].op / 9 + 1, moveList[cnt_local].op % 9 + 1, moveList[cnt_local].np / 9 + 1, moveList[cnt_local].np % 9 + 1, moveList[cnt_local].val);
+                            //DebugForm.Form1Instance.addMsg("TASK[{0}:{1}]MV[{2}]({3},{4})->({5},{6})[{7}]\n", Task.CurrentId, cnt_local, retVal, moveList[cnt_local].op / 9 + 1, moveList[cnt_local].op % 9 + 1, moveList[cnt_local].np / 9 + 1, moveList[cnt_local].np % 9 + 1, moveList[cnt_local].val);
                         } else {
                             moveList[cnt_local].val = val;
                             retVal = -think(pturn.aturn(turn), ref tmp_ban, out retList, -beta, -alpha, val, 1, depth);
@@ -170,7 +170,7 @@ namespace TacoWin2 {
                                 str += "(" + (retList[i].op / 9 + 1) + "," + (retList[i].op % 9 + 1) + ")->(" + (retList[i].np / 9 + 1) + "," + (retList[i].np % 9 + 1) + "):" + retList[i].val + "/";
                             }
 
-                            Console.Write("TASK[{0}:{1}]MV[{2}]{3}\n", Task.CurrentId, cnt_local, retVal, str);
+                            DebugForm.instance.addMsg( "TASK[" + Task.CurrentId+ ":" + cnt_local +"]MV["+ retVal + "]"+ str);
                         }
 
                         lock (lockObj) {
