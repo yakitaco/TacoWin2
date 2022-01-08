@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using TacoWin2_BanInfo;
 using TacoWin2_sfenIO;
 using TacoWin2_SMV;
@@ -13,6 +14,16 @@ namespace TacoWin2 {
             int tesuu = 0;
             Pturn turn = Pturn.Sente;
             tw2ai ai = new tw2ai();
+            int inGame = 0;
+
+            Application.SetHighDpiMode(HighDpiMode.SystemAware);
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Task.Run(() => {
+                Application.Run(new DebugForm()); // デバッグフォーム
+                Console.WriteLine("bestmove resign");
+            });
+            
 
             Task<(kmove[], int)> aiTaskMain = null;
 
@@ -24,10 +35,17 @@ namespace TacoWin2 {
             Console.SetIn(new StreamReader(Console.OpenStandardInput(8192)));
 
             // 定跡ファイル
-            sMove.load("default.ytj");
+            string fileName = "default.ytj";
+            int ret = sMove.load(fileName);
+            if (ret < 0) {
+                DebugForm.instance.addMsg("[NG]Load " + fileName);
+            } else {
+                DebugForm.instance.addMsg("[OK]Load " + fileName + "(" + ret +")");
+            }
 
             while (true) {
                 string str = Console.ReadLine();
+                DebugForm.instance.addMsg("[RECV]"+str);
 
                 // usi 起動
                 if ((str.Length == 3) && (str.Substring(0, 3) == "usi")) {
@@ -39,8 +57,13 @@ namespace TacoWin2 {
 
                     // isready 対局開始前
                 } else if ((str.Length == 7) && (str.Substring(0, 7) == "isready")) {
+                    if (inGame > 0) { /* 連続対戦用 */
+                        tw2_log.save(DebugForm.instance.getText(), (int)turn);
+                        DebugForm.instance.resetMsg();
+                    }
                     Thread.Sleep(1000);
                     Console.WriteLine("readyok");
+                    inGame = 1;
 
                     //usinewgame 新規
                 } else if ((str.Length == 10) && (str.Substring(0, 10) == "usinewgame")) {
@@ -67,12 +90,12 @@ namespace TacoWin2 {
                         } else {
                             turn = Pturn.Gote;
                         }
-                        Console.WriteLine(ban.debugShow());
+                        //Console.WriteLine(ban.debugShow());
 
-                        string oki = "";
-                        string mochi = "";
-                        sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
-                        Console.WriteLine(oki + " / " + mochi);
+                        //string oki = "";
+                        //string mochi = "";
+                        //sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
+                        //Console.WriteLine(oki + " / " + mochi);
 
                     }
 
@@ -85,7 +108,7 @@ namespace TacoWin2 {
                         bool nari;
                         tw2usiIO.usi2pos(arr[tesuu + startStrPos], out ox, out oy, out nx, out ny, out nari);
 
-                        Console.Write("MV({0},{1})->({2},{3})\n", ox + 1, oy + 1, nx + 1, ny + 1);
+                        //Console.Write("MV({0},{1})->({2},{3})\n", ox + 1, oy + 1, nx + 1, ny + 1);
                         ban.moveKoma(ox, oy, nx, ny, turn, nari, false, false);
 
                         turn = (Pturn)pturn.aturn((int)turn);
@@ -93,7 +116,7 @@ namespace TacoWin2 {
                     }
                     ban.renewMoveable();
 
-                    Console.WriteLine(ban.debugShow());
+                    DebugForm.instance.addMsg(ban.debugShow());
 
                 } else if ((str.Length > 1) && (str.Substring(0, 2) == "go")) {
                     string[] arr = str.Split(' ');
@@ -120,17 +143,21 @@ namespace TacoWin2 {
                         //(kmove[] km, int best) = ai.thinkMove(turn, ban, 6);
                         sw.Stop();
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
+                        string sendStr;
                         if (best < -10000) {
-                            Console.WriteLine("bestmove resign");
+                            sendStr = "bestmove resign";
                         } else {
                             if ((km[1].op > 0)||(km[1].np > 0)) {
-                                Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari));
+                                sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari);
                             } else {
-                                Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
+                                sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari);
                             }
                         }
+                        Console.WriteLine(sendStr);
+                        DebugForm.instance.addMsg("[SEND]" + sendStr);
+
                         TimeSpan ts = sw.Elapsed;
-                        Console.WriteLine($"　{ts}");
+                        DebugForm.instance.addMsg($"　{ts}");
 
                         //★テスト
                         //if (turn == Pturn.Sente) {
@@ -184,6 +211,12 @@ namespace TacoWin2 {
 
                     // 最後にメモリ初期化
                     mList.reset();
+                } else if ((str.Length > 8) && (str.Substring(0, 8) == "gameover")) {
+                    if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
+                    inGame = 2;
+
+                } else if ((str.Length == 4) && (str.Substring(0, 4) == "quit")) {
+                    if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
 
                 } else {
 
