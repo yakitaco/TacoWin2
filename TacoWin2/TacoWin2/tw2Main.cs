@@ -58,7 +58,7 @@ namespace TacoWin2 {
                     // isready 対局開始前
                 } else if ((str.Length == 7) && (str.Substring(0, 7) == "isready")) {
                     if (inGame > 0) { /* 連続対戦用 */
-                        tw2_log.save(DebugForm.instance.getText(), (int)turn);
+                        if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
                         DebugForm.instance.resetMsg();
                     }
                     Thread.Sleep(1000);
@@ -182,6 +182,31 @@ namespace TacoWin2 {
 
                     }
 
+                } else if ((str.Length > 7) && (str.Substring(0, 8) == "testmove")) {
+
+
+
+                    string[] arr = str.Split(' ');
+
+                    // 手を更新(差分のみ)
+                    for (tesuu = 0; tesuu + 1 < arr.Length; tesuu++) {
+                        int ox;
+                        int oy;
+                        int nx;
+                        int ny;
+                        bool nari;
+                        tw2usiIO.usi2pos(arr[tesuu + 1], out ox, out oy, out nx, out ny, out nari);
+
+                        //Console.Write("MV({0},{1})->({2},{3})\n", ox + 1, oy + 1, nx + 1, ny + 1);
+                        ban.moveKoma(ox, oy, nx, ny, turn, nari, false, true);
+
+                        turn = (Pturn)pturn.aturn((int)turn);
+
+                    }
+                    //ban.renewMoveable();
+
+                    DebugForm.instance.addMsg(ban.debugShow());
+
                 } else if ((str.Length > 8) && (str.Substring(0, 9) == "ponderhit")) {
 
                     (kmove[] km, int best) = aiTaskMain.Result;
@@ -211,6 +236,7 @@ namespace TacoWin2 {
 
                     // 最後にメモリ初期化
                     mList.reset();
+
                 } else if ((str.Length > 8) && (str.Substring(0, 8) == "gameover")) {
                     if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
                     inGame = 2;

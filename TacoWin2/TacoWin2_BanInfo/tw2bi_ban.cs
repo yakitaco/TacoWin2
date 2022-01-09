@@ -523,7 +523,7 @@ namespace TacoWin2_BanInfo {
 
                     // 追加
                     captPiece[(int)kNoNari(getOnBoardKtype(nx, ny)) - 1 + (int)getOnBoardPturn(ox, oy) * 7]++;
-                    onBoard[nx * 9 + ny] = setOnBordDatat(pturn.aturn(turn), 0, ktype.None); //駒情報を一時クリア
+                    onBoard[nx * 9 + ny] = setOnBordDatat(pturn.aturn(turn), 9, ktype.None); //駒情報を一時クリア
                 } else {
                     //changeMoveableDir(nx, ny, -1);
                 }
