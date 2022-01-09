@@ -265,6 +265,7 @@ namespace TacoWin2 {
                             if (bestMoveList == null) {
                                 bestMoveList = new kmove[500];
                                 bestMoveList[depth] = moveList[cnt];
+                                best = -999999 + depth * 10000 + val;
                             }
                             continue;
                         }
