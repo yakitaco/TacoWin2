@@ -170,7 +170,7 @@ namespace TacoWin2 {
                                 str += "(" + (retList[i].op / 9 + 1) + "," + (retList[i].op % 9 + 1) + ")->(" + (retList[i].np / 9 + 1) + "," + (retList[i].np % 9 + 1) + "):" + retList[i].val + "/";
                             }
 
-                            DebugForm.instance.addMsg( "TASK[" + Task.CurrentId+ ":" + cnt_local +"]MV["+ retVal + "]"+ str);
+                            DebugForm.instance.addMsg("TASK[" + Task.CurrentId + ":" + cnt_local + "]MV[" + retVal + "]" + str);
                         }
 
                         lock (lockObj) {
@@ -758,5 +758,191 @@ namespace TacoWin2 {
                 return 0; // 駒がない
             }
         }
+
+
+        public (kmove[], int) thinkMateMove(Pturn turn, ban ban, int depth) {
+            int best = -999999;
+            int beta = 999999;
+            int alpha = -999999;
+
+            kmove[] bestmove = null;
+
+            int teCnt = 0; //手の進捗
+
+            tw2stval.tmpChk(ban);
+
+            unsafe {
+
+                int aid = mList.assignAlist(out kmove[] moveList);
+
+                //[攻め方]王手を指せる手を全てリスト追加
+                (int vla, int sp) = getAllCheckList(ref ban, turn, moveList, );
+
+                Parallel.For(0, workMin, id => {
+                    int cnt_local;
+
+                    while (true) {
+
+                        lock (lockObj) {
+                            if (vla <= teCnt) break;
+                            cnt_local = teCnt + sp;
+                            teCnt++;
+                        }
+                        //mList.ls[cnt_local + 1][0] = mList.ls[0][sp + cnt_local];
+
+                        // 駒移動
+                        ban tmp_ban = ban;
+                        int val = 0;
+                        int retVal;
+                        kmove[] retList = null;
+
+                        //駒を動かす
+                        if ((tmp_ban.onBoard[moveList[cnt_local].np] > 0)) {
+                            val += kVal[(int)tmp_ban.getOnBoardKtype(moveList[cnt_local].np)] + tw2stval.get(tmp_ban.getOnBoardKtype(moveList[cnt_local].op), moveList[cnt_local].np / 9, moveList[cnt_local].np % 9, moveList[cnt_local].op / 9, moveList[cnt_local].op % 9, (int)turn);
+                        } else if (((moveList[cnt_local].op / 9) < 9)) {
+                            val += tw2stval.get(tmp_ban.getOnBoardKtype(moveList[cnt_local].op), moveList[cnt_local].np / 9, moveList[cnt_local].np % 9, moveList[cnt_local].op / 9, moveList[cnt_local].op % 9, (int)turn);
+                        }
+                        tmp_ban.moveKoma(moveList[cnt_local].op / 9, moveList[cnt_local].op % 9, moveList[cnt_local].np / 9, moveList[cnt_local].np % 9, turn, moveList[cnt_local].nari, false, true);
+
+                        // 王手はスキップ
+                        if (tmp_ban.moveable[pturn.aturn((int)turn) * 81 + tmp_ban.putOusyou[(int)turn]] > 0) {
+                            retVal = val - 99999;
+                            //DebugForm.Form1Instance.addMsg("TASK[{0}:{1}]MV[{2}]({3},{4})->({5},{6})[{7}]\n", Task.CurrentId, cnt_local, retVal, moveList[cnt_local].op / 9 + 1, moveList[cnt_local].op % 9 + 1, moveList[cnt_local].np / 9 + 1, moveList[cnt_local].np % 9 + 1, moveList[cnt_local].val);
+                        } else {
+                            moveList[cnt_local].val = val;
+                            retVal = -thinkMateDef(pturn.aturn(turn), ref tmp_ban, out retList, 1, depth);
+                            retList[0] = moveList[cnt_local];
+
+                            string str = "";
+                            for (int i = 0; retList[i].op > 0 || retList[i].np > 0; i++) {
+                                str += "(" + (retList[i].op / 9 + 1) + "," + (retList[i].op % 9 + 1) + ")->(" + (retList[i].np / 9 + 1) + "," + (retList[i].np % 9 + 1) + "):" + retList[i].val + "/";
+                            }
+
+                            DebugForm.instance.addMsg("TASK[" + Task.CurrentId + ":" + cnt_local + "]MV[" + retVal + "]" + str);
+                        }
+
+                        lock (lockObj) {
+                            if (retVal > best) {
+                                best = retVal;
+                                bestmove = retList;
+                                if (best > alpha) {
+                                    alpha = best;
+                                }
+                            }
+                        }
+
+
+                    }
+                });
+
+                mList.freeAlist(aid);
+            }
+
+            return (bestmove, best);
+        }
+
+        //指定した位置に次に移動可能となる
+        (int vla, int sp) getAllCheckList(ref ban ban, Pturn turn, kmove[] kmv, int kingPos) {
+            int startPoint = 100;
+            int kCnt = 0;
+            unsafe {
+                
+                // 歩兵
+                for (int i = 0; i < 9; i++) {
+                    // [不成・成り]相手玉の2段前
+
+
+                    //[成り] 相手玉の右
+
+                    //[成り] 相手玉の左
+                    if (ban.putFuhyou[(int)turn * 9 + i] != 9) {
+                        getEachMovePos(ref ban, oPos, 0, 1, turn, kmv, ref kCnt, ref startPoint);
+
+                        getEachMoveList(ref ban, i * 9 + ban.putFuhyou[(int)turn * 9 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 香車
+                for (int i = 0; i < 4; i++) {
+                    // [不成]敵を取って直進
+
+
+                    //[成り] 相手玉の右
+
+                    //[成り] 相手玉の左
+
+
+                    //[特殊] 空き王手
+
+                    if (ban.putKyousha[(int)turn * 4 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putKyousha[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 桂馬
+                for (int i = 0; i < 4; i++) {
+                    // [不成]跳ねる
+
+
+                    if (ban.putKeima[(int)turn * 4 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putKeima[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 銀将
+                for (int i = 0; i < 4; i++) {
+                    if (ban.putGinsyou[(int)turn * 4 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putGinsyou[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 飛車
+                for (int i = 0; i < 2; i++) {
+                    if (ban.putHisya[(int)turn * 2 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putHisya[(int)turn * 2 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 角行
+                for (int i = 0; i < 2; i++) {
+                    if (ban.putKakugyou[(int)turn * 2 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putKakugyou[(int)turn * 2 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 金将
+                for (int i = 0; i < 4; i++) {
+                    if (ban.putKinsyou[(int)turn * 4 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putKinsyou[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 成駒
+                for (int i = 0, j = 0; j < ban.putNarigomaNum[(int)turn]; i++) {
+                    if (ban.putNarigoma[(int)turn * 30 + i] != 0xFF) {
+                        getEachMoveList(ref ban, ban.putNarigoma[(int)turn * 30 + i], turn, kmv, ref kCnt, ref startPoint);
+                        j++;
+                    }
+                }
+
+                // 駒打ち
+                for (int i = 0; i < 7; i++) {
+                    if (ban.captPiece[(int)turn * 7 + i] > 0) {
+                        getEachMoveList(ref ban, 81 + i + 1, turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+            }
+            return (kCnt, startPoint);
+        }
+
+
+        public int thinkMateDef(Pturn turn, ref ban ban, out kmove[] bestMoveList, int depth, int depMax) {
+
+
+
+
+
+        }
+
     }
 }
