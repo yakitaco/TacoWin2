@@ -926,13 +926,33 @@ namespace TacoWin2 {
                 }
 
                 // 駒打ち
-                for (int i = 0; i < 7; i++) {
-                    if (ban.captPiece[(int)turn * 7 + i] > 0) {
-                        getEachMoveList(ref ban, 81 + i + 1, turn, kmv, ref kCnt, ref startPoint);
+                //for (int i = 0; i < 7; i++) {
+                //    if (ban.captPiece[(int)turn * 7 + i] > 0) {
+                //        getEachMoveList(ref ban, 81 + i + 1, turn, kmv, ref kCnt, ref startPoint);
+                //    }
+                //}
+
+                // 歩打ち
+                if (ban.captPiece[(int)turn * 7 + 0] > 0) {
+                    // 二歩チェック
+                    if (ban.putFuhyou[(int)turn * 9 + (ban.putOusyou[pturn.aturn((int)turn)] / 9)] < 9) {
+                        addCheckPutPos(ref ban, ktype.Fuhyou, ban.putOusyou[pturn.aturn((int)turn)], 0, -1, turn, kmv, ref kCnt, ref startPoint);
                     }
                 }
-            }
+
+
+
+
+                }
             return (kCnt, startPoint);
+        }
+
+        // ターゲット位置(tPos)からmx,myの相対位置に駒を置けるかチェック
+        int addCheckPutPos(ref ban ban, ktype type, int tPos, int mx, int my, Pturn turn, kmove[] kmv, ref int kCnt, ref int startPoint) {
+
+
+
+            return 0;
         }
 
 
