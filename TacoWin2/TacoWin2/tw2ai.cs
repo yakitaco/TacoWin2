@@ -846,7 +846,7 @@ namespace TacoWin2 {
             int startPoint = 100;
             int kCnt = 0;
             unsafe {
-                
+
                 // 歩兵
                 for (int i = 0; i < 9; i++) {
                     // [不成・成り]相手玉の2段前
@@ -940,19 +940,92 @@ namespace TacoWin2 {
                     }
                 }
 
-
-
-
+                // 香打ち
+                if (ban.captPiece[(int)turn * 7 + 1] > 0) {
+                    int ret = 0;
+                    for (int i = 1; ret == 0; i++) {
+                        ret = addCheckPutPos(ref ban, ktype.Kyousha, ban.putOusyou[pturn.aturn((int)turn)], 0, -i, turn, kmv, ref kCnt, ref startPoint);
+                    }
                 }
+
+                // 桂打ち
+                if (ban.captPiece[(int)turn * 7 + 2] > 0) {
+                    addCheckPutPos(ref ban, ktype.Keima, ban.putOusyou[pturn.aturn((int)turn)], 1, -2, turn, kmv, ref kCnt, ref startPoint);
+                    addCheckPutPos(ref ban, ktype.Keima, ban.putOusyou[pturn.aturn((int)turn)], -1, -2, turn, kmv, ref kCnt, ref startPoint);
+                }
+
+                // 銀打ち
+                if (ban.captPiece[(int)turn * 7 + 3] > 0) {
+                    addCheckPutPos(ref ban, ktype.Ginsyou, ban.putOusyou[pturn.aturn((int)turn)], -1, 1, turn, kmv, ref kCnt, ref startPoint);
+                    addCheckPutPos(ref ban, ktype.Ginsyou, ban.putOusyou[pturn.aturn((int)turn)], 1, 1, turn, kmv, ref kCnt, ref startPoint);
+                    addCheckPutPos(ref ban, ktype.Ginsyou, ban.putOusyou[pturn.aturn((int)turn)], 1, -1, turn, kmv, ref kCnt, ref startPoint);
+                    addCheckPutPos(ref ban, ktype.Ginsyou, ban.putOusyou[pturn.aturn((int)turn)], 0, -1, turn, kmv, ref kCnt, ref startPoint);
+                    addCheckPutPos(ref ban, ktype.Ginsyou, ban.putOusyou[pturn.aturn((int)turn)], -1, -1, turn, kmv, ref kCnt, ref startPoint);
+                }
+
+                // 飛打ち
+                if (ban.captPiece[(int)turn * 7 + 4] > 0) {
+                    int ret = 0;
+                    for (int i = 1; ret == 0; i++) {
+                        ret = addCheckPutPos(ref ban, ktype.Hisya, ban.putOusyou[pturn.aturn((int)turn)], 0, -i, turn, kmv, ref kCnt, ref startPoint);
+                    }
+                    ret = 0;
+                    for (int i = 1; ret == 0; i++) {
+                        ret = addCheckPutPos(ref ban, ktype.Hisya, ban.putOusyou[pturn.aturn((int)turn)], 0, i, turn, kmv, ref kCnt, ref startPoint);
+                    }
+                    ret = 0;
+                    for (int i = 1; ret == 0; i++) {
+                        ret = addCheckPutPos(ref ban, ktype.Hisya, ban.putOusyou[pturn.aturn((int)turn)], -i, 0, turn, kmv, ref kCnt, ref startPoint);
+                    }
+                    ret = 0;
+                    for (int i = 1; ret == 0; i++) {
+                        ret = addCheckPutPos(ref ban, ktype.Hisya, ban.putOusyou[pturn.aturn((int)turn)], i, 0, turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 角打ち
+                if (ban.captPiece[(int)turn * 7 + 5] > 0) {
+                    int ret = 0;
+                    for (int i = 1; ret == 0; i++) {
+                        ret = addCheckPutPos(ref ban, ktype.Kakugyou, ban.putOusyou[pturn.aturn((int)turn)], -i, -i, turn, kmv, ref kCnt, ref startPoint);
+                    }
+                    ret = 0;
+                    for (int i = 1; ret == 0; i++) {
+                        ret = addCheckPutPos(ref ban, ktype.Kakugyou, ban.putOusyou[pturn.aturn((int)turn)], i, -i, turn, kmv, ref kCnt, ref startPoint);
+                    }
+                    ret = 0;
+                    for (int i = 1; ret == 0; i++) {
+                        ret = addCheckPutPos(ref ban, ktype.Kakugyou, ban.putOusyou[pturn.aturn((int)turn)], -i, i, turn, kmv, ref kCnt, ref startPoint);
+                    }
+                    ret = 0;
+                    for (int i = 1; ret == 0; i++) {
+                        ret = addCheckPutPos(ref ban, ktype.Kakugyou, ban.putOusyou[pturn.aturn((int)turn)], i, i, turn, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 金打ち
+                if (ban.captPiece[(int)turn * 7 + 6] > 0) {
+                    addCheckPutPos(ref ban, ktype.Kinsyou, ban.putOusyou[pturn.aturn((int)turn)], 0, 1, turn, kmv, ref kCnt, ref startPoint);
+                    addCheckPutPos(ref ban, ktype.Kinsyou, ban.putOusyou[pturn.aturn((int)turn)], -1, 0, turn, kmv, ref kCnt, ref startPoint);
+                    addCheckPutPos(ref ban, ktype.Kinsyou, ban.putOusyou[pturn.aturn((int)turn)], 1, 0, turn, kmv, ref kCnt, ref startPoint);
+                    addCheckPutPos(ref ban, ktype.Kinsyou, ban.putOusyou[pturn.aturn((int)turn)], -1, -1, turn, kmv, ref kCnt, ref startPoint);
+                    addCheckPutPos(ref ban, ktype.Kinsyou, ban.putOusyou[pturn.aturn((int)turn)], 0, -1, turn, kmv, ref kCnt, ref startPoint);
+                    addCheckPutPos(ref ban, ktype.Kinsyou, ban.putOusyou[pturn.aturn((int)turn)], 1, -1, turn, kmv, ref kCnt, ref startPoint);
+                }
+
+            }
             return (kCnt, startPoint);
         }
 
         // ターゲット位置(tPos)からmx,myの相対位置に駒を置けるかチェック
         int addCheckPutPos(ref ban ban, ktype type, int tPos, int mx, int my, Pturn turn, kmove[] kmv, ref int kCnt, ref int startPoint) {
-
-
-
-            return 0;
+            unsafe {
+                (int nx, int ny) = pturn.mvXY(turn, tPos / 9, tPos % 9, mx, my);
+                if ((nx < 0) || (nx > 8) || (ny < 0) || (ny > 8)) return 2;
+                if (ban.onBoard[nx * 9 + ny] > 0) return 1;
+                kmv[startPoint + kCnt++].set(81 + (int)type, nx * 9 + ny, 0, false, turn); //移動候補リストに追加
+                return 0;
+            }
         }
 
 
