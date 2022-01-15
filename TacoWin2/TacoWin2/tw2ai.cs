@@ -871,84 +871,121 @@ namespace TacoWin2 {
                 // 香車
                 for (int i = 0; i < 4; i++) {
                     if (ban.putKyousha[(int)turn * 4 + i] != 0xFF) {
-                        // [不成]敵を取って直進
-                        int ret = chkRectMove(ref ban, turn, aOuPos, aOuPos, 0, 1);
-                        if (ret >= 0) {
-                            if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                addCheckMovePos(ref ban, ((aOuPos / 9) - 1) * 9 + ban.putFuhyou[(int)turn * 9 + aOuPos / 9 - 1], 0, 1, turn, true, kmv, ref kCnt);
-                            } else { // 味方の駒がある-> 駒を移動する(空き王手)
-                                addCheckMovePos(ref ban, ((aOuPos / 9) - 1) * 9 + ban.putFuhyou[(int)turn * 9 + aOuPos / 9 - 1], 0, 1, turn, true, kmv, ref kCnt);
-                            }
+                        int dx = pturn.psX(turn, aOuPos / 9 - ban.putKeima[(int)turn * 4 + i] / 9);
+                        int dy;
+                        int ret;
+                        int tPos;
+                        switch (dx) {
+                            case (0):
+                                // [不成]敵を取って直進
+                                ret = chkRectMove(ref ban, turn, ban.putKyousha[(int)turn * 4 + i], aOuPos, 0, 1);
+                                if (ret >= 0) {
+                                    dy = pturn.psX(turn, ret % 9 - ban.putKeima[(int)turn * 4 + i] % 9);
+                                    if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
+                                        addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, false, kmv, ref kCnt);
+                                        if (pturn.psY(turn, aOuPos / 9 - ban.putKyousha[(int)turn * 4 + i] / 9) == 1) {//一つ手前
+                                            addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                        }
+                                    } else { // 味方の駒がある-> 駒を移動する(空き王手)
+                                        getEachMoveList(ref ban, ret, turn, kmv, ref kCnt, ref startPoint); // TODO : 
+                                    }
+                                }
+                                break;
+
+                            case (-1):
+                                tPos = pturn.mvXY(turn, aOuPos, -9);
+                                dy = pturn.psX(turn, aOuPos % 9 - ban.putKeima[(int)turn * 4 + i] % 9) - 1;
+                                ret = chkRectMove(ref ban, turn, ban.putKyousha[(int)turn * 4 + i], tPos, 0, 1);
+                                if ((ret == pturn.mvXY(turn, tPos, -1)) && (ban.getOnBoardPturn(ret / 9, ret % 9) != turn)) {// 王の横手前
+                                    addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                } else if (ret == -1) {// 王の横手前
+                                    addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    if ((ban.onBoard[tPos] == 0) || (ban.getOnBoardPturn(tPos) != turn)) { // 王の横
+                                        addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy + 1, turn, true, kmv, ref kCnt);
+                                    }
+                                }
+                                break;
+
+                            case (1):
+                                tPos = pturn.mvXY(turn, aOuPos, 9);
+                                dy = pturn.psX(turn, aOuPos % 9 - ban.putKeima[(int)turn * 4 + i] % 9) - 1;
+                                ret = chkRectMove(ref ban, turn, ban.putKyousha[(int)turn * 4 + i], tPos, 0, 1);
+                                if ((ret == pturn.mvXY(turn, tPos, -1)) && (ban.getOnBoardPturn(ret / 9, ret % 9) != turn)) {// 王の横手前
+                                    addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                } else if (ret == -1) {// 王の横手前
+                                    addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    if ((ban.onBoard[tPos] == 0) || (ban.getOnBoardPturn(tPos) != turn)) { // 王の横
+                                        addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy + 1, turn, true, kmv, ref kCnt);
+                                    }
+                                }
+                                break;
+
+                            default:
+                                break;
                         }
-                        //[成り] 相手玉の右
-
-
-                        //[成り] 相手玉の左
-
                     }
                 }
 
                 // 桂馬
                 for (int i = 0; i < 4; i++) {
-                    // [不成]跳ねる
                     if (ban.putKeima[(int)turn * 4 + i] != 0xFF) {
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, -2, -4)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, false, kmv, ref kCnt);
-                        }
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, 0, -4)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, false, kmv, ref kCnt);
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, false, kmv, ref kCnt);
-                        }
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, 2, -4)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, false, kmv, ref kCnt);
-                        }
-
                         //×××××
                         //××●××
                         //×①×②×
                         //③×④×⑤
                         //⑥⑦⑧⑨⑩
+                        //⑪×⑫×⑬
 
-                        // [成り] ①
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, -1, -1)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
-                        }
-                        // [成り] ②
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, 1, -1)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, true, kmv, ref kCnt);
-                        }
-                        // [成り] ③
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, -2, -2)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
-                        }
-                        // [成り] ④
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, 0, -2)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, true, kmv, ref kCnt);
-                        }
-                        // [成り] ⑤
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, 2, -2)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, true, kmv, ref kCnt);
-                        }
-                        // [成り] ⑥
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, -1, -3)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
-                        }
-                        // [成り] ⑦
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, -1, -3)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
-                        }
-                        // [成り] ⑧
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, -1, -3)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
-                        }
-                        // [成り] ⑨
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, -1, -3)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
-                        }
-                        // [成り] ⑩
-                        if ((ban.putKeima[(int)turn * 4 + i] / 9, ban.putKeima[(int)turn * 4 + i] % 9) == pturn.mvXY(pturn.aturn(turn), aOuPos / 9, aOuPos % 9, -1, -3)) {
-                            addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
+                        int dx = pturn.psX(turn, aOuPos / 9 - ban.putKeima[(int)turn * 4 + i] / 9);
+                        int dy = pturn.psY(turn, aOuPos % 9 - ban.putKeima[(int)turn * 4 + i] % 9);
+
+                        switch (dx, dy) {
+                            case (-1, -1):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
+                                break;
+                            case (1, -1):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, true, kmv, ref kCnt);
+                                break;
+                            case (-2, -2):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
+                                break;
+                            case (0, -2):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, true, kmv, ref kCnt);
+                                break;
+                            case (2, -2):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, true, kmv, ref kCnt);
+                                break;
+                            case (-2, -3):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
+                                break;
+                            case (-1, -3):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
+                                break;
+                            case (0, -3):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, true, kmv, ref kCnt);
+                                break;
+                            case (1, -3):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, true, kmv, ref kCnt);
+                                break;
+                            case (2, -3):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, true, kmv, ref kCnt);
+                                break;
+                            case (-2, -4):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, false, kmv, ref kCnt);
+                                break;
+                            case (0, -4):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, false, kmv, ref kCnt);
+                                break;
+                            case (2, -4):
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, false, kmv, ref kCnt);
+                                break;
+
+
+                            default:
+                                break;
                         }
                     }
                 }
@@ -956,7 +993,100 @@ namespace TacoWin2 {
                 // 銀将
                 for (int i = 0; i < 4; i++) {
                     if (ban.putGinsyou[(int)turn * 4 + i] != 0xFF) {
-                        getEachMoveList(ref ban, ban.putGinsyou[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                        //①②③④⑤
+                        //⑥×⑦×⑧
+                        //⑨⑩●⑪⑫
+                        //⑬×××⑭
+                        //⑮⑯⑰⑱⑲
+
+                        int dx = pturn.psX(turn, aOuPos / 9 - ban.putGinsyou[(int)turn * 4 + i] / 9);
+                        int dy = pturn.psY(turn, aOuPos % 9 - ban.putGinsyou[(int)turn * 4 + i] % 9);
+
+                        switch (dx, dy) {
+                            case (-2, 2):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-1, 2):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (0, 2):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (1, 2):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (2, 2):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-2, 1):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (0, 1):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (2, 1):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (-2, 0):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-1, 0):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (1, 0):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (2, 0):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-2, -1):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (2, -1):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (-2, -2):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (-1, -2):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (0, -2):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (1, -2):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, true, kmv, ref kCnt);
+                                break;
+                            case (2, -2):
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, true, kmv, ref kCnt);
+                                break;
+
+                            default:
+                                break;
+                        }
                     }
                 }
 
@@ -977,14 +1107,130 @@ namespace TacoWin2 {
                 // 金将
                 for (int i = 0; i < 4; i++) {
                     if (ban.putKinsyou[(int)turn * 4 + i] != 0xFF) {
-                        getEachMoveList(ref ban, ban.putKinsyou[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                        //××①××
+                        //×②×③×
+                        //④×●×⑤
+                        //⑥×××⑦
+                        //⑧⑨⑩⑪⑫
+
+
+                        int dx = pturn.psX(turn, aOuPos / 9 - ban.putKinsyou[(int)turn * 4 + i] / 9);
+                        int dy = pturn.psY(turn, aOuPos % 9 - ban.putKinsyou[(int)turn * 4 + i] % 9);
+
+                        switch (dx, dy) {
+                            case (0, 2):
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, -1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-1, 1):
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, -1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 0, turn, false, kmv, ref kCnt);
+                                break;
+                            case (1, 1):
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 0, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, -1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-2, 0):
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 0, turn, false, kmv, ref kCnt);
+                                break;
+                            case (2, 0):
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 0, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-2, -1):
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 0, turn, false, kmv, ref kCnt);
+                                break;
+                            case (2, -1):
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 0, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-2, -2):
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-1, -2):
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (0, -2):
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (1, -2):
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (2, -2):
+                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                break;
+
+                            default:
+                                break;
+                        }
                     }
                 }
 
                 // 成駒
                 for (int i = 0, j = 0; j < ban.putNarigomaNum[(int)turn]; i++) {
                     if (ban.putNarigoma[(int)turn * 30 + i] != 0xFF) {
-                        getEachMoveList(ref ban, ban.putNarigoma[(int)turn * 30 + i], turn, kmv, ref kCnt, ref startPoint);
+                        //××①××
+                        //×②×③×
+                        //④×●×⑤
+                        //⑥×××⑦
+                        //⑧⑨⑩⑪⑫
+
+
+                        int dx = pturn.psX(turn, aOuPos / 9 - ban.putNarigoma[(int)turn * 4 + i] / 9);
+                        int dy = pturn.psY(turn, aOuPos % 9 - ban.putNarigoma[(int)turn * 4 + i] % 9);
+
+                        switch (dx, dy) {
+                            case (0, 2):
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 0, -1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-1, 1):
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 0, -1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 1, 0, turn, false, kmv, ref kCnt);
+                                break;
+                            case (1, 1):
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], -1, 0, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 0, -1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-2, 0):
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 1, 0, turn, false, kmv, ref kCnt);
+                                break;
+                            case (2, 0):
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], -1, 0, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-2, -1):
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 1, 0, turn, false, kmv, ref kCnt);
+                                break;
+                            case (2, -1):
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], -1, 0, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-2, -2):
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (-1, -2):
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (0, -2):
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (1, -2):
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                break;
+                            case (2, -2):
+                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                break;
+
+                            default:
+                                break;
+                        }
                         j++;
                     }
                 }
@@ -1124,13 +1370,26 @@ namespace TacoWin2 {
         }
 
         // 指定先まで駒が存在するかチェック(指定先含めず)
-        // 0～80:指定位置(X*9+Y)に駒あり -2 :駒2個以上あり -1 :駒無し/opにたどり着かない
+        // 0～80:指定位置(X*9+Y)に駒あり -1 :駒無し -2 :駒2個以上あり -3 :opにたどり着かない
         int chkRectMove(ref ban ban, Pturn turn, int op, int np, int mx, int my) {
+            unsafe {
+                int ret = -1;
+                int nx = op / 9;
+                int ny = op % 9;
+                for (int i = 0; nx * 9 + ny != np; i++) {
+                    (nx, ny) = pturn.mvXY(turn, nx, ny, mx, my);
+                    if ((nx < 0) || (nx > 8) || (ny < 0) || (ny > 8)) return -3;
+                    if (ban.onBoard[nx * 9 + ny] > 0) {
+                        if (ret == -1) {
+                            ret = nx * 9 + ny;
+                        } else {
+                            return -2;
+                        }
+                    }
+                }
 
-
-
-
-            return 0;
+                return ret;
+            }
         }
 
         public int thinkMateDef(Pturn turn, ref ban ban, out kmove[] bestMoveList, int depth, int depMax) {
