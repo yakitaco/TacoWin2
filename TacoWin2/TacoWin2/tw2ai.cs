@@ -1092,15 +1092,91 @@ namespace TacoWin2 {
 
                 // 飛車
                 for (int i = 0; i < 2; i++) {
+
+
                     if (ban.putHisya[(int)turn * 2 + i] != 0xFF) {
-                        getEachMoveList(ref ban, ban.putHisya[(int)turn * 2 + i], turn, kmv, ref kCnt, ref startPoint);
+                        int dx = pturn.psX(turn, aOuPos / 9 - ban.putHisya[(int)turn * 2 + i] / 9);
+                        int dy = pturn.psY(turn, aOuPos % 9 - ban.putHisya[(int)turn * 2 + i] % 9);
+                        int ret;
+                        if (dx == 0) {
+                            // [不成]敵を取って直進
+                            ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, 0, 1);
+                            if (ret >= 0) {
+                                dy = pturn.psX(turn, ret % 9 - ban.putHisya[(int)turn * 2 + i] % 9);
+                                if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
+                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, false, kmv, ref kCnt);
+                                    if (pturn.psY(turn, aOuPos / 9 - ban.putHisya[(int)turn * 2 + i] / 9) == 1) {//一つ手前
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    }
+                                } else { // 味方の駒がある-> 駒を移動する(空き王手)
+                                    getEachMoveList(ref ban, ret, turn, kmv, ref kCnt, ref startPoint); // TODO : 
+                                }
+                            }
+                        } else if (dy == 0) {
+                            // [不成]敵を取って直進
+                            ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, 0, 1);
+                            if (ret >= 0) {
+                                dy = pturn.psX(turn, ret % 9 - ban.putHisya[(int)turn * 2 + i] % 9);
+                                if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
+                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, false, kmv, ref kCnt);
+                                    if (pturn.psY(turn, aOuPos / 9 - ban.putHisya[(int)turn * 2 + i] / 9) == 1) {//一つ手前
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    }
+                                } else { // 味方の駒がある-> 駒を移動する(空き王手)
+                                    getEachMoveList(ref ban, ret, turn, kmv, ref kCnt, ref startPoint); // TODO : 
+                                }
+                            }
+                        } else {
+                            // 成りを考慮
+
+
+
+                        }
+
+
                     }
                 }
 
                 // 角行
                 for (int i = 0; i < 2; i++) {
                     if (ban.putKakugyou[(int)turn * 2 + i] != 0xFF) {
-                        getEachMoveList(ref ban, ban.putKakugyou[(int)turn * 2 + i], turn, kmv, ref kCnt, ref startPoint);
+                        int dx = pturn.psX(turn, aOuPos / 9 - ban.putKakugyou[(int)turn * 2 + i] / 9);
+                        int dy = pturn.psY(turn, aOuPos % 9 - ban.putKakugyou[(int)turn * 2 + i] % 9);
+                        int ret;
+                        if (dx == dy) {
+                            // [不成]敵を取って直進
+                            ret = chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], aOuPos, 1, 1);
+                            if (ret >= 0) {
+                                dy = pturn.psX(turn, ret % 9 - ban.putKakugyou[(int)turn * 2 + i] % 9);
+                                if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
+                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, dy, turn, false, kmv, ref kCnt);
+                                    if (pturn.psY(turn, aOuPos / 9 - ban.putKakugyou[(int)turn * 2 + i] / 9) == 1) {//一つ手前
+                                        addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    }
+                                } else { // 味方の駒がある-> 駒を移動する(空き王手)
+                                    getEachMoveList(ref ban, ret, turn, kmv, ref kCnt, ref startPoint); // TODO : 
+                                }
+                            }
+                        } else if (dx == -dy) {
+                            // [不成]敵を取って直進
+                            ret = chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], aOuPos, 1, -1);
+                            if (ret >= 0) {
+                                dy = pturn.psX(turn, ret % 9 - ban.putKakugyou[(int)turn * 2 + i] % 9);
+                                if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
+                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, dy, turn, false, kmv, ref kCnt);
+                                    if (pturn.psY(turn, aOuPos / 9 - ban.putKakugyou[(int)turn * 2 + i] / 9) == 1) {//一つ手前
+                                        addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    }
+                                } else { // 味方の駒がある-> 駒を移動する(空き王手)
+                                    getEachMoveList(ref ban, ret, turn, kmv, ref kCnt, ref startPoint); // TODO : 
+                                }
+                            }
+                        } else {
+                            // 成りを考慮
+
+
+
+                        }
                     }
                 }
 
