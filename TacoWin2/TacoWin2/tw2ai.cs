@@ -759,8 +759,19 @@ namespace TacoWin2 {
             }
         }
 
+        public (kmove[], int) thinkMateMoveTest(Pturn turn, ban ban, int depth) {
+            kmove[] moveList = null;
 
-        public (kmove[], int) thinkMateMove(Pturn turn, ban ban, int depth) {
+            (int vla, int sp) = getAllCheckList(ref ban, turn, moveList);
+
+            for (int i = sp; i < sp + vla; i++) {
+                DebugForm.instance.addMsg("MV:(" + (moveList[i].op / 9) + "," + (moveList[i].op % 9) + ")->(" + (moveList[i].np / 9) + "," + (moveList[i].np % 9));
+            }
+            return (null, 0);
+        }
+
+
+            public (kmove[], int) thinkMateMove(Pturn turn, ban ban, int depth) {
             int best = -999999;
             int beta = 999999;
             int alpha = -999999;
@@ -776,7 +787,7 @@ namespace TacoWin2 {
                 int aid = mList.assignAlist(out kmove[] moveList);
 
                 //[攻め方]王手を指せる手を全てリスト追加
-                (int vla, int sp) = getAllCheckList(ref ban, turn, moveList, );
+                (int vla, int sp) = getAllCheckList(ref ban, turn, moveList);
 
                 Parallel.For(0, workMin, id => {
                     int cnt_local;
@@ -842,7 +853,7 @@ namespace TacoWin2 {
         }
 
         //指定した位置に次に移動可能となる
-        (int vla, int sp) getAllCheckList(ref ban ban, Pturn turn, kmove[] kmv, int kingPos) {
+        (int vla, int sp) getAllCheckList(ref ban ban, Pturn turn, kmove[] kmv) {
             int startPoint = 0;
             int kCnt = 0;
             unsafe {
@@ -887,7 +898,15 @@ namespace TacoWin2 {
                                             addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, true, kmv, ref kCnt);
                                         }
                                     } else { // 味方の駒がある-> 駒を移動する(空き王手)
-                                        getEachMoveList(ref ban, ret, turn, kmv, ref kCnt, ref startPoint); // TODO : 
+                                        int _kCnt = 0;
+                                        int _startPoint = 100;
+                                        kmove[] _kmv = new kmove[200];
+                                        getEachMoveList(ref ban, ret, turn, _kmv, ref _kCnt, ref _startPoint); // TODO : 
+                                        for (int j = _startPoint; j < _startPoint + _kCnt; j++) {//重なる手は追加しない
+                                            if (ret / 9 != _kmv[j].np / 9) {
+                                                kmv[kCnt++] = _kmv[j];
+                                            }
+                                        }
                                     }
                                 }
                                 break;
@@ -1098,8 +1117,42 @@ namespace TacoWin2 {
                         int dx = pturn.psX(turn, aOuPos / 9 - ban.putHisya[(int)turn * 2 + i] / 9);
                         int dy = pturn.psY(turn, aOuPos % 9 - ban.putHisya[(int)turn * 2 + i] % 9);
                         int ret;
-                        if (dx == 0) {
-                            // [不成]敵を取って直進
+                        if (dx == 0) {// 同じ筋
+                            // [不成&成り]敵を取って直進
+                            if (dy > 0) { // 前方
+                                ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, 0, 1);
+                                if (ret >= 0) {
+                                    dy = pturn.psX(turn, ret % 9 - ban.putHisya[(int)turn * 2 + i] % 9);
+                                    if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, false, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    } else { // 味方の駒がある-> 駒を移動する(空き王手)
+                                        getEachMoveList(ref ban, ret, turn, kmv, ref kCnt, ref startPoint); // TODO : 
+                                    }
+                                }
+                            } else { // 後方
+                                ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, 0, -1);
+                                if (ret >= 0) {
+                                    dy = pturn.psX(turn, ret % 9 - ban.putHisya[(int)turn * 2 + i] % 9);
+                                    if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, false, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    } else { // 味方の駒がある-> 駒を移動する(空き王手)
+                                        int _kCnt = 0;
+                                        int _startPoint = 100;
+                                        kmove[] _kmv = new kmove[200];
+                                        getEachMoveList(ref ban, ret, turn, _kmv, ref _kCnt, ref _startPoint); // TODO : 
+                                        for (int j = _startPoint; j < _startPoint + _kCnt; j++) {//重なる手は追加しない
+                                            if (ret / 9 != _kmv[j].np / 9) {
+                                                kmv[kCnt++] = _kmv[j];
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                        } else if (dy == 0) {//同じ段
+                            // [不成&成り]敵を取って直進
                             ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, 0, 1);
                             if (ret >= 0) {
                                 dy = pturn.psX(turn, ret % 9 - ban.putHisya[(int)turn * 2 + i] % 9);
@@ -1109,25 +1162,21 @@ namespace TacoWin2 {
                                         addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, true, kmv, ref kCnt);
                                     }
                                 } else { // 味方の駒がある-> 駒を移動する(空き王手)
-                                    getEachMoveList(ref ban, ret, turn, kmv, ref kCnt, ref startPoint); // TODO : 
-                                }
-                            }
-                        } else if (dy == 0) {
-                            // [不成]敵を取って直進
-                            ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, 0, 1);
-                            if (ret >= 0) {
-                                dy = pturn.psX(turn, ret % 9 - ban.putHisya[(int)turn * 2 + i] % 9);
-                                if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, false, kmv, ref kCnt);
-                                    if (pturn.psY(turn, aOuPos / 9 - ban.putHisya[(int)turn * 2 + i] / 9) == 1) {//一つ手前
-                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    int _kCnt = 0;
+                                    int _startPoint = 100;
+                                    kmove[] _kmv = new kmove[200];
+                                    getEachMoveList(ref ban, ret, turn, _kmv, ref _kCnt, ref _startPoint); // TODO : 
+                                    for (int j = _startPoint; j < _startPoint + _kCnt; j++) {//重なる手は追加しない
+                                        if (ret / 9 != _kmv[j].np / 9) {
+                                            kmv[kCnt++] = _kmv[j];
+                                        }
                                     }
-                                } else { // 味方の駒がある-> 駒を移動する(空き王手)
-                                    getEachMoveList(ref ban, ret, turn, kmv, ref kCnt, ref startPoint); // TODO : 
                                 }
                             }
-                        } else {
+                        } else {// 段・筋が異なる
                             // 成りを考慮
+
+
 
 
 
@@ -1469,11 +1518,11 @@ namespace TacoWin2 {
         }
 
         public int thinkMateDef(Pturn turn, ref ban ban, out kmove[] bestMoveList, int depth, int depMax) {
+            bestMoveList = null;
 
 
 
-
-
+            return 0;
         }
 
     }

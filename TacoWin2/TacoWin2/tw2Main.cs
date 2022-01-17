@@ -23,7 +23,8 @@ namespace TacoWin2 {
                 Application.Run(new DebugForm()); // デバッグフォーム
                 Console.WriteLine("bestmove resign");
             });
-            
+            Thread.Sleep(1000);
+
 
             Task<(kmove[], int)> aiTaskMain = null;
 
