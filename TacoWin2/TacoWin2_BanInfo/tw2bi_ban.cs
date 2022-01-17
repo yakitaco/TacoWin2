@@ -2,7 +2,7 @@
 
 namespace TacoWin2_BanInfo {
     public unsafe struct ban {
-        public fixed ushort onBoard[81]; // 盤上情報(X*9+Y)
+        public fixed ushort onBoard[81]; // 盤上情報(X<筋>*9+Y<段>)
         // WWWWWWWW000XYYYY [X]0:先手/1:後手 [Y]enum ktype [W]置き駒情報
 
         //public fixed byte putPieceNum[2]; // 置き駒数情報(盤上情報の番号を入れる)
