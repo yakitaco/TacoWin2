@@ -178,9 +178,14 @@ namespace TacoWin2 {
                             return ai.thinkMove(turn, ban, 6);
                         });
 
+                    } else if (arr[1] == "mate") {
+                        thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
 
+                        (kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 6);
 
+                        thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
 
+                        Console.WriteLine("checkmate nomate");
                     }
 
                 } else if ((str.Length > 7) && (str.Substring(0, 8) == "testmove")) {
