@@ -29,6 +29,23 @@ namespace TacoWin2_BanInfo {
         }
 
 
+        // sx 自分のX位置 dx 相手のX位置
+        public static int dfX(Pturn t, int sx, int dx) {
+            if (t == Pturn.Sente) {
+                return dx - sx;
+            } else {
+                return sx - dx;
+            }
+        }
+
+        // sy 自分のX位置 dy 相手のX位置
+        public static int dfY(Pturn t, int sy, int dy) {
+            if (t == Pturn.Sente) {
+                return dy - sy;
+            } else {
+                return sy - dy;
+            }
+        }
 
         // turn考慮移動(X) moval +右 -左
         public static int mvX(Pturn t, int x, int moval) {
