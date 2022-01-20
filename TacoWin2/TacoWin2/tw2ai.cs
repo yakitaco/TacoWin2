@@ -888,7 +888,7 @@ namespace TacoWin2 {
                 // 香車
                 for (int i = 0; i < 4; i++) {
                     if (ban.putKyousha[(int)turn * 4 + i] != 0xFF) {
-                        int dx = pturn.psX(turn, aOuPos / 9 - ban.putKeima[(int)turn * 4 + i] / 9);
+                        int dx = pturn.dfX(turn, ban.putKyousha[(int)turn * 4 + i] / 9, aOuPos / 9);
                         int dy;
                         int ret;
                         int tPos;
@@ -897,11 +897,11 @@ namespace TacoWin2 {
                                 // [不成]敵を取って直進
                                 ret = chkRectMove(ref ban, turn, ban.putKyousha[(int)turn * 4 + i], aOuPos, 0, 1);
                                 if (ret >= 0) {
-                                    dy = pturn.psX(turn, ret % 9 - ban.putKeima[(int)turn * 4 + i] % 9);
+                                    dy = pturn.dfY(turn, ban.putKyousha[(int)turn * 4 + i] % 9, ret % 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                        addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, false, kmv, ref kCnt);
-                                        if (pturn.psY(turn, aOuPos / 9 - ban.putKyousha[(int)turn * 4 + i] / 9) == 1) {//一つ手前
-                                            addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, -dy, turn, false, kmv, ref kCnt);
+                                        if (pturn.dfY(turn, ret % 9, aOuPos % 9) == -1) {//一つ手前
+                                            addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, -dy, turn, true, kmv, ref kCnt);
                                         }
                                     } else { // 味方の駒がある-> 駒を移動する(空き王手)
                                         int _kCnt = 0;
@@ -918,31 +918,36 @@ namespace TacoWin2 {
                                 break;
 
                             case (-1):
+
                                 tPos = pturn.mvXY(turn, aOuPos, -9);
-                                dy = pturn.psX(turn, aOuPos % 9 - ban.putKeima[(int)turn * 4 + i] % 9) - 1;
                                 ret = chkRectMove(ref ban, turn, ban.putKyousha[(int)turn * 4 + i], tPos, 0, 1);
                                 if ((ret == pturn.mvXY(turn, tPos, -1)) && (ban.getOnBoardPturn(ret / 9, ret % 9) != turn)) {// 王の横手前
-                                    addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    dy = pturn.dfY(turn, ban.putKyousha[(int)turn * 4 + i] % 9, ret % 9);
+                                    addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, -dy, turn, true, kmv, ref kCnt);
                                 } else if (ret == -1) {// 王の横手前
-                                    addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    dy = pturn.dfY(turn, ban.putKyousha[(int)turn * 4 + i] % 9, tPos % 9) + 1;
+                                    addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, -dy, turn, true, kmv, ref kCnt);
                                     if ((ban.onBoard[tPos] == 0) || (ban.getOnBoardPturn(tPos) != turn)) { // 王の横
-                                        addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy + 1, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, -dy + 1, turn, true, kmv, ref kCnt);
                                     }
                                 }
+
                                 break;
 
                             case (1):
                                 tPos = pturn.mvXY(turn, aOuPos, 9);
-                                dy = pturn.psX(turn, aOuPos % 9 - ban.putKeima[(int)turn * 4 + i] % 9) - 1;
                                 ret = chkRectMove(ref ban, turn, ban.putKyousha[(int)turn * 4 + i], tPos, 0, 1);
                                 if ((ret == pturn.mvXY(turn, tPos, -1)) && (ban.getOnBoardPturn(ret / 9, ret % 9) != turn)) {// 王の横手前
-                                    addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    dy = pturn.dfY(turn, ban.putKyousha[(int)turn * 4 + i] % 9, ret % 9);
+                                    addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, -dy, turn, true, kmv, ref kCnt);
                                 } else if (ret == -1) {// 王の横手前
-                                    addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                    dy = pturn.dfY(turn, ban.putKyousha[(int)turn * 4 + i] % 9, tPos % 9) + 1;
+                                    addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, -dy, turn, true, kmv, ref kCnt);
                                     if ((ban.onBoard[tPos] == 0) || (ban.getOnBoardPturn(tPos) != turn)) { // 王の横
-                                        addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, dy + 1, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, -dy + 1, turn, true, kmv, ref kCnt);
                                     }
                                 }
+
                                 break;
 
                             default:
@@ -961,8 +966,8 @@ namespace TacoWin2 {
                         //⑥⑦⑧⑨⑩
                         //⑪×⑫×⑬
 
-                        int dx = pturn.psX(turn, aOuPos / 9 - ban.putKeima[(int)turn * 4 + i] / 9);
-                        int dy = pturn.psY(turn, aOuPos % 9 - ban.putKeima[(int)turn * 4 + i] % 9);
+                        int dx = pturn.dfX(turn, ban.putKeima[(int)turn * 4 + i] / 9, aOuPos / 9);
+                        int dy = pturn.dfY(turn, ban.putKeima[(int)turn * 4 + i] % 9, aOuPos % 9);
 
                         switch (dx, dy) {
                             case (-1, -1):
@@ -1023,9 +1028,8 @@ namespace TacoWin2 {
                         //⑨⑩●⑪⑫
                         //⑬×××⑭
                         //⑮⑯⑰⑱⑲
-
-                        int dx = pturn.psX(turn, aOuPos / 9 - ban.putGinsyou[(int)turn * 4 + i] / 9);
-                        int dy = pturn.psY(turn, aOuPos % 9 - ban.putGinsyou[(int)turn * 4 + i] % 9);
+                        int dx = pturn.dfX(turn, ban.putGinsyou[(int)turn * 4 + i] / 9, aOuPos / 9);
+                        int dy = pturn.dfY(turn, ban.putGinsyou[(int)turn * 4 + i] % 9, aOuPos % 9);
 
                         switch (dx, dy) {
                             case (-2, 2):
@@ -1120,29 +1124,37 @@ namespace TacoWin2 {
 
 
                     if (ban.putHisya[(int)turn * 2 + i] != 0xFF) {
-                        int dx = pturn.psX(turn, aOuPos / 9 - ban.putHisya[(int)turn * 2 + i] / 9);
-                        int dy = pturn.psY(turn, aOuPos % 9 - ban.putHisya[(int)turn * 2 + i] % 9);
+                        int dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                        int dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
                         int ret;
                         if (dx == 0) {// 同じ筋
                             // [不成&成り]敵を取って直進
-                            if (dy > 0) { // 前方
+                            if (dy < 0) { // 前方
                                 ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, 0, 1);
                                 if (ret >= 0) {
-                                    dy = pturn.psX(turn, ret % 9 - ban.putHisya[(int)turn * 2 + i] % 9);
+                                    dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, ret % 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, false, kmv, ref kCnt);
-                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, true, kmv, ref kCnt);
                                     } else { // 味方の駒がある-> 駒を移動する(空き王手)
-                                        getEachMoveList(ref ban, ret, turn, kmv, ref kCnt, ref startPoint); // TODO : 
+                                        int _kCnt = 0;
+                                        int _startPoint = 100;
+                                        kmove[] _kmv = new kmove[200];
+                                        getEachMoveList(ref ban, ret, turn, _kmv, ref _kCnt, ref _startPoint); // TODO : 
+                                        for (int j = _startPoint; j < _startPoint + _kCnt; j++) {//重なる手は追加しない
+                                            if (ret / 9 != _kmv[j].np / 9) {
+                                                kmv[kCnt++] = _kmv[j];
+                                            }
+                                        }
                                     }
                                 }
                             } else { // 後方
                                 ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, 0, -1);
                                 if (ret >= 0) {
-                                    dy = pturn.psX(turn, ret % 9 - ban.putHisya[(int)turn * 2 + i] % 9);
+                                    dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, ret % 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, false, kmv, ref kCnt);
-                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, true, kmv, ref kCnt);
                                     } else { // 味方の駒がある-> 駒を移動する(空き王手)
                                         int _kCnt = 0;
                                         int _startPoint = 100;
@@ -1159,28 +1171,47 @@ namespace TacoWin2 {
 
                         } else if (dy == 0) {//同じ段
                             // [不成&成り]敵を取って直進
-                            ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, 0, 1);
-                            if (ret >= 0) {
-                                dy = pturn.psX(turn, ret % 9 - ban.putHisya[(int)turn * 2 + i] % 9);
-                                if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, false, kmv, ref kCnt);
-                                    if (pturn.psY(turn, aOuPos / 9 - ban.putHisya[(int)turn * 2 + i] / 9) == 1) {//一つ手前
-                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, dy, turn, true, kmv, ref kCnt);
+                            if (dx < 0) { // 左
+                                ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, 1, 0);
+                                if (ret >= 0) {
+                                    dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, ret / 9);
+                                    if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                    } else { // 味方の駒がある-> 駒を移動する(空き王手)
+                                        int _kCnt = 0;
+                                        int _startPoint = 100;
+                                        kmove[] _kmv = new kmove[200];
+                                        getEachMoveList(ref ban, ret, turn, _kmv, ref _kCnt, ref _startPoint); // TODO : 
+                                        for (int j = _startPoint; j < _startPoint + _kCnt; j++) {//重なる手は追加しない
+                                            if (ret % 9 != _kmv[j].np % 9) {
+                                                kmv[kCnt++] = _kmv[j];
+                                            }
+                                        }
                                     }
-                                } else { // 味方の駒がある-> 駒を移動する(空き王手)
-                                    int _kCnt = 0;
-                                    int _startPoint = 100;
-                                    kmove[] _kmv = new kmove[200];
-                                    getEachMoveList(ref ban, ret, turn, _kmv, ref _kCnt, ref _startPoint); // TODO : 
-                                    for (int j = _startPoint; j < _startPoint + _kCnt; j++) {//重なる手は追加しない
-                                        if (ret / 9 != _kmv[j].np / 9) {
-                                            kmv[kCnt++] = _kmv[j];
+                                }
+                            } else { // 右
+                                ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, -1, 0);
+                                if (ret >= 0) {
+                                    dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, ret / 9);
+                                    if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                    } else { // 味方の駒がある-> 駒を移動する(空き王手)
+                                        int _kCnt = 0;
+                                        int _startPoint = 100;
+                                        kmove[] _kmv = new kmove[200];
+                                        getEachMoveList(ref ban, ret, turn, _kmv, ref _kCnt, ref _startPoint); // TODO : 
+                                        for (int j = _startPoint; j < _startPoint + _kCnt; j++) {//重なる手は追加しない
+                                            if (ret % 9 != _kmv[j].np % 9) {
+                                                kmv[kCnt++] = _kmv[j];
+                                            }
                                         }
                                     }
                                 }
                             }
                         } else {// 段・筋が異なる
-                            // 成りを考慮
+                                // 成りを考慮
 
 
 
@@ -1514,9 +1545,11 @@ namespace TacoWin2 {
                 int ret = -1;
                 int nx = op / 9;
                 int ny = op % 9;
-                for (int i = 0; nx * 9 + ny != np; i++) {
+                for (int i = 0; ; i++) {
                     (nx, ny) = pturn.mvXY(turn, nx, ny, mx, my);
+                    if (nx * 9 + ny == np) return ret;
                     if ((nx < 0) || (nx > 8) || (ny < 0) || (ny > 8)) return -3;
+                    DebugForm.instance.addMsg("pturn.mvXY = " + nx + "," + ny);
                     if (ban.onBoard[nx * 9 + ny] > 0) {
                         if (ret == -1) {
                             ret = nx * 9 + ny;
@@ -1554,8 +1587,8 @@ namespace TacoWin2 {
                     getPosMoveList(ref kCnt, ref ban, turn, cPos, kmv);
 
                     // 合い駒
-                    int dx = pturn.dfX(turn, cPos / 9, ban.putOusyou[(int)turn] / 9);
-                    int dy = pturn.dfY(turn, cPos % 9, ban.putOusyou[(int)turn] % 9);
+                    int dx = pturn.dfX(pturn.aturn(turn), cPos / 9, ban.putOusyou[(int)turn] / 9);
+                    int dy = pturn.dfY(pturn.aturn(turn), cPos % 9, ban.putOusyou[(int)turn] % 9);
                     switch (ban.getOnBoardKtype(cPos)) {
                         case ktype.Kyousha:
                             // 敵基準で判定
@@ -1564,17 +1597,53 @@ namespace TacoWin2 {
                             }
                             break;
 
-                        case　ktype.Hisya:
+                        case ktype.Hisya:
                             // 敵基準で判定
-                            for (int i = 1; pturn.mvY(pturn.aturn(turn), cPos % 9, i) < 9 && ban.onBoard[(cPos / 9) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, i)] == 0; i++) {
-                                getPosMoveList(ref kCnt, ref ban, turn, (cPos / 9) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, i), kmv);
+                            if (dx == 0) {
+                                if (dy < 0) {
+                                    for (int i = 1; pturn.mvY(pturn.aturn(turn), cPos % 9, i) < 9 && ban.onBoard[(cPos / 9) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, i)] == 0; i++) {
+                                        getPosMoveList(ref kCnt, ref ban, turn, (cPos / 9) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, i), kmv);
+                                    }
+                                } else { // (dy > 0)
+                                    for (int i = 1; pturn.mvY(pturn.aturn(turn), cPos % 9, -i) >= 0 && ban.onBoard[(cPos / 9) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, -i)] == 0; i++) {
+                                        getPosMoveList(ref kCnt, ref ban, turn, (cPos / 9) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, -i), kmv);
+                                    }
+                                }
+                            } else if (dy == 0) {
+                                if (dx < 0) {
+                                    for (int i = 1; pturn.mvX(pturn.aturn(turn), cPos / 9, i) < 9 && ban.onBoard[pturn.mvX(pturn.aturn(turn), cPos / 9, i) * 9 + (cPos % 9)] == 0; i++) {
+                                        getPosMoveList(ref kCnt, ref ban, turn, pturn.mvX(pturn.aturn(turn), cPos / 9, i) * 9 + (cPos % 9), kmv);
+                                    }
+                                } else { // (dx > 0)
+                                    for (int i = 1; pturn.mvX(pturn.aturn(turn), cPos / 9, -i) >= 0 && ban.onBoard[pturn.mvX(pturn.aturn(turn), cPos / 9, -i) * 9 + (cPos % 9)] == 0; i++) {
+                                        getPosMoveList(ref kCnt, ref ban, turn, pturn.mvX(pturn.aturn(turn), cPos / 9, -i) * 9 + (cPos % 9), kmv);
+                                    }
+                                }
                             }
                             break;
 
                         case ktype.Kakugyou:
                             // 敵基準で判定
-                            for (int i = 1; pturn.mvY(pturn.aturn(turn), cPos % 9, i) < 9 && ban.onBoard[(cPos / 9) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, i)] == 0; i++) {
-                                getPosMoveList(ref kCnt, ref ban, turn, (cPos / 9) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, i), kmv);
+                            if (dx == dy) {
+                                if (dx < 0) {
+                                    for (int i = 1; pturn.mvX(pturn.aturn(turn), cPos / 9, i) < 9 && pturn.mvY(pturn.aturn(turn), cPos % 9, i) < 9 && ban.onBoard[pturn.mvX(pturn.aturn(turn), cPos / 9, i) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, i)] == 0; i++) {
+                                        getPosMoveList(ref kCnt, ref ban, turn, pturn.mvX(pturn.aturn(turn), cPos / 9, i) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, i), kmv);
+                                    }
+                                } else { // (dy > 0)
+                                    for (int i = 1; pturn.mvX(pturn.aturn(turn), cPos / 9, -i) >= 0 && pturn.mvY(pturn.aturn(turn), cPos % 9, -i) >= 0 && ban.onBoard[pturn.mvX(pturn.aturn(turn), cPos / 9, -i) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, -i)] == 0; i++) {
+                                        getPosMoveList(ref kCnt, ref ban, turn, pturn.mvX(pturn.aturn(turn), cPos / 9, -i) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, -i), kmv);
+                                    }
+                                }
+                            } else if (dx == -dy) {
+                                if (dx < 0) {
+                                    for (int i = 1; pturn.mvX(pturn.aturn(turn), cPos / 9, i) < 9 && pturn.mvY(pturn.aturn(turn), cPos % 9, -i) >= 0 && ban.onBoard[pturn.mvX(pturn.aturn(turn), cPos / 9, i) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, -i)] == 0; i++) {
+                                        getPosMoveList(ref kCnt, ref ban, turn, pturn.mvX(pturn.aturn(turn), cPos / 9, i) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, -i), kmv);
+                                    }
+                                } else { // (dx > 0)
+                                    for (int i = 1; pturn.mvX(pturn.aturn(turn), cPos / 9, -i) >= 0 && pturn.mvY(pturn.aturn(turn), cPos % 9, i) < 9 && ban.onBoard[pturn.mvX(pturn.aturn(turn), cPos / 9, -i) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, i)] == 0; i++) {
+                                        getPosMoveList(ref kCnt, ref ban, turn, pturn.mvX(pturn.aturn(turn), cPos / 9, -i) * 9 + pturn.mvY(pturn.aturn(turn), cPos % 9, i), kmv);
+                                    }
+                                }
                             }
                             break;
 
@@ -1582,9 +1651,31 @@ namespace TacoWin2 {
                             break;
                     }
                 }
+
+
+                // 王を移動(8方向)
+                int nx;
+                int ny;
+                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, 1, 1);
+                if ((nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 1, 1, turn, false, kmv, ref kCnt);
+                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, 0, 1);
+                if ((nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 0, 1, turn, false, kmv, ref kCnt);
+                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, -1, 1);
+                if ((nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], -1, 1, turn, false, kmv, ref kCnt);
+                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, 1, 0);
+                if ((nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 1, 0, turn, false, kmv, ref kCnt);
+                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, -1, 0);
+                if ((nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], -1, 0, turn, false, kmv, ref kCnt);
+                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, 1, -1);
+                if ((nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 1, -1, turn, false, kmv, ref kCnt);
+                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, 0, -1);
+                if ((nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 0, -1, turn, false, kmv, ref kCnt);
+                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, -1, -1);
+                if ((nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], -1, -1, turn, false, kmv, ref kCnt);
+
             }
 
-            // 王を移動
+
 
             return kCnt;
         }
