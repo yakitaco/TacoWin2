@@ -1211,12 +1211,96 @@ namespace TacoWin2 {
                                 }
                             }
                         } else {// 段・筋が異なる
-                                // 成りを考慮
+                            //筋移動
+                            if (dx < 0) { // 左
+                                if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, 1, 0) == -1) {
+                                    if (dy < 0) {
+                                        if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, 1) == -1) {
+                                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                        }
+                                        if (dy == -1) {
+
+                                        }
+
+                                    } else {
+                                        if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, -1) == -1) {
+                                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                        }
+                                    }
+                                }
 
 
+                            } else { // 右
+                                if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, -1, 0) == -1) {
+                                    if (dy < 0) {
+                                        if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, 1) == -1) {
+                                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                        }
 
 
+                                    } else {
+                                        if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, -1) == -1) {
+                                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                        }
+                                    }
 
+
+                                }
+
+                            }
+
+                            //段移動
+                            if (dy < 0) { // 左
+                                if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, 1, 0) == -1) {
+                                    if (dx < 0) {
+                                        if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, 1) == -1) {
+                                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                        }
+                                        if (dy == -1) {
+
+                                        }
+
+                                    } else {
+                                        if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, -1) == -1) {
+                                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                        }
+                                    }
+                                }
+
+
+                            } else { // 右
+                                if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, -1, 0) == -1) {
+                                    if (dx < 0) {
+                                        if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, 1) == -1) {
+                                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                        }
+
+                                    } else {
+                                        if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, -1) == -1) {
+                                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                        }
+                                    }
+
+
+                                }
+
+                            }
                         }
 
 
