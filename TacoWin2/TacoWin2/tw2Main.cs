@@ -25,6 +25,7 @@ namespace TacoWin2 {
             });
             Thread.Sleep(1000);
 
+            Random rnds = new System.Random();
 
             Task<(kmove[], int)> aiTaskMain = null;
 
@@ -44,9 +45,12 @@ namespace TacoWin2 {
                 DebugForm.instance.addMsg("[OK]Load " + fileName + "(" + ret +")");
             }
 
+            int nokori = 0;
+
             while (true) {
                 string str = Console.ReadLine();
                 DebugForm.instance.addMsg("[RECV]"+str);
+
 
                 // usi 起動
                 if ((str.Length == 3) && (str.Substring(0, 3) == "usi")) {
@@ -125,6 +129,9 @@ namespace TacoWin2 {
                     //通常読み
                     if (arr[1] == "btime") {
 
+                        nokori = Convert.ToInt32(turn == Pturn.Sente ? arr[2] : arr[4]);
+                        DebugForm.instance.addMsg("nokori = " + nokori);
+
                         // 定跡チェック
                         //string oki = "";
                         //string mochi = "";
@@ -140,6 +147,11 @@ namespace TacoWin2 {
                         aiTaskMain = Task.Run(() => {
                             return ai.thinkMove(turn, ban, 6);
                         });
+
+                        if (nokori>3600000) {
+                            Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
+                        }
+
                         (kmove[] km, int best) = aiTaskMain.Result;
                         //(kmove[] km, int best) = ai.thinkMove(turn, ban, 6);
                         sw.Stop();
@@ -174,9 +186,13 @@ namespace TacoWin2 {
                         // 先読み
                     } else if (arr[1] == "ponder") {
 
+                        nokori = Convert.ToInt32(turn == Pturn.Sente ? arr[3] : arr[5]);
+                        DebugForm.instance.addMsg("nokori = " + nokori);
+
                         aiTaskMain = Task.Run(() => {
                             return ai.thinkMove(turn, ban, 6);
                         });
+
 
                     } else if (arr[1] == "mate") {
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
@@ -214,6 +230,10 @@ namespace TacoWin2 {
                     DebugForm.instance.addMsg(ban.debugShow());
 
                 } else if ((str.Length > 8) && (str.Substring(0, 9) == "ponderhit")) {
+
+                    if (nokori > 3600000) {
+                        Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
+                    }
 
                     (kmove[] km, int best) = aiTaskMain.Result;
                     thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
