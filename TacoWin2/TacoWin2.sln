@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TacoWin2_sfenIO", "TacoWin2
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TacoWin2_BanInfo", "TacoWin2_BanInfo\TacoWin2_BanInfo.csproj", "{A8C379DC-67AC-47BC-B60B-E2D7A75CDDE9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TacoWin2_MkSeed", "..\TacoWin2_MkSeed\TacoWin2_MkSeed.csproj", "{3ADBCA13-F335-4E6F-95F9-A5EC994F2A4A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{A8C379DC-67AC-47BC-B60B-E2D7A75CDDE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A8C379DC-67AC-47BC-B60B-E2D7A75CDDE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A8C379DC-67AC-47BC-B60B-E2D7A75CDDE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3ADBCA13-F335-4E6F-95F9-A5EC994F2A4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3ADBCA13-F335-4E6F-95F9-A5EC994F2A4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3ADBCA13-F335-4E6F-95F9-A5EC994F2A4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3ADBCA13-F335-4E6F-95F9-A5EC994F2A4A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
