@@ -1,5 +1,5 @@
 ﻿namespace TacoWin2_BanInfo {
-    unsafe class tw2bi_hash {
+    public class tw2bi_hash {
         public static ulong[,] okiSeed = new ulong[28, 81] {
     {
         0x8953DB83644E381C, 0xCFFC8F975F7C3B2F, 0x73609CBB9131F3A9, 0x52503ABAE42A0F09, 0x8CC34A3E6FBB2D7E, 0x298A7C5E64F81C05, 0x7F6D8423FF61DAEC, 0xF4CF6EB1745ADAD8, 0x5E908DD46AE029EA,
@@ -359,6 +359,8 @@
     },
 
  };
+        //平手開始時のhash値(固定値)
+        public const ulong startHash = 0xCBA0B77967169F3B;
 
         public void debugShow() {
 

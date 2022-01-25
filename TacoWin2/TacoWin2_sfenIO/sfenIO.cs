@@ -37,6 +37,7 @@ namespace TacoWin2_sfenIO {
                         // 駒配置
                         (ktype k, Pturn p) = toKoma(oki, ref j);
                         ban.putKoma(suzi, i, p, k);
+                        ban.hash ^= tw2bi_hash.okiSeed[(int)p * 14 + (int)k - 1, suzi * 9 + i];
                         suzi--;
                     }
                 }
@@ -56,6 +57,7 @@ namespace TacoWin2_sfenIO {
                     // 持ち駒追加(複数駒ありを考慮)
                     (ktype k, Pturn p) = toKoma(mochi, ref j);
                     ban.captPiece[(int)p * 7 + (int)k - 1] += (byte)num;
+                    ban.hash ^= tw2bi_hash.mochiSeed[(int)p * 7 + (int)k - 1, num];
                     num = 0;
                 }
 
