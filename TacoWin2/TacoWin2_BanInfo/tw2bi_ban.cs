@@ -31,6 +31,8 @@ namespace TacoWin2_BanInfo {
 
         public fixed byte moveable[162]; //駒の移動可能リスト(turn*81+X*9+Y)
 
+        public ulong hash; //現局面のハッシュ値
+
         // 初期盤情報
         public void startpos() {
 
@@ -94,6 +96,15 @@ namespace TacoWin2_BanInfo {
                 putKoma(i, 6, Pturn.Sente, ktype.Fuhyou);
                 putKoma(i, 2, Pturn.Gote, ktype.Fuhyou);
             }
+
+            //hash値作成(固定値事前保持のため削除)
+            //for (int i = 0; i < 81; i++) {
+            //    if (onBoard[i] > 0) {
+            //        hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(i) * 14 + (int)getOnBoardKtype(i) - 1, i];
+            //    }
+            //}
+            //Console.WriteLine("[HASH]" + (hash).ToString("X16"));
+            hash = tw2bi_hash.startHash;
 
             // 移動リスト新規作成
             //renewMoveable();
