@@ -503,8 +503,12 @@ namespace TacoWin2_BanInfo {
             // 駒打ち
             if (ox == 9) {
                 // 合法手チェック
-                if (chk) if ((onBoard[nx * 9 + ny] == 0)) return -1;
+                if (chk) if ((onBoard[nx * 9 + ny] > 0)) return -1;
                 captPiece[oy - 1 + (int)turn * 7]--;
+
+                // hash更新
+                hash ^= tw2bi_hash.mochiSeed[(int)turn * 7 + oy - 1, captPiece[oy - 1 + (int)turn * 7]];
+                hash ^= tw2bi_hash.okiSeed[(int)turn * 14 + (int)oy - 1, nx * 9 + ny];
 
                 // 更新
                 //onBoard[nx + ny * 9] = (byte)(((int)turn << 4) + oy);
@@ -532,6 +536,10 @@ namespace TacoWin2_BanInfo {
                     if (renewMoveable == true) chgMoveable(nx, ny, getOnBoardPturn(nx, ny), -1);
                     removeKoma(nx, getOnBoardPutPiece(nx, ny), (Pturn)pturn.aturn((int)turn), getOnBoardKtype(nx, ny));
 
+                    // hash更新
+                    hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(nx, ny) * 14 + (int)getOnBoardKtype(nx, ny) - 1, nx * 9 + ny];
+                    hash ^= tw2bi_hash.mochiSeed[(int)getOnBoardPturn(ox, oy) * 7 + (int)kNoNari(getOnBoardKtype(nx, ny)) - 1, captPiece[(int)kNoNari(getOnBoardKtype(nx, ny)) - 1 + (int)getOnBoardPturn(ox, oy) * 7]];
+
                     // 追加
                     captPiece[(int)kNoNari(getOnBoardKtype(nx, ny)) - 1 + (int)getOnBoardPturn(ox, oy) * 7]++;
                     onBoard[nx * 9 + ny] = setOnBordDatat(pturn.aturn(turn), 9, ktype.None); //駒情報を一時クリア
@@ -543,6 +551,9 @@ namespace TacoWin2_BanInfo {
                 if (chk) if ((pturn.psX(getOnBoardPturn(ox, oy), nx) > 5) && (nari == true)) return -1;
 
                 ushort mk = 0;
+
+                // hash更新
+                hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(ox, oy) * 14 + (int)getOnBoardKtype(ox, oy) - 1, ox * 9 + oy];
 
                 if (renewMoveable == true) chgMoveable(ox, oy, getOnBoardPturn(ox, oy), -1);
 
@@ -629,7 +640,8 @@ namespace TacoWin2_BanInfo {
                     if (renewMoveable == true) chgMoveable(nx, ny, getOnBoardPturn(nx, ny), 1);
                 }
 
-
+                // hash更新
+                hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(nx, ny) * 14 + (int)getOnBoardKtype(nx, ny) - 1, nx * 9 + ny];
 
             }
 
@@ -1041,19 +1053,22 @@ namespace TacoWin2_BanInfo {
             }
 
             // 持ち駒情報
-            str += "FU:" + captPiece[0] + "/KY:" + captPiece[1] + "/KE:" + captPiece[2] + "/GI:" + captPiece[3] + "/HI:" + captPiece[4] + "/KA:" + captPiece[5] + "/KI:" + captPiece[6] + "\n";
-            str += "FU:" + captPiece[7] + "/KY:" + captPiece[8] + "/KE:" + captPiece[9] + "/GI:" + captPiece[10] + "/HI:" + captPiece[11] + "/KA:" + captPiece[12] + "/KI:" + captPiece[13] + "\n";
+            str += "FU:" + captPiece[0] + "/KY:" + captPiece[1] + "/KE:" + captPiece[2] + "/GI:" + captPiece[3] + "/HI:" + captPiece[4] + "/KA:" + captPiece[5] + "/KI:" + captPiece[6] + Environment.NewLine;
+            str += "FU:" + captPiece[7] + "/KY:" + captPiece[8] + "/KE:" + captPiece[9] + "/GI:" + captPiece[10] + "/HI:" + captPiece[11] + "/KA:" + captPiece[12] + "/KI:" + captPiece[13] + Environment.NewLine;
 
             for (int i = 0; i < 9; i++) {
                 str += putFuhyou[i] + " ";
 
             }
-            str += "\n";
+            str += Environment.NewLine;
             for (int i = 0; i < 9; i++) {
                 str += putFuhyou[9 + i] + " ";
 
             }
-            str += "\n";
+            str += Environment.NewLine;
+            str += "[HASH]" + hash.ToString("X16");
+
+            str += Environment.NewLine;
             return str;
         }
 

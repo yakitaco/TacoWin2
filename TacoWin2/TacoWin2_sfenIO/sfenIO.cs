@@ -57,7 +57,9 @@ namespace TacoWin2_sfenIO {
                     // 持ち駒追加(複数駒ありを考慮)
                     (ktype k, Pturn p) = toKoma(mochi, ref j);
                     ban.captPiece[(int)p * 7 + (int)k - 1] += (byte)num;
-                    ban.hash ^= tw2bi_hash.mochiSeed[(int)p * 7 + (int)k - 1, num];
+                    for (int i = 0; i < num; i++) {
+                        ban.hash ^= tw2bi_hash.mochiSeed[(int)p * 7 + (int)k - 1, i];
+                    }
                     num = 0;
                 }
 
