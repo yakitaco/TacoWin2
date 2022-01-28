@@ -49,7 +49,7 @@ namespace TacoWin2_SMV {
             byte[] m_Buff2 = new byte[0x02];
             rnd.NextBytes(m_Buff);
             rnd.NextBytes(m_Buff2);
-            set(BytesToString(m_Buff) + " -", "+" + BytesToString(m_Buff2), 1, 1, 0);
+            set(0, BytesToString(m_Buff) + " -", "+" + BytesToString(m_Buff2), 1, 1, 0);
         }
 
         public static string BytesToString(byte[] bs) {
@@ -60,8 +60,8 @@ namespace TacoWin2_SMV {
         }
 
         // 次の手リストを追加or更新
-        public static void set(string position, string move, int value, int weight, int type) {
-            sMove tmpSmv = new sMove(sha1(position, 8), position + "," + move + "/" + value + "/" + weight + "/" + type);
+        public static void set(ulong hash, string position, string move, int value, int weight, int type) {
+            sMove tmpSmv = new sMove(hash, position + "," + move + "/" + value + "/" + weight + "/" + type);
 
             int idx = sList.BinarySearch(tmpSmv);
             if (idx < 0) {

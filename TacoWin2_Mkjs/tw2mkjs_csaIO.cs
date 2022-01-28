@@ -12,13 +12,14 @@ namespace TacoWin2_Mkjs {
         }
 
         // ret 0 先手勝ち 1:後手勝ち 2:その他(千日手)
-        public static int loadFile(string filePath, int num, out List<string>[] outStr) {
+        public static int loadFile(string filePath, int num, out List<string>[] outStr, out List<ulong> hash) {
             outStr = new List<string>[2];
             outStr[0] = new List<string>();
             outStr[1] = new List<string>();
+            hash = new List<ulong>();
 
             int ret = 2;
-            ban ban;
+            ban ban = new ban();
             ban.startpos();
             Pturn turn = Pturn.Sente;
             int count = 0;
@@ -59,7 +60,7 @@ namespace TacoWin2_Mkjs {
                     } else {
                         outStr[1].Add(line[0].ToString() + ox + "" + int2Dafb(oy - 1) + "" + nx + "" + int2Dafb(ny - 1));
                     }
-
+                    hash.Add(ban.hash);
 
                     if (ox == 0) {
                         ban.moveKoma(9, csa2num(line.Substring(5, 2)), nx - 1, ny - 1, turn, nari, false, false);

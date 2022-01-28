@@ -62,18 +62,18 @@ namespace TacoWin2_Mkjs {
                     return;
                 }
 
-                var ret = tw2mkjs_csaIO.loadFile(line, 0, out var str);
+                var ret = tw2mkjs_csaIO.loadFile(line, 0, out var str, out var hash);
 
-                Console.WriteLine("["+ str[0].Count + "]" +line);
+                Console.WriteLine("[" + str[0].Count + "]" + line);
 
                 for (int i = 0; i < str[0].Count; i++) {
-                    //Console.WriteLine("" + str[0][i] + "/" + str[1][i]);
+                    //Console.WriteLine("[" + hash[i] + "]" + str[0][i] + "/" + str[1][i]);
                     if (ret == i % 2) {
-                        sMove.set(str[0][i], str[1][i], 2, 1, 999);
-                    } else if ( i > str[0].Count / 2 ) {
-                        sMove.set(str[0][i], str[1][i], 0, 1, 999);
+                        sMove.set(hash[i], str[0][i], str[1][i], 2, 1, 999);
+                    } else if (i > str[0].Count / 2) {
+                        sMove.set(hash[i], str[0][i], str[1][i], 0, 1, 999);
                     } else {
-                        sMove.set(str[0][i], str[1][i], 1, 1, 999);
+                        sMove.set(hash[i], str[0][i], str[1][i], 1, 1, 999);
                     }
                 }
 
