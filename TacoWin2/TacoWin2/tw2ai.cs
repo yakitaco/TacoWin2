@@ -91,10 +91,11 @@ namespace TacoWin2 {
             unsafe {
 
                 // 定跡チェック
-                string oki = "";
-                string mochi = "";
-                sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
-                string strs = sMove.get(oki + " " + mochi, turn);
+                //string oki = "";
+                //string mochi = "";
+                //sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
+                //string strs = sMove.get(oki + " " + mochi, turn);
+                string strs = sMove.get(ban.hash, turn);
                 if (strs != null) {
                     int ox;
                     int oy;
@@ -206,11 +207,12 @@ namespace TacoWin2 {
 
             unsafe {
 
-                //定跡チェック
-                string oki = "";
-                string mochi = "";
-                sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
-                string strs = sMove.get(oki + " " + mochi, turn);
+                // 定跡チェック
+                //string oki = "";
+                //string mochi = "";
+                //sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
+                //string strs = sMove.get(oki + " " + mochi, turn);
+                string strs = sMove.get(ban.hash, turn);
                 if (strs != null) {
                     int ox;
                     int oy;

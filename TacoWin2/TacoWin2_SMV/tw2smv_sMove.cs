@@ -9,7 +9,7 @@ using TacoWin2_BanInfo;
 namespace TacoWin2_SMV {
     public class sMove : IComparable {
         public static List<sMove> sList = new List<sMove>();
-        static SHA1CryptoServiceProvider algorithm = new SHA1CryptoServiceProvider();
+        //static SHA1CryptoServiceProvider algorithm = new SHA1CryptoServiceProvider();
         static Random rnd = new Random();
 
         private ulong hash;
@@ -103,9 +103,9 @@ namespace TacoWin2_SMV {
         }
 
         // 次の手を取得
-        public static string get(string position, Pturn turn) {
+        public static string get(ulong hash, Pturn turn) {
 
-            int idx = sList.BinarySearch(new sMove(sha1(position, 8), ""));
+            int idx = sList.BinarySearch(new sMove(hash, ""));
             if (idx < 0) {
                 /* 手がない */
                 return null;
@@ -160,17 +160,17 @@ namespace TacoWin2_SMV {
         }
 
         //指定した文字列のSHA1を取得
-        public static ulong sha1(string str, int length) {
-            byte[] data = Encoding.UTF8.GetBytes(str);
-            byte[] bs = algorithm.ComputeHash(data);
-
-            // バイト型配列を16進数文字列に変換
-            var result = new StringBuilder();
-            for (int i = 0; i < length && i < bs.Length; i++) {
-                result.Append(bs[i].ToString("X2"));
-            }
-            return Convert.ToUInt64(result.ToString(), 16);
-        }
+        //public static ulong sha1(string str, int length) {
+        //    byte[] data = Encoding.UTF8.GetBytes(str);
+        //    byte[] bs = algorithm.ComputeHash(data);
+        //
+        //    // バイト型配列を16進数文字列に変換
+        //    var result = new StringBuilder();
+        //    for (int i = 0; i < length && i < bs.Length; i++) {
+        //        result.Append(bs[i].ToString("X2"));
+        //    }
+        //    return Convert.ToUInt64(result.ToString(), 16);
+        //}
 
         //自分自身がobjより小さいときはマイナスの数、大きいときはプラスの数、
         //同じときは0を返す
