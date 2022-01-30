@@ -8,11 +8,14 @@ using System.Windows.Forms;
 
 namespace TacoWin2 {
     public partial class DebugForm : Form {
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")] // この行を追加
+        private static extern bool AllocConsole();                 // この行を追加
 
         private static DebugForm _formInstance;
 
         public DebugForm() {
             InitializeComponent();
+            AllocConsole();
             _formInstance = this;
         }
 

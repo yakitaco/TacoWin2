@@ -1,18 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using TacoWin2_BanInfo;
-using TacoWin2_sfenIO;
 using TacoWin2_SMV;
 
 namespace TacoWin2 {
 
-
-
-
-
     class tw2ai {
 
+        List<ulong>[] aList = new List<ulong>[20];
 
         public static int[] kVal = {
         0,        //なし
@@ -44,6 +41,34 @@ namespace TacoWin2 {
             // thread同時数取得
             ThreadPool.GetMinThreads(out workMin, out ioMin);
             Console.Write("workMin={0},ioMin={1}\n", workMin, ioMin);
+        }
+
+        public tw2ai() {
+            resetHash();
+        }
+
+        void resetHash() {
+            for (int i = 0; i < aList.Length; i++) {
+                aList[i] = new List<ulong>();
+            }
+        }
+
+        int chkHash(ulong hash, int depth) {
+            if (aList[depth].Count > 0) {
+                /* 最初の登録 */
+                aList[depth].Add(hash);
+                return 0;
+            } else {
+                int idx = aList[depth].BinarySearch(hash);
+                if (idx < 0) {
+                    /* ハッシュに存在しない */
+                    aList[depth].Insert(~idx, hash);
+                    return 0;
+                } else {
+                    /* ハッシュに存在 */
+                    return -1;
+                }
+            }
         }
 
         // ランダムに動く(王手は逃げる)
@@ -122,7 +147,7 @@ namespace TacoWin2 {
                         str += "(" + (bestmove[i].op / 9 + 1) + "," + (bestmove[i].op % 9 + 1) + ")->(" + (bestmove[i].np / 9 + 1) + "," + (bestmove[i].np % 9 + 1) + ")/";
                     }
                     Console.Write("JOSEKI MV[{0}]{1}\n", best, str);
-
+                    resetHash();
                     return (bestmove, best);
                 }
 
@@ -190,7 +215,7 @@ namespace TacoWin2 {
 
                 mList.freeAlist(aid);
             }
-
+            resetHash();
             return (bestmove, best);
         }
 
@@ -262,6 +287,11 @@ namespace TacoWin2 {
                             val = tw2stval.get(tmp_ban.getOnBoardKtype(moveList[cnt].op), moveList[cnt].np / 9, moveList[cnt].np % 9, moveList[cnt].op / 9, moveList[cnt].op % 9, (int)turn) - pVal;
                         }
                         tmp_ban.moveKoma(moveList[cnt].op / 9, moveList[cnt].op % 9, moveList[cnt].np / 9, moveList[cnt].np % 9, turn, moveList[cnt].nari, false, true);
+
+                        // 同一局面がすでに出ている場合
+                        if (depth > 1) {
+                            if (chkHash(tmp_ban.hash, depth - 2) < 0) continue;
+                        }
 
                         if (tmp_ban.moveable[pturn.aturn((int)turn) * 81 + tmp_ban.putOusyou[(int)turn]] > 0) {
                             if (bestMoveList == null) {
