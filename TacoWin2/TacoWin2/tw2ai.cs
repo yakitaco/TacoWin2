@@ -54,7 +54,7 @@ namespace TacoWin2 {
         }
 
         int chkHash(ulong hash, int depth) {
-            if (aList[depth].Count > 0) {
+            if (aList[depth].Count == 0) {
                 /* 最初の登録 */
                 aList[depth].Add(hash);
                 return 0;
@@ -289,8 +289,15 @@ namespace TacoWin2 {
                         tmp_ban.moveKoma(moveList[cnt].op / 9, moveList[cnt].op % 9, moveList[cnt].np / 9, moveList[cnt].np % 9, turn, moveList[cnt].nari, false, true);
 
                         // 同一局面がすでに出ている場合
-                        if (depth > 1) {
-                            if (chkHash(tmp_ban.hash, depth - 2) < 0) continue;
+                        if ((depth > 1) && (depth < 4)) {
+                            lock (lockObj) {
+                                if (chkHash(tmp_ban.hash, depth - 2) < 0) {
+                                    if (bestMoveList == null) {
+                                        bestMoveList = new kmove[500];
+                                    }
+                                    continue;
+                                }
+                            }
                         }
 
                         if (tmp_ban.moveable[pturn.aturn((int)turn) * 81 + tmp_ban.putOusyou[(int)turn]] > 0) {
@@ -513,7 +520,11 @@ namespace TacoWin2 {
                 // 香車
                 for (int i = 0; i < 4; i++) {
                     if (ban.putKyousha[(int)turn * 4 + i] != 0xFF) {
-                        getEachMoveList(ref ban, ban.putKyousha[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                        if (ban.moveable[pturn.aturn((int)turn) * 81 + ban.putKyousha[(int)turn * 4 + i]] > 0) { //敵の効きがある
+                            getEachMoveList(ref ban, ban.putKyousha[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                        } else {
+                            getEachMoveListKyousya(ref ban, ban.putKyousha[(int)turn * 4 + i], turn, kmv, ref kCnt, ref startPoint);
+                        }
                     }
                 }
 
@@ -597,6 +608,70 @@ namespace TacoWin2 {
                     }
                 }
             }
+        }
+
+        //香車専用移動リスト作成
+        public void getEachMoveListKyousya(ref ban ban, int oPos, Pturn turn, kmove[] kmv, ref int kCnt, ref int startPoint) {
+            for (int i = 1; i < 9; i++) {
+                int nx = oPos / 9;
+                int ny = pturn.mvY(turn, oPos % 9, i);
+                int val;
+                unsafe {
+                    if ((nx < 0) || (nx > 8) || (ny < 0) || (ny > 8)) return;
+                    if (ban.onBoard[nx * 9 + ny] > 0) {
+                        if (ban.getOnBoardPturn(nx, ny) != turn) {
+                            if (pturn.psY(turn, ny) > 5) {
+                                if (pturn.psY(turn, ny) < 7) {
+                                    if (ban.moveable[pturn.aturn((int)turn) * 81 + nx * 9 + ny] > 0) {
+                                        val = tw2ai.kVal[(int)ban.getOnBoardKtype(nx, ny)] - tw2ai.kVal[(int)ban.getOnBoardKtype(oPos)];
+                                    } else {
+                                        val = tw2ai.kVal[(int)ban.getOnBoardKtype(nx, ny)];
+                                    }
+                                    if (val >= kmv[startPoint].val) {
+                                        kmv[--startPoint].set(oPos, nx * 9 + ny, val, false, turn);
+                                        kCnt++;
+                                    } else {
+                                        kmv[startPoint + kCnt++].set(oPos, nx * 9 + ny, val, false, turn);
+                                    }
+                                }
+                                if (ban.moveable[pturn.aturn((int)turn) * 81 + nx * 9 + ny] > 0) {
+                                    val = tw2ai.kVal[(int)ban.getOnBoardKtype(nx, ny)] - tw2ai.kVal[(int)ban.getOnBoardKtype(oPos)] + 250;
+                                } else {
+                                    val = tw2ai.kVal[(int)ban.getOnBoardKtype(nx, ny)] + 250;
+                                }
+                                if (val >= kmv[startPoint].val) {
+                                    kmv[--startPoint].set(oPos, nx * 9 + ny, val, true, turn);
+                                    kCnt++;
+                                } else {
+                                    kmv[startPoint + kCnt++].set(oPos, nx * 9 + ny, val, true, turn);
+                                }
+                            } else {
+
+                                if (ban.moveable[pturn.aturn((int)turn) * 81 + nx * 9 + ny] > 0) {
+                                    val = tw2ai.kVal[(int)ban.getOnBoardKtype(nx, ny)] - tw2ai.kVal[(int)ban.getOnBoardKtype(oPos)];
+                                } else {
+                                    val = tw2ai.kVal[(int)ban.getOnBoardKtype(nx, ny)];
+                                }
+                                if (val >= kmv[startPoint].val) {
+                                    kmv[--startPoint].set(oPos, nx * 9 + ny, val, false, turn);
+                                    kCnt++;
+                                } else {
+                                    kmv[startPoint + kCnt++].set(oPos, nx * 9 + ny, val, false, turn);
+                                }
+                            }
+                            break; // 敵の駒(取れる)
+                        } else {
+                            break; // 味方の駒(取れない)
+                        }
+                    }
+                    if ((pturn.psY(turn, ny) > 5) && ((int)ban.getOnBoardKtype(oPos) < 7)) {
+                        if ((ban.moveable[pturn.aturn((int)turn) * 81 + nx * 9 + ny] == 0) || (ban.moveable[(int)turn * 81 + nx * 9 + ny] > 0)) {
+                            kmv[startPoint + kCnt++].set(oPos, nx * 9 + ny, 0, true, turn);
+                        }
+                    } else {
+                    }
+                }
+            };
         }
 
         public void getEachMoveList(ref ban ban, int oPos, Pturn turn, kmove[] kmv, ref int kCnt, ref int startPoint) {
