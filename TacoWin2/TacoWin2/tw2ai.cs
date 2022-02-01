@@ -36,6 +36,7 @@ namespace TacoWin2 {
         static int ioMin;
         public bool stopFlg = false;
         Object lockObj = new Object();
+        Object[] lockObj_hash = new object[20];
 
         static tw2ai() {
             // thread同時数取得
@@ -50,6 +51,7 @@ namespace TacoWin2 {
         void resetHash() {
             for (int i = 0; i < aList.Length; i++) {
                 aList[i] = new List<ulong>();
+                lockObj_hash[i] = new Object();
             }
         }
 
@@ -268,7 +270,6 @@ namespace TacoWin2 {
 
                 // 持ち駒がある
                 // どこかに打つ
-                //kmove[] moveList = new kmove[500];
                 kmove[] moveList;
                 int aid;
                 lock (lockObj) {
@@ -290,10 +291,10 @@ namespace TacoWin2 {
 
                         // 同一局面がすでに出ている場合
                         if ((depth > 1) && (depth < 4)) {
-                            lock (lockObj) {
+                            lock (lockObj_hash[depth]) {
                                 if (chkHash(tmp_ban.hash, depth - 2) < 0) {
                                     if (bestMoveList == null) {
-                                        bestMoveList = new kmove[500];
+                                        bestMoveList = new kmove[30];
                                     }
                                     continue;
                                 }
@@ -302,7 +303,7 @@ namespace TacoWin2 {
 
                         if (tmp_ban.moveable[pturn.aturn((int)turn) * 81 + tmp_ban.putOusyou[(int)turn]] > 0) {
                             if (bestMoveList == null) {
-                                bestMoveList = new kmove[500];
+                                bestMoveList = new kmove[30];
                                 bestMoveList[depth] = moveList[cnt];
                                 best = -999999 + depth * 10000 + val;
                             }
