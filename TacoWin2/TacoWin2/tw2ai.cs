@@ -290,16 +290,16 @@ namespace TacoWin2 {
                         tmp_ban.moveKoma(moveList[cnt].op / 9, moveList[cnt].op % 9, moveList[cnt].np / 9, moveList[cnt].np % 9, turn, moveList[cnt].nari, false, true);
 
                         // 同一局面がすでに出ている場合
-                        if ((depth > 1) && (depth < 4)) {
-                            lock (lockObj_hash[depth]) {
-                                if (chkHash(tmp_ban.hash, depth - 2) < 0) {
-                                    if (bestMoveList == null) {
-                                        bestMoveList = new kmove[30];
-                                    }
-                                    continue;
-                                }
-                            }
-                        }
+                        //if ((depth > 1) && (depth < 4)) {
+                        //    lock (lockObj_hash[depth]) {
+                        //        if (chkHash(tmp_ban.hash, depth - 2) < 0) {
+                        //            if (bestMoveList == null) {
+                        //                bestMoveList = new kmove[30];
+                        //            }
+                        //            continue;
+                        //        }
+                        //    }
+                        //}
 
                         if (tmp_ban.moveable[pturn.aturn((int)turn) * 81 + tmp_ban.putOusyou[(int)turn]] > 0) {
                             if (bestMoveList == null) {
@@ -500,7 +500,9 @@ namespace TacoWin2 {
 
             return (kCnt, startPoint);
         }
-        public (int, int) getAllMoveList(ref ban ban, Pturn turn, kmove[] kmv) {
+
+        // type 0:全検索 1:駒打ち(無駄に取られる場所)省略 2: 1+駒打ち(効きに駒がない)省略 3;駒打ち全省略  
+        public (int, int) getAllMoveList(ref ban ban, Pturn turn, kmove[] kmv, int type = 0) {
             int startPoint = 100;
             int kCnt = 0;
             unsafe {
@@ -573,9 +575,11 @@ namespace TacoWin2 {
                 }
 
                 // 駒打ち
-                for (int i = 0; i < 7; i++) {
-                    if (ban.captPiece[(int)turn * 7 + i] > 0) {
-                        getEachMoveList(ref ban, 81 + i + 1, turn, kmv, ref kCnt, ref startPoint);
+                if (type < 3) {
+                    for (int i = 0; i < 7; i++) {
+                        if (ban.captPiece[(int)turn * 7 + i] > 0) {
+                            getEachMoveList(ref ban, 81 + i + 1, turn, kmv, ref kCnt, ref startPoint, type);
+                        }
                     }
                 }
             }
@@ -675,7 +679,7 @@ namespace TacoWin2 {
             };
         }
 
-        public void getEachMoveList(ref ban ban, int oPos, Pturn turn, kmove[] kmv, ref int kCnt, ref int startPoint) {
+        public void getEachMoveList(ref ban ban, int oPos, Pturn turn, kmove[] kmv, ref int kCnt, ref int startPoint, int type = 0) {
             // 駒打ち
             unsafe {
                 if ((oPos / 9) == 9) {
@@ -698,6 +702,48 @@ namespace TacoWin2 {
                             if (ban.onBoard[i * 9 + j] > 0) {
                                 continue;
                             }
+
+                            //敵の効きのみある所には打たない
+                            if (((oPos % 9) != (int)ktype.Fuhyou) && (ban.moveable[pturn.aturn((int)turn) * 81 + i * 9 + j] > 0) && (ban.moveable[(int)turn * 81 + i * 9 + j] == 0)) {
+                                continue;
+                            }
+
+                            // 歩飛角以外の駒で、移動先に敵味方の駒がない場合、無駄なため置かない
+                            switch (oPos % 9) {
+                                case (int)ktype.Kyousha:
+                                    int kret = 0;
+                                    for (int k = 1; k < 9; k++) {
+                                        int nx = oPos / 9;
+                                        int ny = pturn.mvY(turn, oPos % 9, i);
+                                        if ((nx < 0) || (nx > 8) || (ny < 0) || (ny > 8)) break;
+                                        if (ban.onBoard[nx * 9 + ny] > 0) {
+                                            kret = 1;
+                                            break;
+                                        }
+                                    }
+                                    if (kret == 0) continue;
+                                    break;
+
+                                case (int)ktype.Keima:
+                                    if ((chkMoveable(ref ban, oPos, 1, 2, turn) < 1) && (chkMoveable(ref ban, oPos, -1, 2, turn) < 1)) continue;
+                                    break;
+
+                                case (int)ktype.Ginsyou:
+                                    if ((chkMoveable(ref ban, oPos, 1, 1, turn) < 1) && (chkMoveable(ref ban, oPos, 0, 1, turn) < 1) &&
+                                        (chkMoveable(ref ban, oPos, -1, 1, turn) < 1) && (chkMoveable(ref ban, oPos, 1, -1, turn) < 1) && (chkMoveable(ref ban, oPos, -1, -1, turn) < 1)) continue;
+                                    break;
+
+                                case (int)ktype.Kinsyou:
+                                    if ((chkMoveable(ref ban, oPos, 1, 1, turn) < 1) && (chkMoveable(ref ban, oPos, 0, 1, turn) < 1) && (chkMoveable(ref ban, oPos, -1, 1, turn) < 1) &&
+                                         (chkMoveable(ref ban, oPos, 1, 0, turn) < 1) && (chkMoveable(ref ban, oPos, -1, 0, turn) < 1) && (chkMoveable(ref ban, oPos, 0, -1, turn) < 1)) continue;
+                                    break;
+
+                                default:
+                                    break;
+                            }
+
+
+                            // 未作成
 
                             kmv[startPoint + kCnt++].set(oPos, i * 9 + j, 0, false, turn);
                         }
@@ -865,6 +911,23 @@ namespace TacoWin2 {
                 }
                 return 0; // 駒がない
             }
+        }
+
+        //指定移動先(mx,my)に移動できるかチェック
+        public int chkMoveable(ref ban ban, int oPos, int mx, int my, Pturn turn) {
+            int nx = pturn.mvX(turn, oPos / 9, mx);
+            int ny = pturn.mvY(turn, oPos % 9, my);
+            unsafe {
+                if ((nx < 0) || (nx > 8) || (ny < 0) || (ny > 8)) return -1;
+                if (ban.onBoard[nx * 9 + ny] > 0) {
+                    if (ban.getOnBoardPturn(nx, ny) != turn) {
+                        return 1; // 敵の駒(取れる)
+                    } else {
+                        return 2; // 味方の駒
+                    }
+                }
+            }
+            return 0; // 駒がない(移動可能)
         }
 
         public (kmove[], int) thinkMateMoveTest(Pturn turn, ban ban, int depth) {
@@ -1236,7 +1299,7 @@ namespace TacoWin2 {
                         int dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
                         int ret;
                         if (dx == 0) {// 同じ筋
-                            // [不成&成り]敵を取って直進
+                                      // [不成&成り]敵を取って直進
                             if (dy < 0) { // 前方
                                 ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, 0, 1);
                                 if (ret >= 0) {
@@ -1278,7 +1341,7 @@ namespace TacoWin2 {
                             }
 
                         } else if (dy == 0) {//同じ段
-                            // [不成&成り]敵を取って直進
+                                             // [不成&成り]敵を取って直進
                             if (dx < 0) { // 左
                                 ret = chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], aOuPos, 1, 0);
                                 if (ret >= 0) {
@@ -1319,7 +1382,7 @@ namespace TacoWin2 {
                                 }
                             }
                         } else {// 段・筋が異なる
-                            //筋移動
+                                //筋移動
                             if (dx < 0) { // 左
                                 if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, 1, 0) == -1) {
                                     if (dy < 0) {
@@ -1478,7 +1541,7 @@ namespace TacoWin2 {
                         int dy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, aOuPos % 9);
                         int ret;
                         if (dx == dy) {// 同じ右斜め(／)
-                            // [不成&成り]敵を取って直進
+                                       // [不成&成り]敵を取って直進
                             if (dy < 0) { // 前方
                                 ret = chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], aOuPos, 1, 1);
                                 if (ret >= 0) {
@@ -1520,7 +1583,7 @@ namespace TacoWin2 {
                             }
 
                         } else if (dx == -dy) {// 同じ左斜め(＼)
-                            // [不成&成り]敵を取って直進
+                                               // [不成&成り]敵を取って直進
                             if (dx < 0) { // 左
                                 ret = chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], aOuPos, 1, -1);
                                 if (ret >= 0) {
@@ -1561,11 +1624,11 @@ namespace TacoWin2 {
                                 }
                             }
                         } else if ((dx + dy) % 2 == 0) {// 段・筋が異なる
-                            // x - kx = y - ky
-                            // x - ox = -y + oy
-                            // x = (ox + oy + kx - ky)/2
-                            // x = ( 4 + 6 - 7 - 5 ) / 2
-                            // y + kx - ky = (ox + oy + kx - ky)/2
+                                                        // x - kx = y - ky
+                                                        // x - ox = -y + oy
+                                                        // x = (ox + oy + kx - ky)/2
+                                                        // x = ( 4 + 6 - 7 - 5 ) / 2
+                                                        // y + kx - ky = (ox + oy + kx - ky)/2
                             int mx = (aOuPos / 9 + aOuPos % 9 + ban.putKakugyou[(int)turn * 2 + i] / 9 - ban.putKakugyou[(int)turn * 2 + i] % 9) / 2;
                             int my = (aOuPos / 9 + aOuPos % 9 - ban.putKakugyou[(int)turn * 2 + i] / 9 + ban.putKakugyou[(int)turn * 2 + i] % 9) / 2;
                             //右斜め(／)移動
