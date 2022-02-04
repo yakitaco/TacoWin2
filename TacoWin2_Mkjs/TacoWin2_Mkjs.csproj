@@ -59,6 +59,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="tw2mkjs_csaIO.cs" />
+    <Compile Include="tw2mkjs_editForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="tw2mkjs_editForm.Designer.cs">
+      <DependentUpon>tw2mkjs_editForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="tw2mkjs_mForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -76,6 +82,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="tw2mkjs_editForm.resx">
+      <DependentUpon>tw2mkjs_editForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="tw2mkjs_mForm.resx">
       <DependentUpon>tw2mkjs_mForm.cs</DependentUpon>
     </EmbeddedResource>

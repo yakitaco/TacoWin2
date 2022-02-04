@@ -95,5 +95,10 @@ namespace TacoWin2_Mkjs {
             isRunning = false;
             button1.Text = "START";
         }
+
+        private void button2_Click(object sender, EventArgs e) {
+            tw2mkjs_editForm eForm = new tw2mkjs_editForm();
+            eForm.Show();
+        }
     }
 }
