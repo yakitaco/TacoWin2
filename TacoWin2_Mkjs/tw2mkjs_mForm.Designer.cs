@@ -31,6 +31,7 @@ namespace TacoWin2_Mkjs {
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.csaLoad = new System.ComponentModel.BackgroundWorker();
             this.textBox3 = new System.Windows.Forms.TextBox();
+            this.button2 = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // textBox1
@@ -104,11 +105,24 @@ namespace TacoWin2_Mkjs {
             this.textBox3.TabIndex = 6;
             this.textBox3.Text = "C:\\Users\\YT\\Desktop\\kifu\\default_new.twj";
             // 
+            // button2
+            // 
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.button2.Font = new System.Drawing.Font("MS UI Gothic", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.button2.Location = new System.Drawing.Point(420, 70);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 7;
+            this.button2.Text = "Edit";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
             // tw2mkjs_mForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(520, 450);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.textBox3);
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.label1);
@@ -116,7 +130,7 @@ namespace TacoWin2_Mkjs {
             this.Controls.Add(this.button1);
             this.Controls.Add(this.textBox1);
             this.Name = "tw2mkjs_mForm";
-            this.Text = "Form1";
+            this.Text = "TacoWin2 Standard Move Editor 1.0";
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -131,6 +145,7 @@ namespace TacoWin2_Mkjs {
         private System.Windows.Forms.TextBox textBox2;
         private System.ComponentModel.BackgroundWorker csaLoad;
         private System.Windows.Forms.TextBox textBox3;
+        private System.Windows.Forms.Button button2;
     }
 }
 
