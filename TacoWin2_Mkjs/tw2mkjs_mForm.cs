@@ -53,35 +53,37 @@ namespace TacoWin2_Mkjs {
 
             sMove.load(wp.ytjFilePath);
 
-            string[] csrDirFiles = tw2mkjs_csaIO.loadDir(wp.csaDirPath);
+            string[] csaDirFiles = tw2mkjs_csaIO.loadDir(wp.csaDirPath);
 
-            foreach (string line in csrDirFiles) {
-                // キャンセルされてないか定期的にチェック
-                if (worker.CancellationPending) {
-                    e.Cancel = true;
-                    return;
-                }
+            if (csaDirFiles != null) {
 
-                var ret = tw2mkjs_csaIO.loadFile(line, 0, out var str, out var hash);
-
-                Console.WriteLine("[" + str[0].Count + "]" + line);
-
-                for (int i = 0; i < str[0].Count; i++) {
-                    //Console.WriteLine("[" + hash[i] + "]" + str[0][i] + "/" + str[1][i]);
-                    if (ret == i % 2) {
-                        sMove.set(hash[i], str[0][i], str[1][i], 2, 1, 999);
-                    } else if (i > str[0].Count / 2) {
-                        sMove.set(hash[i], str[0][i], str[1][i], 0, 1, 999);
-                    } else {
-                        sMove.set(hash[i], str[0][i], str[1][i], 1, 1, 999);
+                foreach (string line in csaDirFiles) {
+                    // キャンセルされてないか定期的にチェック
+                    if (worker.CancellationPending) {
+                        e.Cancel = true;
+                        return;
                     }
+
+                    var ret = tw2mkjs_csaIO.loadFile(line, 0, out var str, out var hash);
+
+                    Console.WriteLine("[" + str[0].Count + "]" + line);
+
+                    for (int i = 0; i < str[0].Count; i++) {
+                        //Console.WriteLine("[" + hash[i] + "]" + str[0][i] + "/" + str[1][i]);
+                        if (ret == i % 2) {
+                            sMove.set(hash[i], str[0][i], str[1][i], 2, 1, 999);
+                        } else if (i > str[0].Count / 2) {
+                            sMove.set(hash[i], str[0][i], str[1][i], 0, 1, 999);
+                        } else {
+                            sMove.set(hash[i], str[0][i], str[1][i], 1, 1, 999);
+                        }
+                    }
+
                 }
 
+                // 保存
+                sMove.save(textBox3.Text);
             }
-
-            // 保存
-            sMove.save(textBox3.Text);
-
         }
 
         private void csaLoad_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e) {
