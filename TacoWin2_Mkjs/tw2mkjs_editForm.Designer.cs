@@ -53,6 +53,7 @@
             this.SavBtn = new System.Windows.Forms.Button();
             this.FleIpt = new System.Windows.Forms.TextBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.TebanChk = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.OxIpt)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.OyIpt)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.NxIpt)).BeginInit();
@@ -64,17 +65,22 @@
             // 
             // NextLst
             // 
+            this.NextLst.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.NextLst.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.NextLst.FormattingEnabled = true;
             this.NextLst.ItemHeight = 19;
             this.NextLst.Location = new System.Drawing.Point(12, 69);
             this.NextLst.Name = "NextLst";
             this.NextLst.ScrollAlwaysVisible = true;
-            this.NextLst.Size = new System.Drawing.Size(270, 327);
+            this.NextLst.Size = new System.Drawing.Size(270, 365);
             this.NextLst.TabIndex = 0;
+            this.NextLst.DoubleClick += new System.EventHandler(this.NextLst_DoubleClick);
             // 
             // JumpBtn
             // 
+            this.JumpBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.JumpBtn.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.JumpBtn.Location = new System.Drawing.Point(288, 16);
             this.JumpBtn.Name = "JumpBtn";
@@ -82,9 +88,12 @@
             this.JumpBtn.TabIndex = 1;
             this.JumpBtn.Text = "JUMP";
             this.JumpBtn.UseVisualStyleBackColor = true;
+            this.JumpBtn.Click += new System.EventHandler(this.JumpBtn_Click);
             // 
             // JmpIpt
             // 
+            this.JmpIpt.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.JmpIpt.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.JmpIpt.Location = new System.Drawing.Point(12, 20);
             this.JmpIpt.Name = "JmpIpt";
@@ -93,6 +102,7 @@
             // 
             // BackBtn
             // 
+            this.BackBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.BackBtn.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.BackBtn.Location = new System.Drawing.Point(288, 69);
             this.BackBtn.Name = "BackBtn";
@@ -100,9 +110,11 @@
             this.BackBtn.TabIndex = 3;
             this.BackBtn.Text = "BACK";
             this.BackBtn.UseVisualStyleBackColor = true;
+            this.BackBtn.Click += new System.EventHandler(this.BackBtn_Click);
             // 
             // RootBtn
             // 
+            this.RootBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.RootBtn.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.RootBtn.Location = new System.Drawing.Point(288, 108);
             this.RootBtn.Name = "RootBtn";
@@ -113,8 +125,9 @@
             // 
             // SetBtn
             // 
+            this.SetBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.SetBtn.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.SetBtn.Location = new System.Drawing.Point(288, 454);
+            this.SetBtn.Location = new System.Drawing.Point(288, 488);
             this.SetBtn.Name = "SetBtn";
             this.SetBtn.Size = new System.Drawing.Size(181, 33);
             this.SetBtn.TabIndex = 5;
@@ -123,8 +136,9 @@
             // 
             // AddBtn
             // 
+            this.AddBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.AddBtn.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.AddBtn.Location = new System.Drawing.Point(288, 415);
+            this.AddBtn.Location = new System.Drawing.Point(288, 449);
             this.AddBtn.Name = "AddBtn";
             this.AddBtn.Size = new System.Drawing.Size(181, 33);
             this.AddBtn.TabIndex = 6;
@@ -133,8 +147,9 @@
             // 
             // OxIpt
             // 
+            this.OxIpt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.OxIpt.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.OxIpt.Location = new System.Drawing.Point(379, 152);
+            this.OxIpt.Location = new System.Drawing.Point(379, 187);
             this.OxIpt.Maximum = new decimal(new int[] {
             9,
             0,
@@ -158,9 +173,10 @@
             // 
             // label1
             // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.label1.Location = new System.Drawing.Point(302, 154);
+            this.label1.Location = new System.Drawing.Point(302, 189);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(33, 19);
             this.label1.TabIndex = 8;
@@ -168,9 +184,10 @@
             // 
             // label2
             // 
+            this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.label2.Location = new System.Drawing.Point(302, 186);
+            this.label2.Location = new System.Drawing.Point(302, 221);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(33, 19);
             this.label2.TabIndex = 10;
@@ -178,8 +195,9 @@
             // 
             // OyIpt
             // 
+            this.OyIpt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.OyIpt.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.OyIpt.Location = new System.Drawing.Point(379, 184);
+            this.OyIpt.Location = new System.Drawing.Point(379, 219);
             this.OyIpt.Maximum = new decimal(new int[] {
             9,
             0,
@@ -203,9 +221,10 @@
             // 
             // label3
             // 
+            this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.label3.Location = new System.Drawing.Point(302, 218);
+            this.label3.Location = new System.Drawing.Point(302, 253);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(32, 19);
             this.label3.TabIndex = 12;
@@ -213,8 +232,9 @@
             // 
             // NxIpt
             // 
+            this.NxIpt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.NxIpt.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.NxIpt.Location = new System.Drawing.Point(379, 216);
+            this.NxIpt.Location = new System.Drawing.Point(379, 251);
             this.NxIpt.Maximum = new decimal(new int[] {
             9,
             0,
@@ -237,9 +257,10 @@
             // 
             // label4
             // 
+            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label4.AutoSize = true;
             this.label4.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.label4.Location = new System.Drawing.Point(302, 250);
+            this.label4.Location = new System.Drawing.Point(302, 285);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(32, 19);
             this.label4.TabIndex = 14;
@@ -247,8 +268,9 @@
             // 
             // NyIpt
             // 
+            this.NyIpt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.NyIpt.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.NyIpt.Location = new System.Drawing.Point(379, 248);
+            this.NyIpt.Location = new System.Drawing.Point(379, 283);
             this.NyIpt.Maximum = new decimal(new int[] {
             9,
             0,
@@ -271,10 +293,11 @@
             // 
             // NariChk
             // 
+            this.NariChk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.NariChk.AutoSize = true;
             this.NariChk.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.NariChk.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.NariChk.Location = new System.Drawing.Point(379, 280);
+            this.NariChk.Location = new System.Drawing.Point(379, 315);
             this.NariChk.Name = "NariChk";
             this.NariChk.Size = new System.Drawing.Size(69, 23);
             this.NariChk.TabIndex = 15;
@@ -283,9 +306,10 @@
             // 
             // label5
             // 
+            this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label5.AutoSize = true;
             this.label5.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.label5.Location = new System.Drawing.Point(302, 311);
+            this.label5.Location = new System.Drawing.Point(302, 346);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(43, 19);
             this.label5.TabIndex = 17;
@@ -293,8 +317,9 @@
             // 
             // ValIpt
             // 
+            this.ValIpt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.ValIpt.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.ValIpt.Location = new System.Drawing.Point(379, 309);
+            this.ValIpt.Location = new System.Drawing.Point(379, 344);
             this.ValIpt.Maximum = new decimal(new int[] {
             9999999,
             0,
@@ -311,9 +336,10 @@
             // 
             // label6
             // 
+            this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label6.AutoSize = true;
             this.label6.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.label6.Location = new System.Drawing.Point(302, 343);
+            this.label6.Location = new System.Drawing.Point(302, 378);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(45, 19);
             this.label6.TabIndex = 19;
@@ -321,8 +347,9 @@
             // 
             // WeyIpt
             // 
+            this.WeyIpt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.WeyIpt.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.WeyIpt.Location = new System.Drawing.Point(379, 341);
+            this.WeyIpt.Location = new System.Drawing.Point(379, 376);
             this.WeyIpt.Maximum = new decimal(new int[] {
             999999,
             0,
@@ -334,9 +361,10 @@
             // 
             // label7
             // 
+            this.label7.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label7.AutoSize = true;
             this.label7.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.label7.Location = new System.Drawing.Point(302, 375);
+            this.label7.Location = new System.Drawing.Point(302, 410);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(54, 19);
             this.label7.TabIndex = 21;
@@ -344,8 +372,9 @@
             // 
             // TpeIpt
             // 
+            this.TpeIpt.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.TpeIpt.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.TpeIpt.Location = new System.Drawing.Point(379, 373);
+            this.TpeIpt.Location = new System.Drawing.Point(379, 408);
             this.TpeIpt.Maximum = new decimal(new int[] {
             999999,
             0,
@@ -357,8 +386,9 @@
             // 
             // DelBtn
             // 
+            this.DelBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.DelBtn.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.DelBtn.Location = new System.Drawing.Point(288, 493);
+            this.DelBtn.Location = new System.Drawing.Point(288, 527);
             this.DelBtn.Name = "DelBtn";
             this.DelBtn.Size = new System.Drawing.Size(181, 33);
             this.DelBtn.TabIndex = 22;
@@ -367,38 +397,61 @@
             // 
             // LrdBtn
             // 
+            this.LrdBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.LrdBtn.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.LrdBtn.Location = new System.Drawing.Point(12, 454);
+            this.LrdBtn.Location = new System.Drawing.Point(12, 488);
             this.LrdBtn.Name = "LrdBtn";
             this.LrdBtn.Size = new System.Drawing.Size(270, 33);
             this.LrdBtn.TabIndex = 23;
             this.LrdBtn.Text = "LOAD";
             this.LrdBtn.UseVisualStyleBackColor = true;
+            this.LrdBtn.Click += new System.EventHandler(this.LrdBtn_Click);
             // 
             // SavBtn
             // 
+            this.SavBtn.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.SavBtn.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.SavBtn.Location = new System.Drawing.Point(12, 493);
+            this.SavBtn.Location = new System.Drawing.Point(12, 527);
             this.SavBtn.Name = "SavBtn";
             this.SavBtn.Size = new System.Drawing.Size(270, 33);
             this.SavBtn.TabIndex = 24;
             this.SavBtn.Text = "SAVE";
             this.SavBtn.UseVisualStyleBackColor = true;
+            this.SavBtn.Click += new System.EventHandler(this.SavBtn_Click);
             // 
             // FleIpt
             // 
+            this.FleIpt.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.FleIpt.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.FleIpt.Location = new System.Drawing.Point(12, 419);
+            this.FleIpt.Location = new System.Drawing.Point(12, 456);
             this.FleIpt.Name = "FleIpt";
             this.FleIpt.Size = new System.Drawing.Size(270, 26);
             this.FleIpt.TabIndex = 25;
-            this.FleIpt.Text = "C:\\Users\\YT\\Desktop\\kifu\\default.twj";
+            this.FleIpt.Text = "C:\\Works\\vs\\TacoWin2\\TacoWin2\\TacoWin2\\bin\\Debug\\netcoreapp3.1\\win10-x64\\default." +
+    "ytj";
+            // 
+            // TebanChk
+            // 
+            this.TebanChk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.TebanChk.AutoSize = true;
+            this.TebanChk.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.TebanChk.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.TebanChk.Location = new System.Drawing.Point(372, 158);
+            this.TebanChk.Name = "TebanChk";
+            this.TebanChk.Size = new System.Drawing.Size(84, 23);
+            this.TebanChk.TabIndex = 26;
+            this.TebanChk.Text = "SENTE";
+            this.TebanChk.UseVisualStyleBackColor = true;
             // 
             // tw2mkjs_editForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(481, 537);
+            this.ClientSize = new System.Drawing.Size(479, 572);
+            this.Controls.Add(this.TebanChk);
             this.Controls.Add(this.FleIpt);
             this.Controls.Add(this.SavBtn);
             this.Controls.Add(this.LrdBtn);
@@ -469,5 +522,6 @@
         private System.Windows.Forms.Button SavBtn;
         private System.Windows.Forms.TextBox FleIpt;
         private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.CheckBox TebanChk;
     }
 }

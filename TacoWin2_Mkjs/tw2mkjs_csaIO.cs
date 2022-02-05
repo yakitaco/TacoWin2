@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Windows.Forms;
 using TacoWin2_BanInfo;
 using TacoWin2_sfenIO;
 
@@ -8,7 +9,12 @@ namespace TacoWin2_Mkjs {
 
 
         public static string[] loadDir(string dirPath) {
-            return Directory.GetFiles(dirPath, "*.csa");
+            if (System.IO.File.Exists(dirPath)) {
+                return Directory.GetFiles(dirPath, "*.csa");
+            } else {
+                MessageBox.Show("'" + dirPath + "'は存在しません。");
+                return null;
+            }
         }
 
         // ret 0 先手勝ち 1:後手勝ち 2:その他(千日手)
