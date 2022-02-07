@@ -42,14 +42,14 @@ namespace TacoWin2 {
             if (ret < 0) {
                 DebugForm.instance.addMsg("[NG]Load " + fileName);
             } else {
-                DebugForm.instance.addMsg("[OK]Load " + fileName + "(" + ret +")");
+                DebugForm.instance.addMsg("[OK]Load " + fileName + "(" + ret + ")");
             }
 
             int nokori = 0;
 
             while (true) {
                 string str = Console.ReadLine();
-                DebugForm.instance.addMsg("[RECV]"+str);
+                DebugForm.instance.addMsg("[RECV]" + str);
 
 
                 // usi 起動
@@ -148,40 +148,48 @@ namespace TacoWin2 {
                             return ai.thinkMove(turn, ban, 6);
                         });
 
-                        if (nokori>3600000) {
+                        if (nokori > 3600000) {
                             Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
                         }
+                        Task.Run(() => {
+                            (kmove[] km, int best) = aiTaskMain.Result;
+                            //(kmove[] km, int best) = ai.thinkMove(turn, ban, 6);
+                            sw.Stop();
+                            thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
+                            string sendStr;
 
-                        (kmove[] km, int best) = aiTaskMain.Result;
-                        //(kmove[] km, int best) = ai.thinkMove(turn, ban, 6);
-                        sw.Stop();
-                        thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
-                        string sendStr;
-                        if (best < -10000) {
-                            sendStr = "bestmove resign";
-                        } else {
-                            if ((km[1].op > 0)||(km[1].np > 0)) {
-                                sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari);
-                            } else {
-                                sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari);
+                            if (ai.stopFlg == false) {
+
+                                if (best < -10000) {
+                                    sendStr = "bestmove resign";
+                                } else {
+                                    if ((km[1].op > 0) || (km[1].np > 0)) {
+                                        sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari);
+                                    } else {
+                                        sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari);
+                                    }
+                                }
+                                Console.WriteLine(sendStr);
+                                DebugForm.instance.addMsg("[SEND]" + sendStr);
+
+                                TimeSpan ts = sw.Elapsed;
+                                DebugForm.instance.addMsg($"　{ts}");
                             }
-                        }
-                        Console.WriteLine(sendStr);
-                        DebugForm.instance.addMsg("[SEND]" + sendStr);
 
-                        TimeSpan ts = sw.Elapsed;
-                        DebugForm.instance.addMsg($"　{ts}");
+                            //★テスト
+                            //if (turn == Pturn.Sente) {
+                            //    sMove.set(oki + " " + mochi, "+" + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari), 1, 1, 0);
+                            //} else {
+                            //    sMove.set(oki + " " + mochi, "-" + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari), 1, 1, 0);
+                            //}
+                            //sMove.save("s2.txt");
 
-                        //★テスト
-                        //if (turn == Pturn.Sente) {
-                        //    sMove.set(oki + " " + mochi, "+" + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari), 1, 1, 0);
-                        //} else {
-                        //    sMove.set(oki + " " + mochi, "-" + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari), 1, 1, 0);
-                        //}
-                        //sMove.save("s2.txt");
+                            // 最後にメモリ初期化
+                            mList.reset();
+                            ai.stopFlg = false;
 
-                        // 最後にメモリ初期化
-                        mList.reset();
+                        });
+
 
                         // 先読み
                     } else if (arr[1] == "ponder") {
@@ -234,22 +242,24 @@ namespace TacoWin2 {
                     if (nokori > 3600000) {
                         Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
                     }
-
-                    (kmove[] km, int best) = aiTaskMain.Result;
-                    thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
-                    if (best < -10000) {
-                        Console.WriteLine("bestmove resign");
-                    } else {
-                        if ((km[1].op > 0) || (km[1].np > 0)) {
-                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari));
-                        } else {
-                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
+                    Task.Run(() => {
+                        (kmove[] km, int best) = aiTaskMain.Result;
+                        thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
+                        if (ai.stopFlg == false) {
+                            if (best < -10000) {
+                                Console.WriteLine("bestmove resign");
+                            } else {
+                                if ((km[1].op > 0) || (km[1].np > 0)) {
+                                    Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari));
+                                } else {
+                                    Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
+                                }
+                            }
                         }
-                    }
-
-                    // 最後にメモリ初期化
-                    mList.reset();
-
+                        // 最後にメモリ初期化
+                        mList.reset();
+                        ai.stopFlg = false;
+                    });
                 } else if ((str.Length == 4) && (str.Substring(0, 4) == "stop")) {
 
                     ai.stopFlg = true;
@@ -264,10 +274,12 @@ namespace TacoWin2 {
                     mList.reset();
 
                 } else if ((str.Length > 8) && (str.Substring(0, 8) == "gameover")) {
+                    ai.stopFlg = true;
                     if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
                     inGame = 2;
 
                 } else if ((str.Length == 4) && (str.Substring(0, 4) == "quit")) {
+                    ai.stopFlg = true;
                     if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
 
                 } else {
