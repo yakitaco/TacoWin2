@@ -188,7 +188,7 @@ namespace TacoWin2 {
 
                             string str = "";
                             for (int i = 0; retList[i].op > 0 || retList[i].np > 0; i++) {
-                                str += "(" + (retList[i].op / 9 + 1) + "," + (retList[i].op % 9 + 1) + ")->(" + (retList[i].np / 9 + 1) + "," + (retList[i].np % 9 + 1) + "):" + retList[i].val + "/";
+                                str += "(" + (retList[i].op / 9 + 1) + "," + (retList[i].op % 9 + 1) + ")->(" + (retList[i].np / 9 + 1) + "," + (retList[i].np % 9 + 1) + "):" + retList[i].val + "," + retList[i].aval + "/";
                             }
 
                             DebugForm.instance.addMsg("TASK[" + Task.CurrentId + ":" + cnt_local + "]MV[" + retVal + "]" + str);
@@ -342,6 +342,7 @@ namespace TacoWin2 {
         public (int, int) getBestMove(ref ban ban, Pturn turn, kmove[] kmv) {
             int startPoint = 100;
             int kCnt = 0;
+            //emove emv;
             unsafe {
                 // 敵の次移動ポイントを計算
                 getEnemyMoveList(ref ban, (int)turn, out emove emv);
@@ -416,9 +417,10 @@ namespace TacoWin2 {
         public (int, int) getAllMoveList(ref ban ban, Pturn turn, kmove[] kmv, int type = 0) {
             int startPoint = 100;
             int kCnt = 0;
+            emove emv;
             unsafe {
                 // 敵の次移動ポイントを計算
-                getEnemyMoveList(ref ban, (int)turn, out emove emv);
+                //getEnemyMoveList(ref ban, (int)turn, out emove emv);
 
                 // 駒移動
 
@@ -690,8 +692,8 @@ namespace TacoWin2 {
                                 case (int)ktype.Kyousha:
                                     int kret = 0;
                                     for (int k = 1; k < 9; k++) {
-                                        int nx = oPos / 9;
-                                        int ny = pturn.mvY(turn, oPos % 9, i);
+                                        int nx = i;
+                                        int ny = pturn.mvY(turn, j, k);
                                         if ((nx < 0) || (nx > 8) || (ny < 0) || (ny > 8)) break;
                                         if (ban.onBoard[nx * 9 + ny] > 0) {
                                             kret = 1;
@@ -702,17 +704,17 @@ namespace TacoWin2 {
                                     break;
 
                                 case (int)ktype.Keima:
-                                    if ((chkMoveable(ref ban, oPos, 1, 2, turn) < 1) && (chkMoveable(ref ban, oPos, -1, 2, turn) < 1)) continue;
+                                    if ((chkMoveable(ref ban, i * 9 + j, 1, 2, turn) < 1) && (chkMoveable(ref ban, i * 9 + j, -1, 2, turn) < 1)) continue;
                                     break;
 
                                 case (int)ktype.Ginsyou:
-                                    if ((chkMoveable(ref ban, oPos, 1, 1, turn) < 1) && (chkMoveable(ref ban, oPos, 0, 1, turn) < 1) &&
-                                        (chkMoveable(ref ban, oPos, -1, 1, turn) < 1) && (chkMoveable(ref ban, oPos, 1, -1, turn) < 1) && (chkMoveable(ref ban, oPos, -1, -1, turn) < 1)) continue;
+                                    if ((chkMoveable(ref ban, i * 9 + j, 1, 1, turn) < 1) && (chkMoveable(ref ban, i * 9 + j, 0, 1, turn) < 1) &&
+                                        (chkMoveable(ref ban, i * 9 + j, -1, 1, turn) < 1) && (chkMoveable(ref ban, i * 9 + j, 1, -1, turn) < 1) && (chkMoveable(ref ban, i * 9 + j, -1, -1, turn) < 1)) continue;
                                     break;
 
                                 case (int)ktype.Kinsyou:
-                                    if ((chkMoveable(ref ban, oPos, 1, 1, turn) < 1) && (chkMoveable(ref ban, oPos, 0, 1, turn) < 1) && (chkMoveable(ref ban, oPos, -1, 1, turn) < 1) &&
-                                         (chkMoveable(ref ban, oPos, 1, 0, turn) < 1) && (chkMoveable(ref ban, oPos, -1, 0, turn) < 1) && (chkMoveable(ref ban, oPos, 0, -1, turn) < 1)) continue;
+                                    if ((chkMoveable(ref ban, i * 9 + j, 1, 1, turn) < 1) && (chkMoveable(ref ban, i * 9 + j, 0, 1, turn) < 1) && (chkMoveable(ref ban, i * 9 + j, -1, 1, turn) < 1) &&
+                                         (chkMoveable(ref ban, i * 9 + j, 1, 0, turn) < 1) && (chkMoveable(ref ban, i * 9 + j, -1, 0, turn) < 1) && (chkMoveable(ref ban, i * 9 + j, 0, -1, turn) < 1)) continue;
                                     break;
 
                                 default:
@@ -878,7 +880,11 @@ namespace TacoWin2 {
                     if ((ban.getOnBoardKtype(oPos) == ktype.Ginsyou) || ((ban.getOnBoardKtype(oPos) == ktype.Kyousha) && (pturn.psY(turn, ny) < 8)) || ((ban.getOnBoardKtype(oPos) == ktype.Kyousha) && (pturn.psY(turn, ny) < 7))) {
                         kmv[startPoint + kCnt++].set(oPos, nx * 9 + ny, sval, eVal, false, turn);
                     }
-                    kmv[startPoint + kCnt++].set(oPos, nx * 9 + ny, 250 + sval, eVal, true, turn);
+                    if (ban.moveable[(int)turn * 81 + nx * 9 + ny] > ban.moveable[pturn.aturn((int)turn) * 81 + nx * 9 + ny]) {
+                        kmv[startPoint + kCnt++].set(oPos, nx * 9 + ny, 250 + sval, eVal, true, turn); // 成りボーナス
+                    } else {
+                        kmv[startPoint + kCnt++].set(oPos, nx * 9 + ny, sval, eVal, true, turn);
+                    }
                 } else {
                     kmv[startPoint + kCnt++].set(oPos, nx * 9 + ny, sval, eVal, false, turn);
                 }
