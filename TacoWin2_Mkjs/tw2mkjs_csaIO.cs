@@ -9,7 +9,7 @@ namespace TacoWin2_Mkjs {
 
 
         public static string[] loadDir(string dirPath) {
-            if (System.IO.File.Exists(dirPath)) {
+            if (System.IO.Directory.Exists(dirPath)) {
                 return Directory.GetFiles(dirPath, "*.csa");
             } else {
                 MessageBox.Show("'" + dirPath + "'は存在しません。");
