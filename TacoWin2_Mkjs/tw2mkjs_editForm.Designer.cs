@@ -76,6 +76,7 @@
             this.NextLst.ScrollAlwaysVisible = true;
             this.NextLst.Size = new System.Drawing.Size(270, 365);
             this.NextLst.TabIndex = 0;
+            this.NextLst.SelectedIndexChanged += new System.EventHandler(this.NextLst_SelectedIndexChanged);
             this.NextLst.DoubleClick += new System.EventHandler(this.NextLst_DoubleClick);
             // 
             // JumpBtn
@@ -122,6 +123,7 @@
             this.RootBtn.TabIndex = 4;
             this.RootBtn.Text = "ROOT";
             this.RootBtn.UseVisualStyleBackColor = true;
+            this.RootBtn.Click += new System.EventHandler(this.RootBtn_Click);
             // 
             // SetBtn
             // 
@@ -133,6 +135,7 @@
             this.SetBtn.TabIndex = 5;
             this.SetBtn.Text = "SET";
             this.SetBtn.UseVisualStyleBackColor = true;
+            this.SetBtn.Click += new System.EventHandler(this.SetBtn_Click);
             // 
             // AddBtn
             // 
@@ -144,6 +147,7 @@
             this.AddBtn.TabIndex = 6;
             this.AddBtn.Text = "ADD";
             this.AddBtn.UseVisualStyleBackColor = true;
+            this.AddBtn.Click += new System.EventHandler(this.AddBtn_Click);
             // 
             // OxIpt
             // 
@@ -151,7 +155,7 @@
             this.OxIpt.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.OxIpt.Location = new System.Drawing.Point(379, 187);
             this.OxIpt.Maximum = new decimal(new int[] {
-            9,
+            10,
             0,
             0,
             0});
@@ -394,6 +398,7 @@
             this.DelBtn.TabIndex = 22;
             this.DelBtn.Text = "DELETE";
             this.DelBtn.UseVisualStyleBackColor = true;
+            this.DelBtn.Click += new System.EventHandler(this.DelBtn_Click);
             // 
             // LrdBtn
             // 

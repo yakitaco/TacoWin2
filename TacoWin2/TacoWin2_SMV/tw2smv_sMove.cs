@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using TacoWin2_BanInfo;
 
 namespace TacoWin2_SMV {
@@ -150,6 +148,17 @@ namespace TacoWin2_SMV {
                 return null;
             }
 
+        }
+
+        public static string getTxt(ulong hash) {
+            int idx = sList.BinarySearch(new sMove(hash, ""));
+            if (idx < 0) {
+                /* 手がない */
+                return null;
+            } else {
+                /* 手がある(テキストを返す) */
+                return sList[idx].contents;
+            }
         }
 
         public static void debugShow() {

@@ -91,6 +91,49 @@ namespace TacoWin2_Mkjs {
                 sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
                 JmpIpt.Text = oki + " " + mochi;
                 showList(ban.hash);
+                BackBtn.Enabled = true;
+            }
+        }
+
+        private void AddBtn_Click(object sender, EventArgs e) {
+
+        }
+
+        private void SetBtn_Click(object sender, EventArgs e) {
+
+        }
+
+        private void DelBtn_Click(object sender, EventArgs e) {
+
+        }
+
+        private void RootBtn_Click(object sender, EventArgs e) {
+
+        }
+
+        private void NextLst_SelectedIndexChanged(object sender, EventArgs e) {
+            if ((NextLst.SelectedIndex > -1) && (NextLst.SelectedIndex < NextLst.Items.Count)) {
+
+                string[] arr = NextLst.Items[NextLst.SelectedIndex].ToString().Split('/');
+                if (arr[0][0] == '+') {
+                    TebanChk.Checked = true; // 先手
+                } else {
+                    TebanChk.Checked = false; // 後手
+                }
+                int ox;
+                int oy;
+                int nx;
+                int ny;
+                bool nari;
+                tw2usiIO.usi2pos(arr[0].Substring(1), out ox, out oy, out nx, out ny, out nari);
+                OxIpt.Value = ox + 1;
+                OyIpt.Value = oy + 1;
+                NxIpt.Value = nx + 1;
+                NyIpt.Value = ny + 1;
+                NariChk.Checked = nari;
+                ValIpt.Value = Convert.ToInt32(arr[1]);
+                WeyIpt.Value = Convert.ToInt32(arr[2]);
+                TpeIpt.Value = Convert.ToInt32(arr[3]);
             }
         }
     }
