@@ -91,6 +91,7 @@ namespace TacoWin2_Mkjs {
                 MessageBox.Show("canceled");
                 // この場合にはe.Resultにはアクセスできない
             } else {
+                sMove.save(textBox3.Text + ".bak");
                 // 処理結果の表示
                 MessageBox.Show("done");
             }
