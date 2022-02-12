@@ -16,6 +16,10 @@ namespace TacoWin2 {
             tw2ai ai = new tw2ai();
             int inGame = 0;
 
+            kmove[] mateMove = null;
+            int mateMovePos = 0;
+            int mateMoveNum = 0;
+
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -73,6 +77,7 @@ namespace TacoWin2 {
                     //usinewgame 新規
                 } else if ((str.Length == 10) && (str.Substring(0, 10) == "usinewgame")) {
                     tw2stval.reset();
+                    mateMove = null;
 
                     // position 盤面情報
                 } else if ((str.Length > 7) && (str.Substring(0, 8) == "position")) {
@@ -163,6 +168,14 @@ namespace TacoWin2 {
                                 if (best < -10000) {
                                     sendStr = "bestmove resign";
                                 } else {
+                                    if (best > 5000) {
+                                        string pstr = "";
+                                        for (mateMoveNum = 0; mateMoveNum < km.Length && km[mateMoveNum].op > 0 && km[mateMoveNum].np > 0; mateMoveNum++) {
+                                            pstr += " " + tw2usiIO.pos2usi(km[mateMoveNum].op / 9, km[mateMoveNum].op % 9, km[mateMoveNum].np / 9, km[mateMoveNum].np % 9, km[mateMoveNum].nari);
+                                        }
+                                        Console.WriteLine("info score mate " + mateMoveNum + " pv " + pstr);  //標準出力
+                                    }
+
                                     if ((km[1].op > 0) || (km[1].np > 0)) {
                                         sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari);
                                     } else {
@@ -174,6 +187,12 @@ namespace TacoWin2 {
 
                                 TimeSpan ts = sw.Elapsed;
                                 DebugForm.instance.addMsg($"　{ts}");
+
+                                if (best > 5000) {
+                                    mateMove = km;
+                                    mateMovePos = 2;
+                                }
+
                             }
 
                             //★テスト
@@ -197,10 +216,16 @@ namespace TacoWin2 {
                         nokori = Convert.ToInt32(turn == Pturn.Sente ? arr[3] : arr[5]);
                         DebugForm.instance.addMsg("nokori = " + nokori);
 
-                        aiTaskMain = Task.Run(() => {
-                            return ai.thinkMove(turn, ban, 6);
-                        });
+                        // 詰みが見える場合は何もしない
+                        if (mateMove != null) {
+                            DebugForm.instance.addMsg("Think Ponder. <<mate>>" + mateMove.Length);
 
+                        } else {
+                            // 詰みが見えてない場合のみ先読み実施
+                            aiTaskMain = Task.Run(() => {
+                                return ai.thinkMove(turn, ban, 6);
+                            });
+                        }
 
                     } else if (arr[1] == "mate") {
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
@@ -239,29 +264,48 @@ namespace TacoWin2 {
 
                 } else if ((str.Length > 8) && (str.Substring(0, 9) == "ponderhit")) {
 
-                    if (nokori > 3600000) {
-                        Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
-                    }
-                    Task.Run(() => {
-                        (kmove[] km, int best) = aiTaskMain.Result;
-                        thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
-                        if (ai.stopFlg == false) {
-                            if (best < -10000) {
-                                Console.WriteLine("bestmove resign");
-                            } else {
-                                if ((km[1].op > 0) || (km[1].np > 0)) {
-                                    Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari));
-                                } else {
-                                    Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
-                                }
-                            }
+                    // 詰みが見える場合
+                    if (mateMove != null) {
+                        string pstr = "";
+                        for (int i = mateMovePos + 1; i < mateMove.Length && mateMove[i].op > 0 && mateMove[i].np > 0; i++) {
+                            pstr += " " + tw2usiIO.pos2usi(mateMove[i].op / 9, mateMove[i].op % 9, mateMove[i].np / 9, mateMove[i].np % 9, mateMove[i].nari);
                         }
-                        // 最後にメモリ初期化
-                        mList.reset();
-                        ai.stopFlg = false;
-                    });
-                } else if ((str.Length == 4) && (str.Substring(0, 4) == "stop")) {
+                        Console.WriteLine("info score mate " + (mateMoveNum - mateMovePos) + " pv " + pstr);  //標準出力
+                        Console.WriteLine("bestmove " + tw2usiIO.pos2usi(mateMove[mateMovePos].op / 9, mateMove[mateMovePos].op % 9, mateMove[mateMovePos].np / 9, mateMove[mateMovePos].np % 9, mateMove[mateMovePos].nari) + " ponder " + tw2usiIO.pos2usi(mateMove[mateMovePos + 1].op / 9, mateMove[mateMovePos + 1].op % 9, mateMove[mateMovePos + 1].np / 9, mateMove[mateMovePos + 1].np % 9, mateMove[mateMovePos + 1].nari));
+                        //+ usiIO.pos2usi(mateMove[mateMovePos].ko, mateMove[0]) + " ponder " + usiIO.pos2usi(mateMove[mateMovePos+1].ko, mateMove[1]));
+                        mateMovePos += 2;
+                    } else {
 
+                        if (nokori > 3600000) {
+                            Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
+                        }
+                        Task.Run(() => {
+                            (kmove[] km, int best) = aiTaskMain.Result;
+                            thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
+                            if (ai.stopFlg == false) {
+                                if (best < -10000) {
+                                    Console.WriteLine("bestmove resign");
+                                } else {
+                                    if ((km[1].op > 0) || (km[1].np > 0)) {
+                                        Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari));
+                                    } else {
+                                        Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
+                                    }
+                                }
+
+                                if (best > 5000) {
+                                    mateMove = km;
+                                    mateMovePos = 2;
+                                }
+
+                            }
+                            // 最後にメモリ初期化
+                            mList.reset();
+                            ai.stopFlg = false;
+                        });
+                    }
+                } else if ((str.Length == 4) && (str.Substring(0, 4) == "stop")) {
+                    mateMove = null;
                     ai.stopFlg = true;
 
                     (kmove[] km, int best) = aiTaskMain.Result;
