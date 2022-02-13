@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Windows.Forms;
 using TacoWin2_BanInfo;
 
 namespace TacoWin2 {
@@ -47,36 +48,35 @@ namespace TacoWin2 {
         static int goTeNum = 0;
         static int stage = 0;  //0:序盤(型作成) 1:中盤(攻防開始) 2:終盤(詰め重視) 
 
-        static tw2stval() {
-
-            // 評価値情報ファイル読み取り
-            loadFile();
-
-        }
-
-        static void loadFile() {
-            string[] files = Directory.GetFiles(@"./mList/", "*.mvl");
-            Console.WriteLine("sss" + files.Length);
-            foreach (string cFile in files) {
-                //Form1.Form1Instance.addMsg(cFile);
-                int count = 0;
-                tw2stval tmp = new tw2stval(0, 0);
-                tmp.val = new int[14, 9, 9];
-                foreach (string line in System.IO.File.ReadLines(@cFile)) {
-                    if (line[0] == '#') continue; // コメント行はスキップ
-                    if (count == 0) tmp.type = (OPLIST)int.Parse(line);
-                    if (count == 1) tmp.move = int.Parse(line);
-                    if (count > 1) {
-                        string[] arr = line.Split(',');
-                        for (int i = 0; i < 9; i++) {
-                            tmp.val[(count - 2) / 9, (count - 2) % 9, i] = int.Parse(arr[i]);
+        public static int loadFile(string dirPath) {
+            if (System.IO.Directory.Exists(dirPath)) {
+                string[] files = Directory.GetFiles(@dirPath, "*.mvl");
+                //Console.WriteLine("sss" + files.Length);
+                foreach (string cFile in files) {
+                    //Form1.Form1Instance.addMsg(cFile);
+                    int count = 0;
+                    tw2stval tmp = new tw2stval(0, 0);
+                    tmp.val = new int[14, 9, 9];
+                    foreach (string line in System.IO.File.ReadLines(@cFile)) {
+                        if (line[0] == '#') continue; // コメント行はスキップ
+                        if (count == 0) tmp.type = (OPLIST)int.Parse(line);
+                        if (count == 1) tmp.move = int.Parse(line);
+                        if (count > 1) {
+                            string[] arr = line.Split(',');
+                            for (int i = 0; i < 9; i++) {
+                                tmp.val[(count - 2) / 9, (count - 2) % 9, i] = int.Parse(arr[i]);
+                            }
                         }
+                        //Console.WriteLine("ddd" + ((count - 2) / 9) + ":" + ((count - 2) % 9) + ":" + line);
+                        count++;
                     }
-                    //Console.WriteLine("ddd" + ((count - 2) / 9) + ":" + ((count - 2) % 9) + ":" + line);
-                    count++;
+                    mV.Add(tmp);
                 }
-                mV.Add(tmp);
+                return files.Length;
+            } else {
+                return -1;
             }
+
         }
 
         tw2stval(OPLIST _type, int _move) {
