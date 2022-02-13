@@ -9,7 +9,26 @@ namespace TacoWin2 {
 
     class tw2ai {
 
-        List<ulong>[] aList = new List<ulong>[20];
+        struct hashTbl : IComparable<hashTbl> {
+            public ulong hash;
+            public int val;
+            public int depth;
+            public kmove[] kmv;
+
+            public hashTbl(ulong _hash, int _val, int _depth, kmove[] _kmv) {
+                hash = _hash;
+                val = _val;
+                depth = _depth;
+                kmv = _kmv;
+            }
+
+            public int CompareTo(hashTbl ohash) {
+                return hash.CompareTo(ohash.hash);
+            }
+
+        }
+
+        List<hashTbl> aList = new List<hashTbl>();
 
         public static int[] kVal = {
         0,        //なし
@@ -36,7 +55,7 @@ namespace TacoWin2 {
         static int ioMin;
         public bool stopFlg = false;
         Object lockObj = new Object();
-        Object[] lockObj_hash = new object[20];
+        Object lockObj_hash = new Object();
 
         static tw2ai() {
             // thread同時数取得
@@ -49,25 +68,47 @@ namespace TacoWin2 {
         }
 
         void resetHash() {
-            for (int i = 0; i < aList.Length; i++) {
-                aList[i] = new List<ulong>();
-                lockObj_hash[i] = new Object();
-            }
+            aList = new List<hashTbl>();
         }
 
-        int chkHash(ulong hash, int depth) {
-            if (aList[depth].Count == 0) {
-                /* 最初の登録 */
-                aList[depth].Add(hash);
+        int chkHash(ulong hash, int depth, out int val, out kmove[] kmv) {
+            val = 0;
+            kmv = null;
+            if (aList.Count == 0) {
                 return 0;
             } else {
-                int idx = aList[depth].BinarySearch(hash);
+                int idx = aList.BinarySearch(new hashTbl(hash, val, depth, null));
                 if (idx < 0) {
-                    /* ハッシュに存在しない */
-                    aList[depth].Insert(~idx, hash);
                     return 0;
                 } else {
                     /* ハッシュに存在 */
+                    val = aList[idx].val;
+                    kmv = aList[idx].kmv;
+                    return 1;
+                }
+            }
+        }
+
+        int addHash(ulong hash, int depth, int val, kmove[] kmv) {
+            if (aList.Count == 0) {
+                /* 最初の登録 */
+                aList.Add(new hashTbl(hash, val, depth, kmv));
+                return 0;
+            } else {
+                hashTbl n = new hashTbl(hash, val, depth, kmv);
+                int idx = aList.BinarySearch(n, null);
+                if (idx < 0) {
+                    /* ハッシュに存在しない */
+                    aList.Insert(~idx, n);
+                    return 0;
+                } else {
+                    /* ハッシュに存在 */
+                    if (depth < aList[idx].depth) {
+                        /* 自分のほうが浅い場合は更新 */
+                        aList.RemoveAt(idx);
+                        aList.Insert(idx, n);
+                    }
+
                     return -1;
                 }
             }
@@ -103,7 +144,7 @@ namespace TacoWin2 {
             mList.freeAlist(aid);
             return (moveList[ln], best);
         }
-
+        int depMax;
         public (kmove[], int) thinkMove(Pturn turn, ban ban, int depth) {
             int best = -999999;
             int beta = 999999;
@@ -112,7 +153,7 @@ namespace TacoWin2 {
             kmove[] bestmove = null;
 
             int teCnt = 0; //手の進捗
-
+            depMax = depth;
             tw2stval.tmpChk(ban);
 
             unsafe {
@@ -208,16 +249,21 @@ namespace TacoWin2 {
                     }
                 });
 
+                foreach (var a in aList) {
+                    DebugForm.instance.addMsg("aList:" + a.hash.ToString("X16") + "/" + a.depth + "/" + a.val);
+                }
+
                 mList.freeAlist(aid);
             }
             resetHash();
             return (bestmove, best);
         }
 
-        public int think(Pturn turn, ref ban ban, out kmove[] bestMoveList, int alpha, int beta, int pVal, int depth, int depMax) {
+        public int think(Pturn turn, ref ban ban, out kmove[] bestMoveList, int alpha, int beta, int pVal, int depth, int depMammmx) {
             int val = -pVal;
             bestMoveList = null;
             int best = -999999;
+            ulong bestHash = 0;
             kmove[] retList;
 
             if (stopFlg) {
@@ -278,16 +324,25 @@ namespace TacoWin2 {
                         tmp_ban.moveKoma(moveList[cnt].op / 9, moveList[cnt].op % 9, moveList[cnt].np / 9, moveList[cnt].np % 9, turn, moveList[cnt].nari, false, true);
 
                         // 同一局面がすでに出ている場合
-                        //if ((depth > 1) && (depth < 4)) {
-                        //    lock (lockObj_hash[depth]) {
-                        //        if (chkHash(tmp_ban.hash, depth - 2) < 0) {
-                        //            if (bestMoveList == null) {
-                        //                bestMoveList = new kmove[30];
-                        //            }
-                        //            continue;
-                        //        }
-                        //    }
-                        //}
+                        lock (lockObj_hash) {
+                            if (chkHash(tmp_ban.hash, depth, out int reth, out kmove[] retm) > 0) {
+                                if (reth > best) {
+                                    best = reth;
+                                    bestMoveList = retm;
+                                    bestMoveList[depth] = moveList[cnt];
+                                    if (best > alpha) {
+                                        alpha = best;
+                                    }
+                                    if (best >= beta) {
+                                        lock (lockObj) {
+                                            mList.freeAlist(aid);
+                                        }
+                                        return best;
+                                    }
+                                }
+                                continue;
+                            }
+                        }
 
                         if (tmp_ban.moveable[pturn.aturn((int)turn) * 81 + tmp_ban.putOusyou[(int)turn]] > 0) {
                             if (bestMoveList == null) {
@@ -303,6 +358,7 @@ namespace TacoWin2 {
                             best = retVal;
                             bestMoveList = retList;
                             bestMoveList[depth] = moveList[cnt];
+                            bestHash = tmp_ban.hash;
                             if (best > alpha) {
                                 alpha = best;
                                 //mList[depth] = tmpList[i];
@@ -311,8 +367,18 @@ namespace TacoWin2 {
                                 lock (lockObj) {
                                     mList.freeAlist(aid);
                                 }
+                                if (depth < 2) {
+                                    lock (lockObj_hash) {
+                                        addHash(tmp_ban.hash, depth, best, bestMoveList);
+                                    }
+                                }
                                 return best;
                             }
+                        }
+                    }
+                    if (depth < 2) {
+                        lock (lockObj_hash) {
+                            addHash(bestHash, depth, best, bestMoveList);
                         }
                     }
 
@@ -417,10 +483,10 @@ namespace TacoWin2 {
         public (int, int) getAllMoveList(ref ban ban, Pturn turn, kmove[] kmv, int type = 0) {
             int startPoint = 100;
             int kCnt = 0;
-            emove emv;
+            ///emove emv;
             unsafe {
                 // 敵の次移動ポイントを計算
-                //getEnemyMoveList(ref ban, (int)turn, out emove emv);
+                getEnemyMoveList(ref ban, (int)turn, out emove emv);
 
                 // 駒移動
 
