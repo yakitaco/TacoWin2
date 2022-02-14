@@ -49,6 +49,14 @@ namespace TacoWin2 {
                 DebugForm.instance.addMsg("[OK]Load " + fileName + "(" + ret + ")");
             }
 
+            string dirName = "mList";
+            ret = tw2stval.loadFile(dirName);
+            if (ret < 0) {
+                DebugForm.instance.addMsg("[NG]Load " + dirName);
+            } else {
+                DebugForm.instance.addMsg("[OK]Load " + dirName + "(" + ret + ")");
+            }
+
             int nokori = 0;
 
             while (true) {
@@ -228,13 +236,26 @@ namespace TacoWin2 {
                         }
 
                     } else if (arr[1] == "mate") {
+
+                        //position sfen 9/4k4/9/4G4/9/9/9/9/9 b 2G2r2bg4s4n4l18p 1
+                        //go mate infinite
+
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
 
-                        (kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 6);
+                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 8);
 
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
-
-                        Console.WriteLine("checkmate nomate");
+                        if (best > 5000) {
+                            string pstr = "";
+                            for (int i = 0; i < km.Length && km[i].op > 0 && km[i].np > 0; i++) {
+                                pstr += " " + tw2usiIO.pos2usi(km[i].op / 9, km[i].op % 9, km[i].np / 9, km[i].np % 9, km[i].nari);
+                            }
+                            Console.WriteLine("checkmate" + pstr);
+                            DebugForm.instance.addMsg("checkmate" + pstr);
+                        } else {
+                            Console.WriteLine("checkmate nomate");
+                            DebugForm.instance.addMsg("checkmate nomate");
+                        }
                     }
 
                 } else if ((str.Length > 7) && (str.Substring(0, 8) == "testmove")) {
