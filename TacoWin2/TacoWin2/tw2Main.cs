@@ -247,7 +247,7 @@ namespace TacoWin2 {
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
                         if (best > 5000) {
                             string pstr = "";
-                            for (int i = 0; i < km.Length && km[i].op > 0 && km[i].np > 0; i++) {
+                            for (int i = 0; i < km.Length && (km[i].op > 0 || km[i].np > 0); i++) {
                                 pstr += " " + tw2usiIO.pos2usi(km[i].op / 9, km[i].op % 9, km[i].np / 9, km[i].np % 9, km[i].nari);
                             }
                             Console.WriteLine("checkmate" + pstr);
@@ -351,8 +351,6 @@ namespace TacoWin2 {
 
                 }
 
-
-                //Form1.Form1Instance.addMsg("[RECV]" + str);
             }
 
 

@@ -985,7 +985,7 @@ namespace TacoWin2_BanInfo {
                                 str += "!_|";
                                 break;
                         }
-                    } else {
+                    } else if (getOnBoardPturn(8 - i % 9, (i / 9)) == Pturn.Gote) {
                         switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
                             case ktype.Fuhyou:
                                 str += "p_|";
@@ -1031,6 +1031,54 @@ namespace TacoWin2_BanInfo {
                                 break;
                             default:
                                 str += "!_|";
+                                break;
+                        }
+                    } else {
+                        switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
+                            case ktype.Fuhyou:
+                                str += "p!|";
+                                break;
+                            case ktype.Kyousha:
+                                str += "l!|";
+                                break;
+                            case ktype.Keima:
+                                str += "n!|";
+                                break;
+                            case ktype.Ginsyou:
+                                str += "s!|";
+                                break;
+                            case ktype.Hisya:
+                                str += "r!|";
+                                break;
+                            case ktype.Kakugyou:
+                                str += "b!|";
+                                break;
+                            case ktype.Kinsyou:
+                                str += "g!|";
+                                break;
+                            case ktype.Ousyou:
+                                str += "k!|";
+                                break;
+                            case ktype.Tokin:
+                                str += "!p|";
+                                break;
+                            case ktype.Narikyou:
+                                str += "!l|";
+                                break;
+                            case ktype.Narikei:
+                                str += "!n|";
+                                break;
+                            case ktype.Narigin:
+                                str += "!g|";
+                                break;
+                            case ktype.Ryuuou:
+                                str += "!r|";
+                                break;
+                            case ktype.Ryuuma:
+                                str += "!b|";
+                                break;
+                            default:
+                                str += "!!|";
                                 break;
                         }
                     }
