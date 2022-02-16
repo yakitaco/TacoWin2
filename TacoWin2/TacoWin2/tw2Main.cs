@@ -39,6 +39,13 @@ namespace TacoWin2 {
 
             ban ban = new ban();
             Console.SetIn(new StreamReader(Console.OpenStandardInput(8192)));
+            
+            
+            if (System.IO.File.Exists("stdin.txt")) {
+                DebugForm.instance.addMsg("[DEBUG]System.IO.StreamReader stdin.txt");
+                var exStdIn = new System.IO.StreamReader("stdin.txt");
+                System.Console.SetIn( exStdIn );
+            }
 
             // 定跡ファイル
             string fileName = "default.ytj";
@@ -63,9 +70,10 @@ namespace TacoWin2 {
                 string str = Console.ReadLine();
                 DebugForm.instance.addMsg("[RECV]" + str);
 
-
+                if (str == null) {
+                    Thread.Sleep(10000);
                 // usi 起動
-                if ((str.Length == 3) && (str.Substring(0, 3) == "usi")) {
+                } else if ((str.Length == 3) && (str.Substring(0, 3) == "usi")) {
                     Console.WriteLine("id name たこウインナー 2.1.0");
                     Console.WriteLine("id authoer YAKITACO");
                     Console.WriteLine("option name BookFile type string default default.ytj");
@@ -256,6 +264,10 @@ namespace TacoWin2 {
                             Console.WriteLine("checkmate nomate");
                             DebugForm.instance.addMsg("checkmate nomate");
                         }
+                    } else if (arr[1] == "matetest") {
+
+                        (kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 8);
+
                     }
 
                 } else if ((str.Length > 7) && (str.Substring(0, 8) == "testmove")) {

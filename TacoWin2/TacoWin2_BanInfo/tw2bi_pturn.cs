@@ -4,13 +4,20 @@ using System.Text;
 
 namespace TacoWin2_BanInfo {
     public enum Pturn : byte {
-        Sente = 0x00,    //
-        Gote = 0x01,    //
+        ///<summary>先手</summary>
+        Sente = 0x00,
+        ///<summary>後手</summary>
+        Gote = 0x01,
     }
 
     public static class pturn {
 
-        // turn考慮位置(X) x 0 下 / 8 上
+        /// <summary>
+        /// 自分中心X位置を取得
+        /// </summary>
+        /// <param name="t">自分のターン</param>
+        /// <param name="x">絶対X位置</param>
+        /// <returns>自分中心X位置(0 左側/8 右側)</returns>
         public static int psX(Pturn t, int x) {
             if (t == Pturn.Sente) {
                 return 8 - x;
@@ -19,7 +26,12 @@ namespace TacoWin2_BanInfo {
             }
         }
 
-        // turn考慮位置(Y) x 0 左 / 8 右
+        /// <summary>
+        /// 自分中心Y位置を取得
+        /// </summary>
+        /// <param name="t">自分のターン</param>
+        /// <param name="y">絶対X位置</param>
+        /// <returns>自分中心Y位置(0 下側/8 上側)</returns>
         public static int psY(Pturn t, int y) {
             if (t == Pturn.Sente) {
                 return 8 - y;
@@ -28,26 +40,43 @@ namespace TacoWin2_BanInfo {
             }
         }
 
-
-        // sx 自分のX位置 dx 相手のX位置
-        public static int dfX(Pturn t, int sx, int dx) {
-            if (t == Pturn.Sente) {
+        /// <summary>
+        /// 自分中心X相対位置を取得
+        /// </summary>
+        /// <param name="turn">自分のターン</param>
+        /// <param name="sx">自分の絶対X位置</param>
+        /// <param name="dx">相手の絶対X位置</param>
+        /// <returns>自分中心X相対位置(+ 自分が相手より左側/- 自分が相手より右側)</returns>
+        public static int dfX(Pturn turn, int sx, int dx) {
+            if (turn == Pturn.Sente) {
                 return dx - sx;
             } else {
                 return sx - dx;
             }
         }
 
-        // sy 自分のX位置 dy 相手のX位置
-        public static int dfY(Pturn t, int sy, int dy) {
-            if (t == Pturn.Sente) {
+        /// <summary>
+        /// 自分中心Y相対位置を取得
+        /// </summary>
+        /// <param name="turn">自分のターン</param>
+        /// <param name="sy">自分の絶対Y位置</param>
+        /// <param name="dy">相手の絶対Y位置</param>
+        /// <returns>自分中心Y相対位置(+ 自分が相手より上側/- 自分が相手より下側)</returns>
+        public static int dfY(Pturn turn, int sy, int dy) {
+            if (turn == Pturn.Sente) {
                 return dy - sy;
             } else {
                 return sy - dy;
             }
         }
 
-        // turn考慮移動(X) moval +右 -左
+        /// <summary>
+        /// 自分中心X移動後の絶対位置を取得
+        /// </summary>
+        /// <param name="t">自分のターン</param>
+        /// <param name="x">絶対X位置</param>
+        /// <param name="moval">自分中心X移動量(+ 右側へ/- 左側へ)</param>
+        /// <returns>移動後X絶対位置</returns>
         public static int mvX(Pturn t, int x, int moval) {
             if (t == Pturn.Sente) {
                 return x - moval;
@@ -56,7 +85,13 @@ namespace TacoWin2_BanInfo {
             }
         }
 
-        // turn考慮移動(Y) moval +前 -後
+        /// <summary>
+        /// 自分中心Y移動後の絶対位置を取得
+        /// </summary>
+        /// <param name="t">自分のターン</param>
+        /// <param name="y">絶対Y位置</param>
+        /// <param name="moval">自分中心Y移動量(+ 前側へ/- 後側へ)</param>
+        /// <returns>移動後Y絶対位置</returns>
         public static int mvY(Pturn t, int y, int moval) {
             if (t == Pturn.Sente) {
                 return y - moval;
@@ -79,10 +114,20 @@ namespace TacoWin2_BanInfo {
             }
         }
 
+        /// <summary>
+        /// 相手のターンを取得
+        /// </summary>
+        /// <param name="turn">自分のターン</param>
+        /// <returns>相手のターン</returns>
         public static int aturn(int turn) {
             return 1 - turn;
         }
 
+        /// <summary>
+        /// 相手のターンを取得
+        /// </summary>
+        /// <param name="turn">自分のターン</param>
+        /// <returns>相手のターン</returns>
         public static Pturn aturn(Pturn turn) {
             return 1 - turn;
         }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using TacoWin2_BanInfo;
@@ -1045,9 +1046,11 @@ namespace TacoWin2 {
                         retList[0] = moveList[cnt_local];
 
                         string str = "";
-                        for (int i = 0; retList[i].op > 0 || retList[i].np > 0; i++) {
+                        int i;
+                        for (i = 0; retList[i].op > 0 || retList[i].np > 0; i++) {
                             str += "(" + (retList[i].op / 9 + 1) + "," + (retList[i].op % 9 + 1) + ")->(" + (retList[i].np / 9 + 1) + "," + (retList[i].np % 9 + 1) + "):" + retList[i].val + "/";
                         }
+                        if ((retVal > 5000) && (i > mateDepMax)) mateDepMax = i;
 
                         DebugForm.instance.addMsg("TASK[" + Task.CurrentId + ":" + cnt_local + "]MV[" + retVal + "]" + str);
                     }
@@ -1081,8 +1084,8 @@ namespace TacoWin2 {
                 // 歩兵
                 // [不成・成り]相手玉の2段前
                 if (ban.putFuhyou[(int)turn * 9 + aOuPos / 9] == pturn.mvY(turn, aOuPos % 9, -2)) {
-                    addCheckMovePos(ref ban, (aOuPos / 9) * 9 + ban.putFuhyou[(int)turn * 9 + aOuPos / 9], 0, 1, turn, false, kmv, ref kCnt);
                     addCheckMovePos(ref ban, (aOuPos / 9) * 9 + ban.putFuhyou[(int)turn * 9 + aOuPos / 9], 0, 1, turn, true, kmv, ref kCnt);
+                    addCheckMovePos(ref ban, (aOuPos / 9) * 9 + ban.putFuhyou[(int)turn * 9 + aOuPos / 9], 0, 1, turn, false, kmv, ref kCnt);
                 }
 
                 //[成り] 相手玉の右
@@ -1277,14 +1280,14 @@ namespace TacoWin2 {
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
                                 break;
                             case (-1, 0):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, true, kmv, ref kCnt);
                                 break;
                             case (1, 0):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, true, kmv, ref kCnt);
                                 break;
@@ -1299,32 +1302,32 @@ namespace TacoWin2 {
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, true, kmv, ref kCnt);
                                 break;
                             case (-2, -2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
                                 break;
                             case (-1, -2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, true, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
                                 break;
                             case (0, -2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, true, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, true, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
                                 break;
                             case (1, -2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, true, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
                                 break;
                             case (2, -2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
                                 break;
 
                             default:
@@ -1348,8 +1351,8 @@ namespace TacoWin2 {
                                 if (ret >= 0) {
                                     dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, ret % 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                         addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                     } else { // 味方の駒がある-> 駒を移動する(空き王手)
                                         int _kCnt = 0;
                                         int _startPoint = 100;
@@ -1367,8 +1370,8 @@ namespace TacoWin2 {
                                 if (ret >= 0) {
                                     dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, ret % 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                         addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                     } else { // 味方の駒がある-> 駒を移動する(空き王手)
                                         int _kCnt = 0;
                                         int _startPoint = 100;
@@ -1390,8 +1393,8 @@ namespace TacoWin2 {
                                 if (ret >= 0) {
                                     dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, ret / 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                         addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                     } else { // 味方の駒がある-> 駒を移動する(空き王手)
                                         int _kCnt = 0;
                                         int _startPoint = 100;
@@ -1409,8 +1412,8 @@ namespace TacoWin2 {
                                 if (ret >= 0) {
                                     dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, ret / 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                         addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                     } else { // 味方の駒がある-> 駒を移動する(空き王手)
                                         int _kCnt = 0;
                                         int _startPoint = 100;
@@ -1431,15 +1434,15 @@ namespace TacoWin2 {
                                     if (dy < 0) {
                                         if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, 1) == -1) {
                                             dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                             addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                         }
 
                                     } else {
                                         if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, -1) == -1) {
                                             dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                             addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                         }
                                     }
                                 }
@@ -1455,16 +1458,16 @@ namespace TacoWin2 {
                                     if (dy < 0) {
                                         if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, 1) == -1) {
                                             dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                             addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                         }
 
 
                                     } else {
                                         if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, -1) == -1) {
                                             dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                             addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                         }
                                     }
 
@@ -1479,8 +1482,8 @@ namespace TacoWin2 {
                                     if (dx < 0) {
                                         if (chkRectMove(ref ban, turn, (ban.putHisya[(int)turn * 2 + i] / 9) * 9 + aOuPos % 9, aOuPos, 1, 0) == -1) {
                                             dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                             addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, true, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                         }
                                         if (dy == -1) {
 
@@ -1489,8 +1492,8 @@ namespace TacoWin2 {
                                     } else {
                                         if (chkRectMove(ref ban, turn, (ban.putHisya[(int)turn * 2 + i] / 9) * 9 + aOuPos % 9, aOuPos, -1, 0) == -1) {
                                             dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                             addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, true, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                         }
                                     }
                                 }
@@ -1501,15 +1504,15 @@ namespace TacoWin2 {
                                     if (dx < 0) {
                                         if (chkRectMove(ref ban, turn, (ban.putHisya[(int)turn * 2 + i] / 9) * 9 + aOuPos % 9, aOuPos, 1, 0) == -1) {
                                             dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                             addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, true, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                         }
 
                                     } else {
                                         if (chkRectMove(ref ban, turn, (ban.putHisya[(int)turn * 2 + i] / 9) * 9 + aOuPos % 9, aOuPos, -1, 0) == -1) {
                                             dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                             addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, true, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                         }
                                     }
 
@@ -1580,8 +1583,8 @@ namespace TacoWin2 {
                                 if (ret >= 0) {
                                     dy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, ret % 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                        addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, false, kmv, ref kCnt);
                                         addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, false, kmv, ref kCnt);
                                     } else { // 味方の駒がある-> 駒を移動する(空き王手)
                                         int _kCnt = 0;
                                         int _startPoint = 100;
@@ -1599,8 +1602,8 @@ namespace TacoWin2 {
                                 if (ret >= 0) {
                                     dy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, ret % 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                        addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, false, kmv, ref kCnt);
                                         addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, false, kmv, ref kCnt);
                                     } else { // 味方の駒がある-> 駒を移動する(空き王手)
                                         int _kCnt = 0;
                                         int _startPoint = 100;
@@ -1622,8 +1625,8 @@ namespace TacoWin2 {
                                 if (ret >= 0) {
                                     dx = pturn.dfX(turn, ban.putKakugyou[(int)turn * 2 + i] / 9, ret / 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                        addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, dx, turn, false, kmv, ref kCnt);
                                         addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, dx, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, dx, turn, false, kmv, ref kCnt);
                                     } else { // 味方の駒がある-> 駒を移動する(空き王手)
                                         int _kCnt = 0;
                                         int _startPoint = 100;
@@ -1641,8 +1644,8 @@ namespace TacoWin2 {
                                 if (ret >= 0) {
                                     dx = pturn.dfX(turn, ban.putKakugyou[(int)turn * 2 + i] / 9, ret / 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
-                                        addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, dx, turn, false, kmv, ref kCnt);
                                         addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, dx, turn, true, kmv, ref kCnt);
+                                        addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, dx, turn, false, kmv, ref kCnt);
                                     } else { // 味方の駒がある-> 駒を移動する(空き王手)
                                         int _kCnt = 0;
                                         int _startPoint = 100;
@@ -1666,49 +1669,39 @@ namespace TacoWin2 {
                             int my = (aOuPos / 9 + aOuPos % 9 - ban.putKakugyou[(int)turn * 2 + i] / 9 + ban.putKakugyou[(int)turn * 2 + i] % 9) / 2;
                             //右斜め(／)移動
                             if ((mx > -1) && (my > -1) && (mx < 9) && (my < 9)) {
-                                if (ban.putKakugyou[(int)turn * 2 + i] < mx) { //右
+                                if (pturn.dfX(turn,ban.putKakugyou[(int)turn * 2 + i]/9,mx)<0) { //左
                                     if (chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], mx * 9 + my, 1, 1) == -1) {
                                         dy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, my % 9);
-                                        if (pturn.dfY(turn, my % 9, aOuPos % 9) < 0) {
+                                        if (pturn.dfY(turn, my % 9, aOuPos % 9) < 0) {   // 相手より下側
                                             if (chkRectMove(ref ban, turn, mx * 9 + my, aOuPos, -1, 1) == -1) {
-                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, false, kmv, ref kCnt);
                                                 addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, true, kmv, ref kCnt);
+                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, false, kmv, ref kCnt);
                                             }
 
                                         } else {
                                             if (chkRectMove(ref ban, turn, mx * 9 + my, aOuPos, 1, -1) == -1) {
-                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, false, kmv, ref kCnt);
                                                 addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, true, kmv, ref kCnt);
+                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, false, kmv, ref kCnt);
                                             }
                                         }
                                     }
-
-                                    if (dy == -1) {
-
-
-
-                                    }
-
                                 } else { // 右
                                     if (chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], mx * 9 + my, -1, -1) == -1) {
                                         dy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, my % 9);
                                         if (pturn.dfY(turn, my % 9, aOuPos % 9) < 0) {
                                             if (chkRectMove(ref ban, turn, mx * 9 + my, aOuPos, -1, 1) == -1) {
-                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, false, kmv, ref kCnt);
                                                 addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, true, kmv, ref kCnt);
+                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, false, kmv, ref kCnt);
                                             }
 
 
                                         } else {
                                             if (chkRectMove(ref ban, turn, mx * 9 + my, aOuPos, 1, -1) == -1) {
-                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, false, kmv, ref kCnt);
                                                 addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, true, kmv, ref kCnt);
+                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dy, -dy, turn, false, kmv, ref kCnt);
                                             }
                                         }
-
-
                                     }
-
                                 }
                             }
 
@@ -1721,71 +1714,77 @@ namespace TacoWin2 {
                             mx = (aOuPos / 9 - aOuPos % 9 + ban.putKakugyou[(int)turn * 2 + i] / 9 + ban.putKakugyou[(int)turn * 2 + i] % 9) / 2;
                             my = (-aOuPos / 9 + aOuPos % 9 + ban.putKakugyou[(int)turn * 2 + i] / 9 + ban.putKakugyou[(int)turn * 2 + i] % 9) / 2;
                             if ((mx > -1) && (my > -1) && (mx < 9) && (my < 9)) {
-                                if (ban.putKakugyou[(int)turn * 2 + i] < mx) { // 下
+                                if (pturn.dfX(turn, ban.putKakugyou[(int)turn * 2 + i]/9, mx) < 0) { // 下
                                     if (chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], mx * 9 + my, 1, -1) == -1) {
                                         dy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, my % 9);
                                         if (pturn.dfY(turn, my % 9, aOuPos % 9) < 0) {
                                             if (chkRectMove(ref ban, turn, mx * 9 + my, aOuPos, 1, 1) == -1) {
-                                                //dy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, aOuPos % 9);
-                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, false, kmv, ref kCnt);
                                                 addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, true, kmv, ref kCnt);
+                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, false, kmv, ref kCnt);
                                             }
-                                            if (dy == -1) {
-
-                                            }
-
                                         } else {
                                             if (chkRectMove(ref ban, turn, mx * 9 + my, aOuPos, -1, -1) == -1) {
-                                                //dy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, aOuPos % 9);
-                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, false, kmv, ref kCnt);
                                                 addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, true, kmv, ref kCnt);
+                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, false, kmv, ref kCnt);
                                             }
                                         }
                                     }
-
-
                                 } else { // 上
                                     if (chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], mx * 9 + my, -1, 1) == -1) {
                                         dy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, my % 9);
                                         if (pturn.dfY(turn, my % 9, aOuPos % 9) < 0) {
                                             if (chkRectMove(ref ban, turn, mx * 9 + my, aOuPos, 1, 1) == -1) {
-                                                //dy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, aOuPos % 9);
-                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, false, kmv, ref kCnt);
                                                 addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, true, kmv, ref kCnt);
+                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, false, kmv, ref kCnt);
                                             }
 
                                         } else {
                                             if (chkRectMove(ref ban, turn, mx * 9 + my, aOuPos, -1, -1) == -1) {
-                                                //dy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, aOuPos % 9);
-                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, false, kmv, ref kCnt);
                                                 addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, true, kmv, ref kCnt);
+                                                addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, false, kmv, ref kCnt);
                                             }
                                         }
-
-
                                     }
                                 }
-
                             }
                         } else {
-                            //DebugForm.instance.addMsg("NOKAKU[" + ((ban.putKakugyou[(int)turn * 2 + i] / 9) + 1) + "," + ((ban.putKakugyou[(int)turn * 2 + i] % 9) + 1));
+                            // ×②×××⑤×
+                            // ①×××××⑦
+                            // ×××××××
+                            // ×××●×××
+                            // ×××××××
+                            // ⑥×××××④
+                            // ×⑧×××③×
+                            if ((aOuPos / 9 + aOuPos % 9) - (ban.putKakugyou[(int)turn * 2 + i] / 9 + ban.putKakugyou[(int)turn * 2 + i] % 9) == 1){
+                                if (false) {
+                                    if (ban.getOnBoardKtype(ban.putKakugyou[(int)turn * 2 + i]) == ktype.Ryuuma) {
+                                        //if (chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], mx * 9 + my, -1, 1) == -1) {
+                                        //    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], dy, -dy, turn, false, kmv, ref kCnt);
+                                        //
+                                        //}
+                                    }
+                                }
+                            
+                            } else if ((aOuPos / 9 + aOuPos % 9) - (ban.putKakugyou[(int)turn * 2 + i] / 9 + ban.putKakugyou[(int)turn * 2 + i] % 9) == -1){
+                            
+                            
+                            } else if ((aOuPos / 9 - aOuPos % 9) - (ban.putKakugyou[(int)turn * 2 + i] / 9 - ban.putKakugyou[(int)turn * 2 + i] % 9) == 1){
+                            
+                            
+                            } else if ((aOuPos / 9 - aOuPos % 9) - (ban.putKakugyou[(int)turn * 2 + i] / 9 - ban.putKakugyou[(int)turn * 2 + i] % 9) == -1){
+                            
+                            
+                            }
                         }
-                        //×①②③×
-                        //④×⑤×⑥
-                        //⑦⑧●⑨⑩
-                        //⑪×⑫×⑬
-                        //×⑭⑮⑯×
-                        if (false) {
+                        if (ban.getOnBoardKtype(ban.putKakugyou[(int)turn * 2 + i]) == ktype.Ryuuma) {
+                            // 竜馬特有の王手
+                            //××①××
+                            //×××××
+                            //②×●×③
+                            //×××××
+                            //××④××
                             switch (dx, dy) {
                                 case (0, 2):
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, -1, turn, false, kmv, ref kCnt);
-                                    break;
-                                case (-1, 1):
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, -1, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 1, 0, turn, false, kmv, ref kCnt);
-                                    break;
-                                case (1, 1):
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -1, 0, turn, false, kmv, ref kCnt);
                                     addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, -1, turn, false, kmv, ref kCnt);
                                     break;
                                 case (-2, 0):
@@ -1794,39 +1793,13 @@ namespace TacoWin2 {
                                 case (2, 0):
                                     addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -1, 0, turn, false, kmv, ref kCnt);
                                     break;
-                                case (-2, -1):
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 1, 1, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 1, 0, turn, false, kmv, ref kCnt);
-                                    break;
-                                case (2, -1):
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -1, 1, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -1, 0, turn, false, kmv, ref kCnt);
-                                    break;
-                                case (-2, -2):
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 1, 1, turn, false, kmv, ref kCnt);
-                                    break;
-                                case (-1, -2):
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 1, 1, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, 1, turn, false, kmv, ref kCnt);
-                                    break;
                                 case (0, -2):
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 1, 1, turn, false, kmv, ref kCnt);
                                     addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, 1, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -1, 1, turn, false, kmv, ref kCnt);
                                     break;
-                                case (1, -2):
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, 1, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -1, 1, turn, false, kmv, ref kCnt);
-                                    break;
-                                case (2, -2):
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -1, 1, turn, false, kmv, ref kCnt);
-                                    break;
-
                                 default:
                                     break;
                             }
                         }
-
                     }
                 }
 
@@ -1841,14 +1814,6 @@ namespace TacoWin2 {
 
                         int dx = pturn.dfX(turn, ban.putKinsyou[(int)turn * 4 + i] / 9, aOuPos / 9);
                         int dy = pturn.dfY(turn, ban.putKinsyou[(int)turn * 4 + i] % 9, aOuPos % 9);
-                        //if (turn == Pturn.Sente) {
-                        //    dx = aOuPos / 9 - ban.putKinsyou[(int)turn * 4 + i] / 9;
-                        //    dy = aOuPos % 9 - ban.putKinsyou[(int)turn * 4 + i] % 9;
-                        //} else {
-                        //
-                        //    dx = -(aOuPos / 9 - ban.putKinsyou[(int)turn * 4 + i] / 9);
-                        //    dy = -(aOuPos % 9 - ban.putKinsyou[(int)turn * 4 + i] % 9);
-                        //}
 
                         switch (dx, dy) {
                             case (0, 2):
@@ -1977,7 +1942,7 @@ namespace TacoWin2 {
                 // 歩打ち
                 if (ban.captPiece[(int)turn * 7 + 0] > 0) {
                     // 二歩チェック
-                    if (ban.putFuhyou[(int)turn * 9 + (aOuPos / 9)] < 9) {
+                    if (ban.putFuhyou[(int)turn * 9 + (aOuPos / 9)] == 9) {
                         addCheckPutPos(ref ban, ktype.Fuhyou, aOuPos, 0, -1, turn, kmv, ref kCnt);
                     }
                 }
@@ -2060,9 +2025,18 @@ namespace TacoWin2 {
         }
 
 
-
-        //指定移動先(mx,my)
-        //移動できる 0 / 移動できる(敵駒取り) 1 / 移動できない(味方駒) 2 / 移動できない 3(範囲外)
+        /// <summary>
+        /// oPosの駒が自分中心位置で(mx,my)動かすことができるか
+        /// </summary>
+        /// <param name="ban"></param>
+        /// <param name="oPos"></param>
+        /// <param name="mx"></param>
+        /// <param name="my"></param>
+        /// <param name="turn"></param>
+        /// <param name="nari"></param>
+        /// <param name="kmv"></param>
+        /// <param name="kCnt"></param>
+        /// <returns>移動できる 0 / 移動できる(敵駒取り) 1 / 移動できない(味方駒) 2 / 移動できない 3(範囲外)</returns>
         public int addCheckMovePos(ref ban ban, int oPos, int mx, int my, Pturn turn, bool nari, kmove[] kmv, ref int kCnt) {
             int nx = pturn.mvX(turn, oPos / 9, mx);
             int ny = pturn.mvY(turn, oPos % 9, my);
@@ -2090,7 +2064,18 @@ namespace TacoWin2 {
             }
         }
 
-        // ターゲット位置(tPos)からmx,myの相対位置に駒を置けるかチェック
+        /// <summary>
+        /// ターゲット位置(tPos)からmx,myの自分中心位置に駒を置けるかチェック
+        /// </summary>
+        /// <param name="ban"></param>
+        /// <param name="type"></param>
+        /// <param name="tPos"></param>
+        /// <param name="mx"></param>
+        /// <param name="my"></param>
+        /// <param name="turn"></param>
+        /// <param name="kmv"></param>
+        /// <param name="kCnt"></param>
+        /// <returns></returns>
         int addCheckPutPos(ref ban ban, ktype type, int tPos, int mx, int my, Pturn turn, kmove[] kmv, ref int kCnt) {
             unsafe {
                 (int nx, int ny) = pturn.mvXY(turn, tPos / 9, tPos % 9, mx, my);
@@ -2148,7 +2133,7 @@ namespace TacoWin2 {
                     aid = mList.assignAlist(out moveList);
                 }
                 teNum = getAllDefList(ref ban, turn, moveList, cPos);
-
+                Debug.WriteLine("DDD ");
                 for (int cnt = 0; cnt < teNum; cnt++) {
 
                     kmove[] retList = null;
@@ -2183,7 +2168,8 @@ namespace TacoWin2 {
                 }
 
                 //ここで詰んだ
-                if (tumi == true) {
+                if ((tumi == true)&&(mateDepMax > depth)) {
+                    //DebugForm.instance.addMsg("depth = " + depth);
                     //mateDepMax = depth;
                 }
 
@@ -2195,6 +2181,15 @@ namespace TacoWin2 {
             return best;
         }
 
+        /// <summary>
+        /// 攻め手側思考メイン
+        /// </summary>
+        /// <param name="turn"></param>
+        /// <param name="ban"></param>
+        /// <param name="bestMoveList"></param>
+        /// <param name="depth"></param>
+        /// <param name="depMax"></param>
+        /// <returns></returns>
         public int thinkMateAtk(Pturn turn, ref ban ban, out kmove[] bestMoveList, int depth, int depMax) {
             bestMoveList = null;
             int best = 0;
@@ -2216,6 +2211,7 @@ namespace TacoWin2 {
                 if (depth < mateDepMax) {
                     //[攻め方]王手を指せる手を全てリスト追加
                     int vla = getAllCheckList(ref ban, turn, moveList);
+                    Debug.WriteLine("AAA ");
                     //DebugForm.instance.addMsg("vla = " + vla + "," + depth + "," + mateDepMax);
                     for (int cnt = 0; cnt < vla; cnt++) {
 
@@ -2250,7 +2246,14 @@ namespace TacoWin2 {
             return best;
         }
 
-
+        /// <summary>
+        /// 守り側移動候補一覧作成
+        /// </summary>
+        /// <param name="ban"></param>
+        /// <param name="turn"></param>
+        /// <param name="kmv"></param>
+        /// <param name="cPos"></param>
+        /// <returns></returns>
         int getAllDefList(ref ban ban, Pturn turn, kmove[] kmv, int cPos) {
             int kCnt = 0;
             unsafe {
@@ -2370,13 +2373,20 @@ namespace TacoWin2 {
             return kCnt;
         }
 
-        // 指定した位置へ駒を移動する(王以外)
+        /// <summary>
+        /// 指定した位置(cPos)へ盤上の駒を移動する(王以外)
+        /// </summary>
+        /// <param name="kCnt">駒移動候補カウンタ</param>
+        /// <param name="ban">盤情報</param>
+        /// <param name="turn">ターン</param>
+        /// <param name="cPos">駒を動かす位置(x*9+y)</param>
+        /// <param name="kmv">駒移動候補リスト</param>
         void getPosMoveList(ref int kCnt, ref ban ban, Pturn turn, int cPos, kmove[] kmv) {
             unsafe {
                 // 歩兵
                 if (ban.putFuhyou[(int)turn * 9 + cPos / 9] == pturn.mvY(turn, cPos % 9, -1)) {
-                    addCheckMovePos(ref ban, ban.putFuhyou[(int)turn * 9 + cPos / 9], 0, 1, turn, false, kmv, ref kCnt);
                     addCheckMovePos(ref ban, ban.putFuhyou[(int)turn * 9 + cPos / 9], 0, 1, turn, true, kmv, ref kCnt);
+                    addCheckMovePos(ref ban, ban.putFuhyou[(int)turn * 9 + cPos / 9], 0, 1, turn, false, kmv, ref kCnt);
                 }
 
                 // 香車
@@ -2386,8 +2396,8 @@ namespace TacoWin2 {
                         int dy = pturn.dfY(turn, ban.putKyousha[(int)turn * 4 + i] % 9, cPos % 9);
                         if ((dx == 0) && (dy < 0)) {
                             if (chkRectMove(ref ban, turn, ban.putKyousha[(int)turn * 4 + i], cPos, 0, 1) == -1) {
-                                addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, -dy, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, -dy, turn, false, kmv, ref kCnt);
                             }
                         }
                     }
@@ -2400,12 +2410,12 @@ namespace TacoWin2 {
                         int dy = pturn.dfY(turn, ban.putKeima[(int)turn * 4 + i] % 9, cPos % 9);
                         switch (dx, dy) {
                             case (-1, -2):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, false, kmv, ref kCnt);
                                 break;
                             case (1, -2):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, false, kmv, ref kCnt);
                                 break;
                             default:
                                 break;
@@ -2420,24 +2430,24 @@ namespace TacoWin2 {
                         int dy = pturn.dfY(turn, ban.putGinsyou[(int)turn * 4 + i] % 9, cPos % 9);
                         switch (dx, dy) {
                             case (-1, 1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, false, kmv, ref kCnt);
                                 break;
                             case (1, 1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, false, kmv, ref kCnt);
                                 break;
                             case (-1, -1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
                                 break;
                             case (0, -1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
                                 break;
                             case (1, -1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
                                 addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, true, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
                                 break;
                             default:
                                 break;
@@ -2453,25 +2463,25 @@ namespace TacoWin2 {
                         if (dx == 0) {
                             if (dy < 0) {
                                 if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], cPos, 0, 1) == -1) {
-                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                     addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, true, kmv, ref kCnt);
+                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                 }
                             } else { // (dy > 0)
                                 if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], cPos, 0, -1) == -1) {
-                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                     addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, true, kmv, ref kCnt);
+                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, false, kmv, ref kCnt);
                                 }
                             }
                         } else if (dy == 0) {
                             if (dx < 0) {
                                 if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], cPos, 1, 0) == -1) {
-                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                     addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                 }
                             } else { // (dx > 0)
                                 if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], cPos, -1, 0) == -1) {
-                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                     addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, true, kmv, ref kCnt);
+                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, false, kmv, ref kCnt);
                                 }
                             }
                         }
@@ -2480,19 +2490,15 @@ namespace TacoWin2 {
                             switch (dx, dy) {
                                 case (-1, 1):
                                     addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 1, -1, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 1, -1, turn, true, kmv, ref kCnt);
                                     break;
                                 case (1, 1):
                                     addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -1, -1, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -1, -1, turn, true, kmv, ref kCnt);
                                     break;
                                 case (-1, -1):
                                     addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 1, 1, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 1, 1, turn, true, kmv, ref kCnt);
                                     break;
                                 case (1, -1):
                                     addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -1, 1, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -1, 1, turn, true, kmv, ref kCnt);
                                     break;
                                 default:
                                     break;
@@ -2510,25 +2516,25 @@ namespace TacoWin2 {
                         if (dx == dy) {
                             if (dy < 0) {
                                 if (chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], cPos, 1, 1) == -1) {
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, -dy, turn, false, kmv, ref kCnt);
                                     addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, -dy, turn, true, kmv, ref kCnt);
+                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, -dy, turn, false, kmv, ref kCnt);
                                 }
                             } else { // (dy > 0)
                                 if (chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], cPos, -1, -1) == -1) {
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, -dy, turn, false, kmv, ref kCnt);
                                     addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, -dy, turn, true, kmv, ref kCnt);
+                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, -dy, turn, false, kmv, ref kCnt);
                                 }
                             }
                         } else if (dx == -dy) {
                             if (dx < 0) {
                                 if (chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], cPos, 1, -1) == -1) {
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, -dy, turn, false, kmv, ref kCnt);
                                     addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, -dy, turn, true, kmv, ref kCnt);
+                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, -dy, turn, false, kmv, ref kCnt);
                                 }
                             } else { // (dx > 0)
                                 if (chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], cPos, -1, 1) == -1) {
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, -dy, turn, false, kmv, ref kCnt);
                                     addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, -dy, turn, true, kmv, ref kCnt);
+                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -dx, -dy, turn, false, kmv, ref kCnt);
                                 }
                             }
                         }
@@ -2537,19 +2543,15 @@ namespace TacoWin2 {
                             switch (dx, dy) {
                                 case (0, 1):
                                     addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, -1, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, -1, turn, true, kmv, ref kCnt);
                                     break;
                                 case (1, 0):
                                     addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -1, 0, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], -1, 0, turn, true, kmv, ref kCnt);
                                     break;
                                 case (-1, 0):
                                     addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 1, 0, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 1, 0, turn, true, kmv, ref kCnt);
                                     break;
                                 case (0, -1):
                                     addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, 1, turn, false, kmv, ref kCnt);
-                                    addCheckMovePos(ref ban, ban.putKakugyou[(int)turn * 2 + i], 0, 1, turn, true, kmv, ref kCnt);
                                     break;
                                 default:
                                     break;
@@ -2566,27 +2568,21 @@ namespace TacoWin2 {
                         switch (dx, dy) {
                             case (0, 1):
                                 addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, -1, turn, false, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, -1, turn, true, kmv, ref kCnt);
                                 break;
                             case (1, 0):
                                 addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 0, turn, false, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 0, turn, true, kmv, ref kCnt);
                                 break;
                             case (-1, 0):
                                 addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 0, turn, false, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 0, turn, true, kmv, ref kCnt);
                                 break;
                             case (-1, -1):
                                 addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 1, turn, false, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 1, turn, true, kmv, ref kCnt);
                                 break;
                             case (0, -1):
                                 addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, 1, turn, false, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, 1, turn, true, kmv, ref kCnt);
                                 break;
                             case (1, -1):
                                 addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 1, turn, false, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 1, turn, true, kmv, ref kCnt);
                                 break;
                             default:
                                 break;
@@ -2602,27 +2598,21 @@ namespace TacoWin2 {
                         switch (dx, dy) {
                             case (0, 1):
                                 addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 0, -1, turn, false, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 0, -1, turn, true, kmv, ref kCnt);
                                 break;
                             case (1, 0):
                                 addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 0, turn, false, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 0, turn, true, kmv, ref kCnt);
                                 break;
                             case (-1, 0):
                                 addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 0, turn, false, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 0, turn, true, kmv, ref kCnt);
                                 break;
                             case (-1, -1):
                                 addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 1, turn, false, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 1, turn, true, kmv, ref kCnt);
                                 break;
                             case (0, -1):
                                 addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 0, 1, turn, false, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 0, 1, turn, true, kmv, ref kCnt);
                                 break;
                             case (1, -1):
                                 addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 1, turn, false, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 1, turn, true, kmv, ref kCnt);
                                 break;
                             default:
                                 break;
@@ -2632,13 +2622,21 @@ namespace TacoWin2 {
                 }
             }
         }
-        // 指定した位置(cPos)へ駒を置く
+
+        /// <summary>
+        /// 指定した位置(cPos)へ駒を置く
+        /// </summary>
+        /// <param name="kCnt">駒移動候補カウンタ</param>
+        /// <param name="ban">盤情報</param>
+        /// <param name="turn">ターン</param>
+        /// <param name="cPos">駒を置く位置(x*9+y)</param>
+        /// <param name="kmv">駒移動候補リスト</param>
         void getPosPutList(ref int kCnt, ref ban ban, Pturn turn, int cPos, kmove[] kmv) {
             unsafe {
                 // 歩打ち
                 if ((ban.captPiece[(int)turn * 7 + 0] > 0) && (pturn.psY(turn, cPos % 9) < 8)) {
                     // 二歩チェック
-                    if (ban.putFuhyou[(int)turn * 9 + (cPos / 9)] < 9) {
+                    if (ban.putFuhyou[(int)turn * 9 + (cPos / 9)] == 9) {
                         kmv[kCnt++].set(81 + (int)ktype.Fuhyou, cPos, 0, 0, false, turn);
                     }
                 }
