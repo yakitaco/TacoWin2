@@ -976,5 +976,8 @@ namespace TacoWin2 {
             return 0; // 駒がない(移動可能)
         }
 
+
+            }
+        }
     }
 }
