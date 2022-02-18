@@ -250,7 +250,7 @@ namespace TacoWin2 {
 
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
 
-                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 8);
+                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 9);
 
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
                         if (best > 5000) {
