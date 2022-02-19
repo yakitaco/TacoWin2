@@ -46,7 +46,7 @@ namespace TacoWin2_BanInfo {
         /// <param name="turn">自分のターン</param>
         /// <param name="sx">自分の絶対X位置</param>
         /// <param name="dx">相手の絶対X位置</param>
-        /// <returns>自分中心X相対位置(+ 自分が相手より左側/- 自分が相手より右側)</returns>
+        /// <returns>自分中心X相対位置(+ 自分が相手より右側/- 自分が相手より左側)</returns>
         public static int dfX(Pturn turn, int sx, int dx) {
             if (turn == Pturn.Sente) {
                 return dx - sx;
