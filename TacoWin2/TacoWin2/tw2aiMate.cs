@@ -587,13 +587,13 @@ namespace TacoWin2 {
                                 if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, 1, 0) == -1) {
                                     if (dy < 0) {
                                         if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, 1) == -1) {
-                                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, mType.Both, kmv, ref kCnt);
+                                            int rdx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -rdx, 0, turn, mType.Both, kmv, ref kCnt);
                                         }
                                     } else {
                                         if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, -1) == -1) {
-                                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, mType.Both, kmv, ref kCnt);
+                                            int rdx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -rdx, 0, turn, mType.Both, kmv, ref kCnt);
                                         }
                                     }
                                 }
@@ -601,13 +601,13 @@ namespace TacoWin2 {
                                 if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, -1, 0) == -1) {
                                     if (dy < 0) {
                                         if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, 1) == -1) {
-                                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, mType.Both, kmv, ref kCnt);
+                                            int rdx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -rdx, 0, turn, mType.Both, kmv, ref kCnt);
                                         }
                                     } else {
                                         if (chkRectMove(ref ban, turn, (aOuPos / 9) * 9 + ban.putHisya[(int)turn * 2 + i] % 9, aOuPos, 0, -1) == -1) {
-                                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx, 0, turn, mType.Both, kmv, ref kCnt);
+                                            int rdx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -rdx, 0, turn, mType.Both, kmv, ref kCnt);
                                         }
                                     }
                                 }
@@ -617,13 +617,13 @@ namespace TacoWin2 {
                                 if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], (ban.putHisya[(int)turn * 2 + i] / 9) * 9 + aOuPos % 9, 0, 1) == -1) {
                                     if (dx < 0) {
                                         if (chkRectMove(ref ban, turn, (ban.putHisya[(int)turn * 2 + i] / 9) * 9 + aOuPos % 9, aOuPos, 1, 0) == -1) {
-                                            dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, mType.Both, kmv, ref kCnt);
+                                            int rdy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -rdy, turn, mType.Both, kmv, ref kCnt);
                                         }
                                     } else {
                                         if (chkRectMove(ref ban, turn, (ban.putHisya[(int)turn * 2 + i] / 9) * 9 + aOuPos % 9, aOuPos, -1, 0) == -1) {
-                                            dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, mType.Both, kmv, ref kCnt);
+                                            int rdy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -rdy, turn, mType.Both, kmv, ref kCnt);
                                         }
                                     }
                                 }
@@ -633,34 +633,319 @@ namespace TacoWin2 {
                                 if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], (ban.putHisya[(int)turn * 2 + i] / 9) * 9 + aOuPos % 9, 0, -1) == -1) {
                                     if (dx < 0) {
                                         if (chkRectMove(ref ban, turn, (ban.putHisya[(int)turn * 2 + i] / 9) * 9 + aOuPos % 9, aOuPos, 1, 0) == -1) {
-                                            dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, mType.Both, kmv, ref kCnt);
+                                            int rdy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -rdy, turn, mType.Both, kmv, ref kCnt);
                                         }
                                     } else {
                                         if (chkRectMove(ref ban, turn, (ban.putHisya[(int)turn * 2 + i] / 9) * 9 + aOuPos % 9, aOuPos, -1, 0) == -1) {
-                                            dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy, turn, mType.Both, kmv, ref kCnt);
+                                            int rdy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -rdy, turn, mType.Both, kmv, ref kCnt);
                                         }
                                     }
                                 }
                             }
 
                             // ××××◎××××
-                            // ×××①×②×××
+                            // ×××①×③×××
                             // ××××◎××××
-                            // ×⑧×〇×〇×③×
+                            // ×⑧×〇×〇×⑦×
                             // ◎×◎×●×◎×◎
-                            // ×⑦×〇×〇×④×
+                            // ×⑥×〇×〇×⑤×
                             // ××××◎××××
-                            // ×××⑥×⑤×××
+                            // ×××②×④×××
                             // ××××◎××××
                             // TODO: 要実装
-
-
+                            if (dx == -1) {
+                                if (dy > 0) {
+                                    //DebugForm.instance.addMsg("111:" + dx + "," + dy);
+                                    if (ban.getOnBoardKtype(ban.putHisya[(int)turn * 2 + i]) == ktype.Ryuuou) {
+                                        // 竜王を一つ移動
+                                        if (chkRectMove(ref ban, turn, pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, 1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, -1), aOuPos, 0, -1) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, 1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, -1)] == 0) &&
+                                                    (ban.onBoard[pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, 1) * 9 + ban.putHisya[(int)turn * 2 + i] % 9] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                        // 竜王を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, 1), 0, -1) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy + 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0) &&
+                                                    (ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + aOuPos % 9] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy - 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    } else {
+                                        // 飛車を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, 1), 0, -1) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy + 1, turn, mType.Nari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0) &&
+                                                    (ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + aOuPos % 9] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy - 1, turn, mType.Nari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    //DebugForm.instance.addMsg("222:" + dx + "," + dy);
+                                    if (ban.getOnBoardKtype(ban.putHisya[(int)turn * 2 + i]) == ktype.Ryuuou) {
+                                        // 竜王を一つ移動
+                                        if (chkRectMove(ref ban, turn, pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, 1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, 1), aOuPos, 0, 1) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, 1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, 1)] == 0) &&
+                                                    (ban.onBoard[pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, 1) * 9 + ban.putHisya[(int)turn * 2 + i] % 9] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                        // 竜王を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, -1), 0, 1) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy + 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0) &&
+                                                    (ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + aOuPos % 9] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy - 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    } else {
+                                        // 飛車を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, -1), 0, 1) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy + 1, turn, mType.Nari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0) &&
+                                                    (ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + aOuPos % 9] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy - 1, turn, mType.Nari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if (dx == 1) {
+                                if (dy > 0) {
+                                    //DebugForm.instance.addMsg("333:" + dx + "," + dy);
+                                    if (ban.getOnBoardKtype(ban.putHisya[(int)turn * 2 + i]) == ktype.Ryuuou) {
+                                        // 竜王を一つ移動
+                                        if (chkRectMove(ref ban, turn, pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, -1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, -1), aOuPos, 0, -1) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, -1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, -1)] == 0) &&
+                                                    (ban.onBoard[pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, -1) * 9 + ban.putHisya[(int)turn * 2 + i] % 9] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                        // 竜王を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, 1), 0, -1) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy + 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0) &&
+                                                    (ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + aOuPos % 9] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy - 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    } else {
+                                        // 飛車を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, 1), 0, -1) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy + 1, turn, mType.Nari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0) &&
+                                                    (ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + aOuPos % 9] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy - 1, turn, mType.Nari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    //DebugForm.instance.addMsg("444:" + dx + "," + dy);
+                                    if (ban.getOnBoardKtype(ban.putHisya[(int)turn * 2 + i]) == ktype.Ryuuou) {
+                                        // 竜王を一つ移動
+                                        if (chkRectMove(ref ban, turn, pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, -1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, 1), aOuPos, 0, 1) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, -1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, 1)] == 0) &&
+                                                    (ban.onBoard[pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, -1) * 9 + ban.putHisya[(int)turn * 2 + i] % 9] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                        // 竜王を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, -1), 0, 1) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy - 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0) &&
+                                                    (ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + aOuPos % 9] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy + 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    } else {
+                                        // 飛車を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, -1), 0, 1) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy - 1, turn, mType.Nari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0) &&
+                                                    (ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + aOuPos % 9] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -dy + 1, turn, mType.Nari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if (dy == -1) {
+                                if (dx > 0) {
+                                    //DebugForm.instance.addMsg("555:" + dx + "," + dy);
+                                    if (ban.getOnBoardKtype(ban.putHisya[(int)turn * 2 + i]) == ktype.Ryuuou) {
+                                        // 竜王を一つ移動
+                                        if (chkRectMove(ref ban, turn, pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, -1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, 1), aOuPos, -1, 0) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, -1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, 1)] == 0) &&
+                                                    (ban.onBoard[(ban.putHisya[(int)turn * 2 + i] / 9) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, 1)] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                        // 竜王を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, -1), -1, 0) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], - dx + 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0) &&
+                                                    (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx - 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    } else {
+                                        // 飛車を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, -1), -1, 0) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx + 1, 0, turn, mType.Nari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0) &&
+                                                    (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx - 1, 0, turn, mType.Nari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    //DebugForm.instance.addMsg("666:" + dx + "," + dy);
+                                    if (ban.getOnBoardKtype(ban.putHisya[(int)turn * 2 + i]) == ktype.Ryuuou) {
+                                        // 竜王を一つ移動
+                                        if (chkRectMove(ref ban, turn, pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, 1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, 1), aOuPos, 1, 0) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, 1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, 1)] == 0) &&
+                                                    (ban.onBoard[(ban.putHisya[(int)turn * 2 + i] / 9) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, 1)] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                        // 竜王を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, -1), 1, 0) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx - 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0) &&
+                                                    (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx + 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    } else {
+                                        // 飛車を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, -1), 1, 0) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx - 1, 0, turn, mType.Nari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0) &&
+                                                    (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx + 1, 0, turn, mType.Nari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if (dy == 1) {
+                                if (dx > 0) {
+                                    //DebugForm.instance.addMsg("777:" + dx + "," + dy);
+                                    if (ban.getOnBoardKtype(ban.putHisya[(int)turn * 2 + i]) == ktype.Ryuuou) {
+                                        // 竜王を一つ移動
+                                        if (chkRectMove(ref ban, turn, pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, -1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, -1), aOuPos, -1, 0) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, -1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, -1)] == 0) &&
+                                                    (ban.onBoard[(ban.putHisya[(int)turn * 2 + i] / 9) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, -1)] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                        // 竜王を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, 1), -1, 0) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx + 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0) &&
+                                                    (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx - 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    } else {
+                                        // 飛車を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, 1), -1, 0) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx + 1, 0, turn, mType.Nari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0) &&
+                                                    (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx - 1, 0, turn, mType.Nari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    //DebugForm.instance.addMsg("888:" + dx + "," + dy);
+                                    if (ban.getOnBoardKtype(ban.putHisya[(int)turn * 2 + i]) == ktype.Ryuuou) {
+                                        // 竜王を一つ移動
+                                        if (chkRectMove(ref ban, turn, pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, 1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, -1), aOuPos, 1, 0) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, ban.putHisya[(int)turn * 2 + i] / 9, 1) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, -1)] == 0) &&
+                                                    (ban.onBoard[(ban.putHisya[(int)turn * 2 + i] / 9) * 9 + pturn.mvY(turn, ban.putHisya[(int)turn * 2 + i] % 9, -1)] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                        // 竜王を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, 1), 1, 0) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx - 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0) &&
+                                                    (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx + 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    } else {
+                                        // 飛車を王の隣に移動
+                                        if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, 1), 1, 0) == -1) {
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx - 1, 0, turn, mType.Nari, kmv, ref kCnt);
+                                            if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0) &&
+                                                    (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0)) {
+                                                addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx + 1, 0, turn, mType.Nari, kmv, ref kCnt);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
 
                         }
 
-                        if (ban.getOnBoardKtype(ban.putHisya[(int)turn * 2 + i]) == ktype.Ryuuou) {
+                        if (ban.getOnBoardKtype(ban.putHisya[(int)turn * 2 + i]) == ktype.Hisya) {
+                            //×××××
+                            //×①×②×
+                            //××●××
+                            //×③×④×
+                            //×××××
+                            dx = pturn.dfX(turn, ban.putHisya[(int)turn * 2 + i] / 9, aOuPos / 9);
+                            dy = pturn.dfY(turn, ban.putHisya[(int)turn * 2 + i] % 9, aOuPos % 9);
+                            switch (dx, dy) {
+                                case (-1, 1):
+                                    if (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0) {
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 2, 0, turn, mType.Nari, kmv, ref kCnt);
+                                    }
+                                    if (ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + aOuPos % 9] == 0) {
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -2, turn, mType.Nari, kmv, ref kCnt);
+                                    }
+                                    break;
+                                case (1, 1):
+                                    if (ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + aOuPos % 9] == 0) {
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, -2, turn, mType.Nari, kmv, ref kCnt);
+                                    }
+                                    if (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, 1)] == 0) {
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -2, 0, turn, mType.Nari, kmv, ref kCnt);
+                                    }
+                                    break;
+                                case (-1, -1):
+                                    if (ban.onBoard[pturn.mvX(turn, aOuPos / 9, -1) * 9 + aOuPos % 9] == 0) {
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, 2, turn, mType.Nari, kmv, ref kCnt);
+                                    }
+                                    if (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0) {
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 2, 0, turn, mType.Nari, kmv, ref kCnt);
+                                    }
+                                    break;
+                                case (1, -1):
+                                    if (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0) {
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -2, 0, turn, mType.Nari, kmv, ref kCnt);
+                                    }
+                                    if (ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + aOuPos % 9] == 0) {
+                                        addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], 0, 2, turn, mType.Nari, kmv, ref kCnt);
+                                    }
+                                    break;
+
+                                default:
+                                    break;
+                            }
+
+                        } else {
                             // 竜王特有の王手
                             //①×②×③
                             //××■××
@@ -880,13 +1165,13 @@ namespace TacoWin2 {
                                 }
                             }
                         } else {
-                            // ×⑤×××④×
-                            // ⑦×××××②
-                            // ×××××××
-                            // ×××●×××
-                            // ×××××××
-                            // ③×××××④
-                            // ×①×××③×
+                            // ◎⑤×××④◎
+                            // ⑦◎×××◎②
+                            // ×××〇×××
+                            // ××〇●〇××
+                            // ×××〇×××
+                            // ③◎×××◎④
+                            // ◎①×××③◎
                             // TODO: 要実装
                             if (dx - dy == 1) {
                                 //DebugForm.instance.addMsg("111:" + dx + "," + dy);
