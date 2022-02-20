@@ -74,7 +74,7 @@ namespace TacoWin2 {
                     Thread.Sleep(10000);
                 // usi 起動
                 } else if ((str.Length == 3) && (str.Substring(0, 3) == "usi")) {
-                    Console.WriteLine("id name たこウインナー 2.1.0");
+                    Console.WriteLine("id name たこウインナー 2.2.0");
                     Console.WriteLine("id authoer YAKITACO");
                     Console.WriteLine("option name BookFile type string default default.ytj");
                     Console.WriteLine("option name UseBook type check default true");
