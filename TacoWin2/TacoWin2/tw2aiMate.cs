@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using TacoWin2_BanInfo;
 
 namespace TacoWin2 {
@@ -249,26 +248,477 @@ namespace TacoWin2 {
             int kCnt = 0;
             emove emv = new emove();
             unsafe {
-                int aOuPos = ban.putOusyou[pturn.aturn((int)turn)]; //相手王将の位置
+                int AposX;  // 攻め駒のX位置
+                int AposY;  // 攻め駒のY位置
+                int aOuPosX = ban.putOusyou[pturn.aturn((int)turn)] / 9; //相手王将のX位置
+                int aOuPosY = ban.putOusyou[pturn.aturn((int)turn)] % 9; //相手王将のY位置
+                int aOuPos = ban.putOusyou[pturn.aturn((int)turn)]; //相手王将の位置★要削除
 
-                // 歩兵
-                // [不成・成り]相手玉の2段前
-                if (ban.putFuhyou[(int)turn * 9 + aOuPos / 9] == pturn.mvY(turn, aOuPos % 9, -2)) {
-                    addCheckMovePos(ref ban, (aOuPos / 9) * 9 + ban.putFuhyou[(int)turn * 9 + aOuPos / 9], 0, 1, turn, mType.Both, kmv, ref kCnt);
+                //香車・飛車・角以外の駒の動きチェック
+                //01 02 03 04 05
+                //06 07 08 09 10
+                //11 12 ● 13 14
+                //15 16 17 18 19
+                //20 21 22 23 24
+                //25 26 27 28 29
+                //30 × 31 × 32
+
+                // 01
+                if (pturn.psY(turn, aOuPosY) < 7) {
+                    AposX = pturn.mvX(turn, aOuPosX, -2);
+                    AposY = pturn.mvY(turn, aOuPosY, 2);
+                    if ((pturn.psY(turn, aOuPosX) > 1) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Ginsyou) { //銀将のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, 1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 02
+                    AposX = pturn.mvX(turn, aOuPosX, -1);
+                    if ((pturn.psY(turn, aOuPosX) > 0) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Ginsyou) { //銀将のみ
+                            //DebugForm.instance.addMsg("DDDDDD:" + AposX + "," + AposY);
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, 1, -1, turn, mType.Nari, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 03
+                    AposX = aOuPosX;
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                            case (ktype.Ginsyou): //銀将
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 0, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    // 04
+                    AposX = pturn.mvX(turn, aOuPosX, 1);
+                    if ((pturn.psY(turn, aOuPosX) < 8) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Ginsyou) { //銀将のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, -1, -1, turn, mType.Nari, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 05
+                    AposX = pturn.mvX(turn, aOuPosX, 2);
+                    if ((pturn.psY(turn, aOuPosX) < 7) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Ginsyou) { //銀将のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, -1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                        }
+                    }
                 }
 
-                //[成り] 相手玉の右
-                if ((aOuPos / 9 < 8) &&
-                    ((ban.putFuhyou[(int)turn * 9 + aOuPos / 9 + 1] == pturn.mvY(turn, aOuPos % 9, -2)) |
-                    (ban.putFuhyou[(int)turn * 9 + aOuPos / 9 + 1] == pturn.mvY(turn, aOuPos % 9, -1)))) {
-                    addCheckMovePos(ref ban, ((aOuPos / 9) + 1) * 9 + ban.putFuhyou[(int)turn * 9 + aOuPos / 9 + 1], 0, 1, turn, mType.Nari, kmv, ref kCnt);
+                if (pturn.psY(turn, aOuPosY) < 8) {
+                    // 06
+                    AposX = pturn.mvX(turn, aOuPosX, -2);
+                    AposY = pturn.mvY(turn, aOuPosY, 1);
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Ginsyou) { //銀将のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, 1, -1, turn, mType.Nari, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 07
+                    AposX = pturn.mvX(turn, aOuPosX, -1);
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 0, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    // 08
+                    AposX = aOuPosX;
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Ginsyou) { //銀将のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, 1, -1, turn, mType.Nari, kmv, ref kCnt);
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, -1, -1, turn, mType.Nari, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 09
+                    AposX = pturn.mvX(turn, aOuPosX, 1);
+                    if ((pturn.psY(turn, aOuPosX) < 8) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 0, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    // 10
+                    AposX = pturn.mvX(turn, aOuPosX, 2);
+                    if ((pturn.psY(turn, aOuPosX) < 7) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Ginsyou) { //銀将のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, -1, -1, turn, mType.Nari, kmv, ref kCnt);
+                        }
+                    }
                 }
 
-                //[成り] 相手玉の左
-                if ((aOuPos / 9 > 0) &&
-                    ((ban.putFuhyou[(int)turn * 9 + aOuPos / 9 - 1] == pturn.mvY(turn, aOuPos % 9, -2)) |
-                    (ban.putFuhyou[(int)turn * 9 + aOuPos / 9 - 1] == pturn.mvY(turn, aOuPos % 9, -1)))) {
-                    addCheckMovePos(ref ban, ((aOuPos / 9) - 1) * 9 + ban.putFuhyou[(int)turn * 9 + aOuPos / 9 - 1], 0, 1, turn, mType.Nari, kmv, ref kCnt);
+                // 11
+                AposX = pturn.mvX(turn, aOuPosX, -2);
+                AposY = aOuPosY;
+                if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                    switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                        case (ktype.Ginsyou): //銀将
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, 1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                            break;
+                        case (ktype.Kinsyou):  //金将
+                        case (ktype.Tokin):    //と金
+                        case (ktype.Narikyou): //成香
+                        case (ktype.Narikei):  //成桂
+                        case (ktype.Narigin):  //成銀
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                // 12
+                AposX = pturn.mvX(turn, aOuPosX, -1);
+                if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                    if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Ginsyou) { //銀将のみ
+                        addCheckMovePos(ref ban, AposX * 9 + AposY, 1, -1, turn, mType.Both, kmv, ref kCnt);
+                        addCheckMovePos(ref ban, AposX * 9 + AposY, 0, 1, turn, mType.NoNari, kmv, ref kCnt);
+                        addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 1, turn, mType.Nari, kmv, ref kCnt);
+                    }
+                }
+
+                // 13
+                AposX = pturn.mvX(turn, aOuPosX, 1);
+                if ((pturn.psX(turn, aOuPosX) < 8) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                    if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Ginsyou) { //銀将のみ
+                        addCheckMovePos(ref ban, AposX * 9 + AposY, -1, -1, turn, mType.Both, kmv, ref kCnt);
+                        addCheckMovePos(ref ban, AposX * 9 + AposY, 0, 1, turn, mType.NoNari, kmv, ref kCnt);
+                        addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 1, turn, mType.Nari, kmv, ref kCnt);
+                    }
+                }
+
+                // 14
+                AposX = pturn.mvX(turn, aOuPosX, 2);
+                if ((pturn.psX(turn, aOuPosX) < 7) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                    switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                        case (ktype.Ginsyou): //銀将
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, -1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                            break;
+                        case (ktype.Kinsyou):  //金将
+                        case (ktype.Tokin):    //と金
+                        case (ktype.Narikyou): //成香
+                        case (ktype.Narikei):  //成桂
+                        case (ktype.Narigin):  //成銀
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                if (pturn.psY(turn, aOuPosY) > 0) {
+                    // 15
+                    AposX = pturn.mvX(turn, aOuPosX, -2);
+                    AposY = pturn.mvY(turn, aOuPosY, -1);
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                            case (ktype.Ginsyou): //銀将
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 1, turn, mType.Nari, kmv, ref kCnt);
+                                break;
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    // 16
+                    AposX = pturn.mvX(turn, aOuPosX, -1);
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                            case (ktype.Fuhyou):  //歩兵
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 0, 1, turn, mType.Nari, kmv, ref kCnt);
+                                break;
+                            case (ktype.Keima):  //桂馬
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 2, turn, mType.Nari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    // 17(該当なし)
+                    //AposX = aOuPosX;
+                    //if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                    //    if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Ginsyou) { //銀将のみ
+                    //        addCheckMovePos(ref ban, AposX * 9 + AposY, 1, -1, turn, mType.Nari, kmv, ref kCnt);
+                    //        addCheckMovePos(ref ban, AposX * 9 + AposY, -1, -1, turn, mType.Nari, kmv, ref kCnt);
+                    //    }
+                    //}
+
+                    // 18
+                    AposX = pturn.mvX(turn, aOuPosX, 1);
+                    if ((pturn.psX(turn, aOuPosX) < 6) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                            case (ktype.Fuhyou):  //歩兵
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 0, 1, turn, mType.Nari, kmv, ref kCnt);
+                                break;
+                            case (ktype.Keima):  //桂馬
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 2, turn, mType.Nari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    // 19
+                    AposX = pturn.mvX(turn, aOuPosX, 2);
+                    if ((pturn.psX(turn, aOuPosX) < 7) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                            case (ktype.Ginsyou): //銀将
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 1, turn, mType.Nari, kmv, ref kCnt);
+                                break;
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+
+                if (pturn.psY(turn, aOuPosY) > 1) {
+                    // 20
+                    AposX = pturn.mvX(turn, aOuPosX, -2);
+                    AposY = pturn.mvY(turn, aOuPosY, -2);
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                            case (ktype.Keima):  //桂馬
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 2, turn, mType.Nari, kmv, ref kCnt);
+                                break;
+                            case (ktype.Ginsyou): //銀将
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 1, turn, mType.Both, kmv, ref kCnt);
+                                break;
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    // 21
+                    AposX = pturn.mvX(turn, aOuPosX, -1);
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                            case (ktype.Fuhyou):  //歩兵
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 0, 1, turn, mType.Nari, kmv, ref kCnt);
+                                break;
+                            case (ktype.Ginsyou): //銀将
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 1, turn, mType.Both, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 0, turn, mType.Both, kmv, ref kCnt);
+                                break;
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    // 22
+                    AposX = aOuPosX;
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                            case (ktype.Fuhyou):  //歩兵
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 0, 1, turn, mType.Nari, kmv, ref kCnt);
+                                break;
+                            case (ktype.Keima):  //桂馬
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 2, turn, mType.Nari, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 2, turn, mType.Nari, kmv, ref kCnt);
+                                break;
+                            case (ktype.Ginsyou): //銀将
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 1, turn, mType.Both, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 0, 1, turn, mType.Both, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 1, turn, mType.Both, kmv, ref kCnt);
+                                break;
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 0, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    // 23
+                    AposX = pturn.mvX(turn, aOuPosX, 1);
+                    if ((pturn.psY(turn, aOuPosX) < 6) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                            case (ktype.Fuhyou):  //歩兵
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, 0, 1, turn, mType.Nari, kmv, ref kCnt);
+                                break;
+                            case (ktype.Ginsyou): //銀将
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 1, turn, mType.Both, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 0, turn, mType.Both, kmv, ref kCnt);
+                                break;
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    // 24
+                    AposX = pturn.mvX(turn, aOuPosX, 2);
+                    if ((pturn.psY(turn, aOuPosX) < 7) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        switch (ban.getOnBoardKtype(AposX * 9 + AposY)) {
+                            case (ktype.Keima):  //桂馬
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 2, turn, mType.Nari, kmv, ref kCnt);
+                                break;
+                            case (ktype.Ginsyou): //銀将
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 1, turn, mType.Both, kmv, ref kCnt);
+                                break;
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+
+                if (pturn.psY(turn, aOuPosY) > 2) {
+                    // 25
+                    AposX = pturn.mvX(turn, aOuPosX, -2);
+                    AposY = pturn.mvY(turn, aOuPosY, -3);
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Keima) { //桂馬のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 2, turn, mType.Nari, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 26
+                    AposX = pturn.mvX(turn, aOuPosX, -1);
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Keima) { //桂馬のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 2, turn, mType.Nari, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 27
+                    AposX = aOuPosX;
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Keima) { //桂馬のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 2, turn, mType.Nari, kmv, ref kCnt);
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 2, turn, mType.Nari, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 28
+                    AposX = pturn.mvX(turn, aOuPosX, 1);
+                    if ((pturn.psY(turn, aOuPosX) < 6) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Keima) { //桂馬のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 2, turn, mType.Nari, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 29
+                    AposX = pturn.mvX(turn, aOuPosX, 2);
+                    if ((pturn.psY(turn, aOuPosX) < 7) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Keima) { //桂馬のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 2, turn, mType.Nari, kmv, ref kCnt);
+                        }
+                    }
+                }
+
+                if (pturn.psY(turn, aOuPosY) > 2) {
+                    // 30
+                    AposX = pturn.mvX(turn, aOuPosX, -2);
+                    AposY = pturn.mvY(turn, aOuPosY, -4);
+                    if ((ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Keima) { //桂馬のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 2, turn, mType.NoNari, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 31
+                    AposX = aOuPosX;
+                    if (((pturn.psY(turn, aOuPosX) < 6) && ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Keima) { //桂馬のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, 1, 2, turn, mType.NoNari, kmv, ref kCnt);
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 2, turn, mType.NoNari, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 32
+                    AposX = pturn.mvX(turn, aOuPosX, 2);
+                    if ((pturn.psY(turn, aOuPosX) < 7) && (ban.onBoard[AposX * 9 + AposY] > 0) && (ban.getOnBoardPturn(AposX, AposY) == turn)) {
+                        if (ban.getOnBoardKtype(AposX * 9 + AposY) == ktype.Keima) { //桂馬のみ
+                            addCheckMovePos(ref ban, AposX * 9 + AposY, -1, 2, turn, mType.NoNari, kmv, ref kCnt);
+                        }
+                    }
                 }
 
                 // 香車
@@ -335,155 +785,6 @@ namespace TacoWin2 {
                                     }
                                 }
 
-                                break;
-
-                            default:
-                                break;
-                        }
-                    }
-                }
-
-                // 桂馬
-                for (int i = 0; i < 4; i++) {
-                    if (ban.putKeima[(int)turn * 4 + i] != 0xFF) {
-                        //×××××
-                        //××●××
-                        //×①×②×
-                        //③×④×⑤
-                        //⑥⑦⑧⑨⑩
-                        //⑪×⑫×⑬
-                        int dx = pturn.dfX(turn, ban.putKeima[(int)turn * 4 + i] / 9, aOuPos / 9);
-                        int dy = pturn.dfY(turn, ban.putKeima[(int)turn * 4 + i] % 9, aOuPos % 9);
-                        switch (dx, dy) {
-                            case (-1, -1):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (1, -1):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (-2, -2):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (0, -2):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, mType.Nari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (2, -2):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (-2, -3):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (-1, -3):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (0, -3):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, mType.Nari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (1, -3):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (2, -3):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (-2, -4):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (0, -4):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (2, -4):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-
-
-                            default:
-                                break;
-                        }
-                    }
-                }
-
-                // 銀将
-                for (int i = 0; i < 4; i++) {
-                    if (ban.putGinsyou[(int)turn * 4 + i] != 0xFF) {
-                        //①②③④⑤
-                        //⑥×⑦×⑧
-                        //⑨⑩●⑪⑫
-                        //⑬×××⑭
-                        //⑮⑯⑰⑱⑲
-                        int dx = pturn.dfX(turn, ban.putGinsyou[(int)turn * 4 + i] / 9, aOuPos / 9);
-                        int dy = pturn.dfY(turn, ban.putGinsyou[(int)turn * 4 + i] % 9, aOuPos % 9);
-                        switch (dx, dy) {
-                            case (-2, 2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-1, 2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (0, 2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (1, 2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (2, 2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-2, 1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (0, 1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, mType.Nari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (2, 1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (-2, 0):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-1, 0):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, mType.Both, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (1, 0):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, mType.Both, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (2, 0):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-2, -1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (2, -1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, mType.Nari, kmv, ref kCnt);
-                                break;
-                            case (-2, -2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, mType.Both, kmv, ref kCnt);
-                                break;
-                            case (-1, -2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, mType.Both, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, mType.Both, kmv, ref kCnt);
-                                break;
-                            case (0, -2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, mType.Both, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, mType.Both, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, mType.Both, kmv, ref kCnt);
-                                break;
-                            case (1, -2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, mType.Both, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, mType.Both, kmv, ref kCnt);
-                                break;
-                            case (2, -2):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, mType.Both, kmv, ref kCnt);
                                 break;
 
                             default:
@@ -789,7 +1090,7 @@ namespace TacoWin2 {
                                         }
                                         // 竜王を王の隣に移動
                                         if (chkRectMove(ref ban, turn, ban.putHisya[(int)turn * 2 + i], pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, -1), -1, 0) == -1) {
-                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], - dx + 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx + 1, 0, turn, mType.NoNari, kmv, ref kCnt);
                                             if ((ban.onBoard[pturn.mvX(turn, aOuPos / 9, 1) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0) &&
                                                     (ban.onBoard[(aOuPos / 9) * 9 + pturn.mvY(turn, aOuPos % 9, -1)] == 0)) {
                                                 addCheckMovePos(ref ban, ban.putHisya[(int)turn * 2 + i], -dx - 1, 0, turn, mType.NoNari, kmv, ref kCnt);
@@ -1001,7 +1302,7 @@ namespace TacoWin2 {
                                        // [不成&成り]敵を取って直進
                             if (dy < 0) { // 前方
                                 ret = chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], aOuPos, 1, 1);
-                                Debug.WriteLine("JOSEKI HITa:({0})\n", ret);
+                                //Debug.WriteLine("JOSEKI HITa:({0})\n", ret);
                                 if (ret >= 0) {
                                     int rdy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, ret % 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
@@ -1021,7 +1322,7 @@ namespace TacoWin2 {
                                 }
                             } else { // 後方
                                 ret = chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], aOuPos, -1, -1);
-                                Debug.WriteLine("JOSEKI HITb:({0})\n", ret);
+                                //Debug.WriteLine("JOSEKI HITb:({0})\n", ret);
                                 if (ret >= 0) {
                                     int rdy = pturn.dfY(turn, ban.putKakugyou[(int)turn * 2 + i] % 9, ret % 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
@@ -1045,7 +1346,7 @@ namespace TacoWin2 {
                                                // [不成&成り]敵を取って直進
                             if (dx < 0) { // 左
                                 ret = chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], aOuPos, 1, -1);
-                                Debug.WriteLine("JOSEKI HITc:({0})\n", ret);
+                                //Debug.WriteLine("JOSEKI HITc:({0})\n", ret);
                                 if (ret >= 0) {
                                     int rdx = pturn.dfX(turn, ban.putKakugyou[(int)turn * 2 + i] / 9, ret / 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
@@ -1065,7 +1366,7 @@ namespace TacoWin2 {
                                 }
                             } else { // 右
                                 ret = chkRectMove(ref ban, turn, ban.putKakugyou[(int)turn * 2 + i], aOuPos, -1, 1);
-                                Debug.WriteLine("JOSEKI HITd:({0})\n", ret);
+                                //Debug.WriteLine("JOSEKI HITd:({0})\n", ret);
                                 if (ret >= 0) {
                                     int rdx = pturn.dfX(turn, ban.putKakugyou[(int)turn * 2 + i] / 9, ret / 9);
                                     if (ban.getOnBoardPturn(ret / 9, ret % 9) != turn) { // 敵の駒がある-> 駒を取る
@@ -1441,135 +1742,6 @@ namespace TacoWin2 {
                     }
                 }
 
-                // 金将
-                for (int i = 0; i < 4; i++) {
-                    if (ban.putKinsyou[(int)turn * 4 + i] != 0xFF) {
-                        //××①××
-                        //×②×③×
-                        //④×●×⑤
-                        //⑥×××⑦
-                        //⑧⑨⑩⑪⑫
-
-                        int dx = pturn.dfX(turn, ban.putKinsyou[(int)turn * 4 + i] / 9, aOuPos / 9);
-                        int dy = pturn.dfY(turn, ban.putKinsyou[(int)turn * 4 + i] % 9, aOuPos % 9);
-
-                        switch (dx, dy) {
-                            case (0, 2):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-1, 1):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (1, 1):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-2, 0):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (2, 0):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-2, -1):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (2, -1):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-2, -2):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-1, -2):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (0, -2):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (1, -2):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (2, -2):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-
-                            default:
-                                break;
-                        }
-                    }
-                }
-
-                // 成駒
-                for (int i = 0, j = 0; j < ban.putNarigomaNum[(int)turn]; i++) {
-                    if (ban.putNarigoma[(int)turn * 30 + i] != 0xFF) {
-                        //××①××
-                        //×②×③×
-                        //④×●×⑤
-                        //⑥×××⑦
-                        //⑧⑨⑩⑪⑫
-
-                        int dx = pturn.dfX(turn, ban.putNarigoma[(int)turn * 30 + i] / 9, aOuPos / 9);
-                        int dy = pturn.dfY(turn, ban.putNarigoma[(int)turn * 30 + i] % 9, aOuPos % 9);
-
-                        switch (dx, dy) {
-                            case (0, 2):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 0, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-1, 1):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 0, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (1, 1):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 0, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-2, 0):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (2, 0):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-2, -1):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (2, -1):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-2, -2):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-1, -2):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 0, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (0, -2):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 0, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (1, -2):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 0, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (2, -2):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-
-                            default:
-                                break;
-                        }
-                        j++;
-                    }
-                }
-
                 // 歩打ち
                 if (ban.captPiece[(int)turn * 7 + 0] > 0) {
                     // 二歩チェック
@@ -1654,7 +1826,6 @@ namespace TacoWin2 {
             }
             return kCnt;
         }
-
 
         /// <summary>
         /// [詰将棋]守り側移動候補一覧作成
@@ -1757,30 +1928,18 @@ namespace TacoWin2 {
 
 
                 // 王を移動(8方向)
-                int nx;
-                int ny;
-                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, 1, 1);
-                if ((nx > -1) && (ny > -1) && (nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, 0, 1);
-                if ((nx > -1) && (ny > -1) && (nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 0, 1, turn, mType.NoNari, kmv, ref kCnt);
-                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, -1, 1);
-                if ((nx > -1) && (ny > -1) && (nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, 1, 0);
-                if ((nx > -1) && (ny > -1) && (nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, -1, 0);
-                if ((nx > -1) && (ny > -1) && (nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], -1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, 1, -1);
-                if ((nx > -1) && (ny > -1) && (nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 1, -1, turn, mType.NoNari, kmv, ref kCnt);
-                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, 0, -1);
-                if ((nx > -1) && (ny > -1) && (nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 0, -1, turn, mType.NoNari, kmv, ref kCnt);
-                (nx, ny) = pturn.mvXY(turn, ban.putOusyou[(int)turn] / 9, ban.putOusyou[(int)turn] % 9, -1, -1);
-                if ((nx > -1) && (ny > -1) && (nx < 9) && (ny < 9) && (ban.getOnBoardPturn(nx * 9 + ny) != turn)) addCheckMovePos(ref ban, ban.putOusyou[(int)turn], -1, -1, turn, mType.NoNari, kmv, ref kCnt);
-
+                addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 0, 1, turn, mType.NoNari, kmv, ref kCnt);
+                addCheckMovePos(ref ban, ban.putOusyou[(int)turn], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                addCheckMovePos(ref ban, ban.putOusyou[(int)turn], -1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 1, -1, turn, mType.NoNari, kmv, ref kCnt);
+                addCheckMovePos(ref ban, ban.putOusyou[(int)turn], 0, -1, turn, mType.NoNari, kmv, ref kCnt);
+                addCheckMovePos(ref ban, ban.putOusyou[(int)turn], -1, -1, turn, mType.NoNari, kmv, ref kCnt);
             }
 
             return kCnt;
         }
-
         /// <summary>
         /// 指定した位置(cPos)へ盤上の駒を移動する(王以外)
         /// </summary>
@@ -1791,35 +1950,141 @@ namespace TacoWin2 {
         /// <param name="kmv">駒移動候補リスト</param>
         void getPosMoveList(ref int kCnt, ref ban ban, Pturn turn, int cPos, kmove[] kmv) {
             unsafe {
-                // 歩兵
-                if (ban.putFuhyou[(int)turn * 9 + cPos / 9] == pturn.mvY(turn, cPos % 9, -1)) {
-                    addCheckMovePos(ref ban, (cPos / 9) * 9 + ban.putFuhyou[(int)turn * 9 + cPos / 9], 0, 1, turn, mType.Both, kmv, ref kCnt);
-                }
 
-                // 香車
-                for (int i = 0; i < 4; i++) {
-                    if (ban.putKyousha[(int)turn * 4 + i] != 0xFF) {
-                        int dx = pturn.dfX(turn, ban.putKyousha[(int)turn * 4 + i] / 9, cPos / 9);
-                        int dy = pturn.dfY(turn, ban.putKyousha[(int)turn * 4 + i] % 9, cPos % 9);
-                        if ((dx == 0) && (dy < 0)) {
-                            if (chkRectMove(ref ban, turn, ban.putKyousha[(int)turn * 4 + i], cPos, 0, 1) == -1) {
-                                addCheckMovePos(ref ban, ban.putKyousha[(int)turn * 4 + i], 0, -dy, turn, mType.Both, kmv, ref kCnt);
-                            }
+                int DposX;  // 守り駒のX位置
+                int DposY;  // 守り駒のY位置
+                int cPosX = cPos / 9; //移動対象のX位置
+                int cPosY = cPos % 9; //移動対象のY位置
+
+                //01 02 03
+                //04 ● 05
+                //06 07 08
+                //09 × 10
+
+                if (pturn.psY(turn, cPosY) < 8) {
+                    // 01
+                    DposX = pturn.mvX(turn, cPosX, -1);
+                    DposY = pturn.mvY(turn, cPosY, 1);
+                    if ((pturn.psX(turn, cPosX) > 0) && (ban.onBoard[DposX * 9 + DposY] > 0) && (ban.getOnBoardPturn(DposX, DposY) == turn)) {
+                        if (ban.getOnBoardKtype(DposX * 9 + DposY) == ktype.Ginsyou) { //銀将のみ
+                            addCheckMovePos(ref ban, DposX * 9 + DposY, 1, -1, turn, mType.Both, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 02
+                    DposX = cPosX;
+                    if ((ban.onBoard[DposX * 9 + DposY] > 0) && (ban.getOnBoardPturn(DposX, DposY) == turn)) {
+                        switch (ban.getOnBoardKtype(DposX * 9 + DposY)) {
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, DposX * 9 + DposY, 0, -1, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    // 03
+                    DposX = pturn.mvX(turn, cPosX, 1);
+                    if ((pturn.psX(turn, cPosX) < 8) && (ban.onBoard[DposX * 9 + DposY] > 0) && (ban.getOnBoardPturn(DposX, DposY) == turn)) {
+                        if (ban.getOnBoardKtype(DposX * 9 + DposY) == ktype.Ginsyou) { //銀将のみ
+                            addCheckMovePos(ref ban, DposX * 9 + DposY, -1, -1, turn, mType.Both, kmv, ref kCnt);
                         }
                     }
                 }
 
-                // 桂馬
-                for (int i = 0; i < 4; i++) {
-                    if (ban.putKeima[(int)turn * 4 + i] != 0xFF) {
-                        int dx = pturn.dfX(turn, ban.putKeima[(int)turn * 4 + i] / 9, cPos / 9);
-                        int dy = pturn.dfY(turn, ban.putKeima[(int)turn * 4 + i] % 9, cPos % 9);
-                        switch (dx, dy) {
-                            case (-1, -2):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], 1, 2, turn, mType.Both, kmv, ref kCnt);
+                // 04
+                DposX = pturn.mvX(turn, cPosX, -1);
+                DposY = cPosY;
+                if ((pturn.psX(turn, cPosX) > 0) && (ban.onBoard[DposX * 9 + DposY] > 0) && (ban.getOnBoardPturn(DposX, DposY) == turn)) {
+                    switch (ban.getOnBoardKtype(DposX * 9 + DposY)) {
+                        case (ktype.Kinsyou):  //金将
+                        case (ktype.Tokin):    //と金
+                        case (ktype.Narikyou): //成香
+                        case (ktype.Narikei):  //成桂
+                        case (ktype.Narigin):  //成銀
+                            addCheckMovePos(ref ban, DposX * 9 + DposY, 1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                // 05
+                DposX = pturn.mvX(turn, cPosX, 1);
+                if ((pturn.psX(turn, cPosX) < 8) && (ban.onBoard[DposX * 9 + DposY] > 0) && (ban.getOnBoardPturn(DposX, DposY) == turn)) {
+                    switch (ban.getOnBoardKtype(DposX * 9 + DposY)) {
+                        case (ktype.Kinsyou):  //金将
+                        case (ktype.Tokin):    //と金
+                        case (ktype.Narikyou): //成香
+                        case (ktype.Narikei):  //成桂
+                        case (ktype.Narigin):  //成銀
+                            addCheckMovePos(ref ban, DposX * 9 + DposY, -1, 0, turn, mType.NoNari, kmv, ref kCnt);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+
+                if (pturn.psY(turn, cPosY) > 0) {
+                    // 06
+                    DposX = pturn.mvX(turn, cPosX, -1);
+                    DposY = pturn.mvY(turn, cPosY, -1);
+                    if ((pturn.psX(turn, cPosX) > 0) && (ban.onBoard[DposX * 9 + DposY] > 0) && (ban.getOnBoardPturn(DposX, DposY) == turn)) {
+                        switch (ban.getOnBoardKtype(DposX * 9 + DposY)) {
+                            case (ktype.Ginsyou): //銀将
+                                addCheckMovePos(ref ban, DposX * 9 + DposY, 1, 1, turn, mType.Both, kmv, ref kCnt);
                                 break;
-                            case (1, -2):
-                                addCheckMovePos(ref ban, ban.putKeima[(int)turn * 4 + i], -1, 2, turn, mType.Both, kmv, ref kCnt);
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, DposX * 9 + DposY, 1, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+
+                    // 07
+                    DposX = cPosX;
+                    if ((ban.onBoard[DposX * 9 + DposY] > 0) && (ban.getOnBoardPturn(DposX, DposY) == turn)) {
+                        switch (ban.getOnBoardKtype(DposX * 9 + DposY)) {
+                            case (ktype.Fuhyou):  //歩兵
+                                addCheckMovePos(ref ban, DposX * 9 + DposY, 0, 1, turn, mType.Both, kmv, ref kCnt);
+                                break;
+                            case (ktype.Ginsyou): //銀将
+                                addCheckMovePos(ref ban, DposX * 9 + DposY, 0, 1, turn, mType.Both, kmv, ref kCnt);
+                                break;
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, DposX * 9 + DposY, 0, 1, turn, mType.NoNari, kmv, ref kCnt);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    // 08
+                    DposX = pturn.mvX(turn, cPosX, 1);
+                    if ((pturn.psX(turn, cPosX) < 8) && (ban.onBoard[DposX * 9 + DposY] > 0) && (ban.getOnBoardPturn(DposX, DposY) == turn)) {
+                        switch (ban.getOnBoardKtype(DposX * 9 + DposY)) {
+                            case (ktype.Ginsyou): //銀将
+                                addCheckMovePos(ref ban, DposX * 9 + DposY, -1, 1, turn, mType.Both, kmv, ref kCnt);
+                                break;
+                            case (ktype.Kinsyou):  //金将
+                            case (ktype.Tokin):    //と金
+                            case (ktype.Narikyou): //成香
+                            case (ktype.Narikei):  //成桂
+                            case (ktype.Narigin):  //成銀
+                                addCheckMovePos(ref ban, DposX * 9 + DposY, -1, 1, turn, mType.NoNari, kmv, ref kCnt);
                                 break;
                             default:
                                 break;
@@ -1827,29 +2092,21 @@ namespace TacoWin2 {
                     }
                 }
 
-                // 銀将
-                for (int i = 0; i < 4; i++) {
-                    if (ban.putGinsyou[(int)turn * 4 + i] != 0xFF) {
-                        int dx = pturn.dfX(turn, ban.putGinsyou[(int)turn * 4 + i] / 9, cPos / 9);
-                        int dy = pturn.dfY(turn, ban.putGinsyou[(int)turn * 4 + i] % 9, cPos % 9);
-                        switch (dx, dy) {
-                            case (-1, 1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, -1, turn, mType.Both, kmv, ref kCnt);
-                                break;
-                            case (1, 1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, -1, turn, mType.Both, kmv, ref kCnt);
-                                break;
-                            case (-1, -1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 1, 1, turn, mType.Both, kmv, ref kCnt);
-                                break;
-                            case (0, -1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], 0, 1, turn, mType.Both, kmv, ref kCnt);
-                                break;
-                            case (1, -1):
-                                addCheckMovePos(ref ban, ban.putGinsyou[(int)turn * 4 + i], -1, 1, turn, mType.Both, kmv, ref kCnt);
-                                break;
-                            default:
-                                break;
+                if (pturn.psY(turn, cPosY) > 1) {
+                    // 09
+                    DposX = pturn.mvX(turn, cPosX, -1);
+                    DposY = pturn.mvY(turn, cPosY, -2);
+                    if ((pturn.psX(turn, cPosX) > 0) && (ban.onBoard[DposX * 9 + DposY] > 0) && (ban.getOnBoardPturn(DposX, DposY) == turn)) {
+                        if (ban.getOnBoardKtype(DposX * 9 + DposY) == ktype.Keima) { //桂馬のみ
+                            addCheckMovePos(ref ban, DposX * 9 + DposY, 1, 2, turn, mType.Both, kmv, ref kCnt);
+                        }
+                    }
+
+                    // 10
+                    DposX = pturn.mvX(turn, cPosX, 1);
+                    if ((pturn.psX(turn, cPosX) < 8) && (ban.onBoard[DposX * 9 + DposY] > 0) && (ban.getOnBoardPturn(DposX, DposY) == turn)) {
+                        if (ban.getOnBoardKtype(DposX * 9 + DposY) == ktype.Keima) { //桂馬のみ
+                            addCheckMovePos(ref ban, DposX * 9 + DposY, -1, 2, turn, mType.Both, kmv, ref kCnt);
                         }
                     }
                 }
@@ -1950,69 +2207,9 @@ namespace TacoWin2 {
                         }
                     }
                 }
-
-                // 金将
-                for (int i = 0; i < 4; i++) {
-                    if (ban.putKinsyou[(int)turn * 4 + i] != 0xFF) {
-                        int dx = pturn.dfX(turn, ban.putKinsyou[(int)turn * 4 + i] / 9, cPos / 9);
-                        int dy = pturn.dfY(turn, ban.putKinsyou[(int)turn * 4 + i] % 9, cPos % 9);
-                        switch (dx, dy) {
-                            case (0, 1):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (1, 0):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-1, 0):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-1, -1):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (0, -1):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], 0, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (1, -1):
-                                addCheckMovePos(ref ban, ban.putKinsyou[(int)turn * 4 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-
-                // 成駒
-                for (int i = 0, j = 0; j < ban.putNarigomaNum[(int)turn]; i++) {
-                    if (ban.putNarigoma[(int)turn * 30 + i] != 0xFF) {
-                        int dx = pturn.dfX(turn, ban.putNarigoma[(int)turn * 30 + i] / 9, cPos / 9);
-                        int dy = pturn.dfY(turn, ban.putNarigoma[(int)turn * 30 + i] % 9, cPos % 9);
-                        switch (dx, dy) {
-                            case (0, 1):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 0, -1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (1, 0):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-1, 0):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 0, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (-1, -1):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (0, -1):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], 0, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            case (1, -1):
-                                addCheckMovePos(ref ban, ban.putNarigoma[(int)turn * 30 + i], -1, 1, turn, mType.NoNari, kmv, ref kCnt);
-                                break;
-                            default:
-                                break;
-                        }
-                        j++;
-                    }
-                }
             }
         }
+
 
         /// <summary>
         /// 指定した位置(cPos)へ駒を置く
