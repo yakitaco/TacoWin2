@@ -147,12 +147,20 @@ namespace TacoWin2 {
             return (moveList[ln], best);
         }
         int depMax;
-        public (kmove[], int) thinkMove(Pturn turn, ban ban, int depth) {
+        public (kmove[], int) thinkMove(Pturn turn, ban ban, int depth, int mateDepth) {
             int best = -999999;
             int beta = 999999;
             int alpha = -999999;
 
             kmove[] bestmove = null;
+
+            /* 詰み */
+            if (mateDepth > 0) {
+                int ret;
+                DebugForm.instance.addMsg("thinkMateMove" + mateDepth);
+                (bestmove, ret) = thinkMateMove(turn, ban, mateDepth);
+                if (ret > 5000) return (bestmove, ret);
+            }
 
             int teCnt = 0; //手の進捗
             depMax = depth;
@@ -200,6 +208,9 @@ namespace TacoWin2 {
                 int aid = mList.assignAlist(out kmove[] moveList);
 
                 (int vla, int sp) = getAllMoveList(ref ban, turn, moveList);
+
+                //手数が多い場合
+                if ((vla > 150) && (depth > 5)) depth = 5;
 
                 Parallel.For(0, workMin, id => {
                     int cnt_local;

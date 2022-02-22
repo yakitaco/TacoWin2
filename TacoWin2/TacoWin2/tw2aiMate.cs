@@ -85,7 +85,7 @@ namespace TacoWin2 {
                             for (i = 0; retList[i].op > 0 || retList[i].np > 0; i++) {
                                 str += "(" + (retList[i].op / 9 + 1) + "," + (retList[i].op % 9 + 1) + ")->(" + (retList[i].np / 9 + 1) + "," + (retList[i].np % 9 + 1) + "):" + retList[i].val + "/";
                             }
-                            if ((retVal > 5000) && (i > mateDepMax)) mateDepMax = i;
+                            if ((retVal > 5000) && (i < mateDepMax)) mateDepMax = i;
 
                             DebugForm.instance.addMsg("TASK[" + Task.CurrentId + ":" + cnt_local + "]MV[" + retVal + "]" + str);
                         }
