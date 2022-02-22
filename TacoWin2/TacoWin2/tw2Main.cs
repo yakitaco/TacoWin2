@@ -39,12 +39,12 @@ namespace TacoWin2 {
 
             ban ban = new ban();
             Console.SetIn(new StreamReader(Console.OpenStandardInput(8192)));
-            
-            
+
+
             if (System.IO.File.Exists("stdin.txt")) {
                 DebugForm.instance.addMsg("[DEBUG]System.IO.StreamReader stdin.txt");
                 var exStdIn = new System.IO.StreamReader("stdin.txt");
-                System.Console.SetIn( exStdIn );
+                System.Console.SetIn(exStdIn);
             }
 
             // 定跡ファイル
@@ -72,7 +72,7 @@ namespace TacoWin2 {
 
                 if (str == null) {
                     Thread.Sleep(10000);
-                // usi 起動
+                    // usi 起動
                 } else if ((str.Length == 3) && (str.Substring(0, 3) == "usi")) {
                     Console.WriteLine("id name たこウインナー 2.2.0");
                     Console.WriteLine("id authoer YAKITACO");
@@ -151,22 +151,18 @@ namespace TacoWin2 {
                     if (arr[1] == "btime") {
 
                         nokori = Convert.ToInt32(turn == Pturn.Sente ? arr[2] : arr[4]);
-                        DebugForm.instance.addMsg("nokori = " + nokori);
-
-                        // 定跡チェック
-                        //string oki = "";
-                        //string mochi = "";
-                        //sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
-                        //string strs = sMove.get(oki + " " + mochi, turn);
-                        //if (strs != null) {
-                        //    Console.WriteLine("bestmove " + strs.Substring(1));
-                        //    continue;
-                        //}
+                        DebugForm.instance.addMsg("NOKORI = " + nokori + " / TESUU = " + tesuu);
 
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
                         sw.Restart();
                         aiTaskMain = Task.Run(() => {
-                            return ai.thinkMove(turn, ban, 6);
+                            if (nokori < 60000) {
+                                return ai.thinkMove(turn, ban, 5, 0);
+                            } else if ((tesuu < 50) || (nokori < 300000)) {
+                                return ai.thinkMove(turn, ban, 6, 7);
+                            } else {
+                                return ai.thinkMove(turn, ban, 7, 11);
+                            }
                         });
 
                         if (nokori > 3600000) {
@@ -174,7 +170,6 @@ namespace TacoWin2 {
                         }
                         Task.Run(() => {
                             (kmove[] km, int best) = aiTaskMain.Result;
-                            //(kmove[] km, int best) = ai.thinkMove(turn, ban, 6);
                             sw.Stop();
                             thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
                             string sendStr;
@@ -239,20 +234,22 @@ namespace TacoWin2 {
                         } else {
                             // 詰みが見えてない場合のみ先読み実施
                             aiTaskMain = Task.Run(() => {
-                                return ai.thinkMove(turn, ban, 6);
+                                if (nokori < 60000) {
+                                    return ai.thinkMove(turn, ban, 5, 0);
+                                } else if ((tesuu < 50) || (nokori < 300000)) {
+                                    return ai.thinkMove(turn, ban, 6, 7);
+                                } else {
+                                    return ai.thinkMove(turn, ban, 7, 11);
+                                }
                             });
                         }
 
                     } else if (arr[1] == "mate") {
 
-                        //position sfen 9/4k4/9/4G4/9/9/9/9/9 b 2G2r2bg4s4n4l18p 1
-                        //go mate infinite
-
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-
-                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 9);
-
+                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 11);
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
+
                         if (best > 5000) {
                             string pstr = "";
                             for (int i = 0; i < km.Length && (km[i].op > 0 || km[i].np > 0); i++) {
@@ -264,6 +261,7 @@ namespace TacoWin2 {
                             Console.WriteLine("checkmate nomate");
                             DebugForm.instance.addMsg("checkmate nomate");
                         }
+
                     } else if (arr[1] == "matetest") {
 
                         (kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 8);
@@ -271,8 +269,6 @@ namespace TacoWin2 {
                     }
 
                 } else if ((str.Length > 7) && (str.Substring(0, 8) == "testmove")) {
-
-
 
                     string[] arr = str.Split(' ');
 
