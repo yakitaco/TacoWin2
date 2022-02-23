@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using TacoWin2_BanInfo;
@@ -335,25 +334,25 @@ namespace TacoWin2 {
                         tmp_ban.moveKoma(moveList[cnt].op / 9, moveList[cnt].op % 9, moveList[cnt].np / 9, moveList[cnt].np % 9, turn, moveList[cnt].nari, false, true);
 
                         // 同一局面がすでに出ている場合
-                        lock (lockObj_hash) {
-                            if (chkHash(tmp_ban.hash, depth, out int reth, out kmove[] retm) > 0) {
-                                if (reth > best) {
-                                    best = reth;
-                                    bestMoveList = retm;
-                                    bestMoveList[depth] = moveList[cnt];
-                                    if (best > alpha) {
-                                        alpha = best;
-                                    }
-                                    if (best >= beta) {
-                                        lock (lockObj) {
-                                            mList.freeAlist(aid);
-                                        }
-                                        return best;
-                                    }
-                                }
-                                continue;
-                            }
-                        }
+                        //lock (lockObj_hash) {
+                        //    if (chkHash(tmp_ban.hash, depth, out int reth, out kmove[] retm) > 0) {
+                        //        if (reth > best) {
+                        //            best = reth;
+                        //            bestMoveList = retm;
+                        //            bestMoveList[depth] = moveList[cnt];
+                        //            if (best > alpha) {
+                        //                alpha = best;
+                        //            }
+                        //            if (best >= beta) {
+                        //                lock (lockObj) {
+                        //                    mList.freeAlist(aid);
+                        //                }
+                        //                return best;
+                        //            }
+                        //        }
+                        //        continue;
+                        //    }
+                        //}
 
                         if (tmp_ban.moveable[pturn.aturn((int)turn) * 81 + tmp_ban.putOusyou[(int)turn]] > 0) {
                             if (bestMoveList == null) {
@@ -387,11 +386,11 @@ namespace TacoWin2 {
                             }
                         }
                     }
-                    if (depth < 2) {
-                        lock (lockObj_hash) {
-                            addHash(bestHash, depth, best, bestMoveList);
-                        }
-                    }
+                    //if (depth < 2) {
+                    //    lock (lockObj_hash) {
+                    //        addHash(bestHash, depth, best, bestMoveList);
+                    //    }
+                    //}
 
                 } else {
 
@@ -921,7 +920,7 @@ namespace TacoWin2 {
 
                             // 不成
                             if ((ban.getOnBoardKtype(oPos) == ktype.Ginsyou) || ((ban.getOnBoardKtype(oPos) == ktype.Kyousha) && (pturn.psY(turn, ny) < 8)) || ((ban.getOnBoardKtype(oPos) == ktype.Kyousha) && (pturn.psY(turn, ny) < 7))) {
-                                if (val - eVal >= kmv[startPoint].val) {
+                                if (val - eVal >= kmv[startPoint].val - kmv[startPoint].aval) {
                                     kmv[--startPoint].set(oPos, nPos, val, eVal, false, turn);
                                     kCnt++;
                                 } else {
@@ -930,7 +929,7 @@ namespace TacoWin2 {
                             }
 
                             // 成り
-                            if (val + 250 - eVal >= kmv[startPoint].val) {
+                            if (val + 250 - eVal >= kmv[startPoint].val - kmv[startPoint].aval) {
                                 kmv[--startPoint].set(oPos, nPos, val + 250, eVal, true, turn);
                                 kCnt++;
                             } else {
@@ -939,7 +938,7 @@ namespace TacoWin2 {
 
                         } else {
 
-                            if (val - eVal >= kmv[startPoint].val) {
+                            if (val - eVal >= kmv[startPoint].val - kmv[startPoint].aval) {
                                 kmv[--startPoint].set(oPos, nPos, val, eVal, false, turn);
                                 kCnt++;
                             } else {
@@ -964,7 +963,12 @@ namespace TacoWin2 {
                         kmv[startPoint + kCnt++].set(oPos, nPos, sval, eVal, true, turn);
                     }
                 } else {
-                    kmv[startPoint + kCnt++].set(oPos, nPos, sval, eVal, false, turn);
+                    if (sval - eVal >= kmv[startPoint].val - kmv[startPoint].aval) {
+                        kmv[--startPoint].set(oPos, nPos, sval, eVal, false, turn);
+                        kCnt++;
+                    } else {
+                        kmv[startPoint + kCnt++].set(oPos, nPos, sval, eVal, false, turn);
+                    }
                 }
                 return 0; // 駒がない
             }

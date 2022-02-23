@@ -333,6 +333,19 @@ namespace TacoWin2 {
                             ai.stopFlg = false;
                         });
                     }
+                } else if ((str.Length > 4) && (str.Substring(0, 4) == "test")) {
+                    // テスト用
+                    string[] arr = str.Split(' ');
+                    if (arr[1] == "bestmove") {
+                        kmove[] mLst = new kmove[500];
+                        (int vla, int sp) = ai.getBestMove(ref ban, turn, mLst);
+                        DebugForm.instance.addMsg(vla + " " + sp + " " + mLst[sp].aval);
+                        for (int i = sp; i < vla + sp; i++) {
+                            DebugForm.instance.addMsg("aList" + i + ":" + (mLst[i].op / 9 + 1) + "/" + (mLst[i].op % 9 + 1) + "/" + (mLst[i].np / 9 + 1) + "/" + (mLst[i].np % 9 + 1) + "/" + mLst[i].val + "/" + mLst[i].aval);
+                        }
+
+                    }
+
                 } else if ((str.Length == 4) && (str.Substring(0, 4) == "stop")) {
                     mateMove = null;
                     ai.stopFlg = true;
