@@ -150,6 +150,23 @@ namespace TacoWin2_SMV {
 
         }
 
+        // 次の手リストを全更新
+        public static void updateAll(ulong hash, string position, List<string> str) {
+            string contents = "";
+            /* 手がある(テキストを返す) */
+            for (int i = 0; i < str.Count; i++) {
+                contents += "," + str[i];
+            }
+            sMove tmpSmv = new sMove(hash, position + contents);
+            int idx = sList.BinarySearch(tmpSmv);
+            if (idx < 0) {
+                /* 手がない */
+                sList.Insert(~idx, tmpSmv);
+            } else {
+                sList[idx] = tmpSmv;
+            }
+        }
+
         public static string getTxt(ulong hash) {
             int idx = sList.BinarySearch(new sMove(hash, ""));
             if (idx < 0) {
