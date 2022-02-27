@@ -120,10 +120,23 @@
   <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
-  <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-    <value>17, 17</value>
-  </metadata>
+  <data name="DebugTxt.Text" xml:space="preserve">
+    <value>l_|n_|s_|g_|k_|g_|s_|n_|l_|    0,0|0,1|0,1|0,1|0,2|0,1|0,2|0,0|0,1|
+__|r_|__|__|__|__|__|b_|__|    0,2|0,1|0,3|0,4|0,4|0,4|0,3|0,2|0,1|
+p_|p_|p_|p_|p_|p_|p_|p_|p_|    0,2|0,1|0,1|0,0|0,0|0,0|0,2|0,0|0,3|
+__|__|__|__|__|__|__|__|__|    0,1|0,1|0,1|0,1|0,1|0,1|0,1|0,1|0,1|
+__|__|__|__|__|__|__|__|__|    0,0|0,0|0,0|0,0|0,0|0,0|0,0|0,0|0,0|
+__|__|__|__|__|__|__|__|__|    1,0|1,0|1,0|1,0|1,0|1,0|1,0|1,0|1,0|
+P_|P_|P_|P_|P_|P_|P_|P_|P_|    3,0|0,0|2,0|0,0|0,0|0,0|1,0|1,0|2,0|
+__|B_|__|__|__|__|__|R_|__|    1,0|2,0|3,0|4,0|4,0|4,0|3,0|1,0|2,0|
+L_|N_|S_|G_|K_|G_|S_|N_|L_|    1,0|0,0|2,0|1,0|2,0|1,0|1,0|1,0|0,0|
+FU:0/KY:0/KE:0/GI:0/HI:0/KA:0/KI:0
+FU:0/KY:0/KE:0/GI:0/HI:0/KA:0/KI:0
+5 9 4 4 6 6 5 6 5 
+9 9 9 9 2 2 2 4 2 
+[HASH]5BA8BEC16AD3ED64</value>
+  </data>
   <metadata name="$this.TrayHeight" type="System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
-    <value>25</value>
+    <value>36</value>
   </metadata>
 </root>

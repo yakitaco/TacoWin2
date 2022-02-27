@@ -19,7 +19,18 @@ namespace TacoWin2_Mkjs {
         }
 
         private void tw2mkjs_editForm_Load(object sender, EventArgs e) {
-
+            ban = new ban();
+            // 初期
+            ban.startpos();
+            string oki = "";
+            string mochi = "";
+            sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
+            JmpIpt.Text = oki + " " + mochi;
+            DebugTxt.Text = ban.debugShow();
+            showList(ban.hash);
+            history.Clear();
+            history.Add(ban.hash);
+            BackBtn.Enabled = false;
         }
 
         private void LrdBtn_Click(object sender, EventArgs e) {
@@ -40,6 +51,7 @@ namespace TacoWin2_Mkjs {
             }
             history.Clear();
             history.Add(ban.hash);
+            DebugTxt.Text = ban.debugShow();
             BackBtn.Enabled = false;
             showList(ban.hash);
         }
@@ -70,6 +82,7 @@ namespace TacoWin2_Mkjs {
             sfenIO.sfen2ban(ref ban, arr[0], arr[1]);
             showList(ban.hash);
             history.Add(ban.hash);
+            DebugTxt.Text = ban.debugShow();
             BackBtn.Enabled = true;
         }
 
@@ -84,6 +97,8 @@ namespace TacoWin2_Mkjs {
                 JmpIpt.Text = arr2[0];
                 string[] arr = arr2[0].Split(' ');
                 sfenIO.sfen2ban(ref ban, arr[0], arr[1]);
+
+                DebugTxt.Text = ban.debugShow();
             }
             if (history.Count == 1) {
                 BackBtn.Enabled = false;
@@ -113,6 +128,7 @@ namespace TacoWin2_Mkjs {
                 JmpIpt.Text = oki + " " + mochi;
                 showList(ban.hash);
                 BackBtn.Enabled = true;
+                DebugTxt.Text = ban.debugShow();
                 history.Add(ban.hash);
             }
         }
@@ -221,7 +237,7 @@ namespace TacoWin2_Mkjs {
             string mochi = "";
             sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
             JmpIpt.Text = oki + " " + mochi;
-
+            DebugTxt.Text = ban.debugShow();
             showList(ban.hash);
         }
 
