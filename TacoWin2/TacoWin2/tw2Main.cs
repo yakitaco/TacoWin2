@@ -247,10 +247,10 @@ namespace TacoWin2 {
                     } else if (arr[1] == "mate") {
 
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 11);
+                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 17);
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
 
-                        if (best > 5000) {
+                        if (best < 999) {
                             string pstr = "";
                             for (int i = 0; i < km.Length && (km[i].op > 0 || km[i].np > 0); i++) {
                                 pstr += " " + tw2usiIO.pos2usi(km[i].op / 9, km[i].op % 9, km[i].np / 9, km[i].np % 9, km[i].nari);
@@ -336,6 +336,7 @@ namespace TacoWin2 {
                 } else if ((str.Length > 4) && (str.Substring(0, 4) == "test")) {
                     // テスト用
                     string[] arr = str.Split(' ');
+
                     if (arr[1] == "bestmove") {
                         kmove[] mLst = new kmove[500];
                         (int vla, int sp) = ai.getBestMove(ref ban, turn, mLst);
@@ -343,7 +344,16 @@ namespace TacoWin2 {
                         for (int i = sp; i < vla + sp; i++) {
                             DebugForm.instance.addMsg("aList" + i + ":" + (mLst[i].op / 9 + 1) + "/" + (mLst[i].op % 9 + 1) + "/" + (mLst[i].np / 9 + 1) + "/" + (mLst[i].np % 9 + 1) + "/" + mLst[i].val + "/" + mLst[i].aval);
                         }
-
+                    } else if (arr[1] == "move") {
+                        sw.Restart();
+                        if (arr.Length > 3) {
+                            (kmove[] km, int best) = ai.thinkMove(turn, ban, Convert.ToInt32(arr[2]), Convert.ToInt32(arr[3]));
+                        } else {
+                            (kmove[] km, int best) = ai.thinkMove(turn, ban, Convert.ToInt32(arr[2]), 0);
+                        }
+                        sw.Stop();
+                        TimeSpan ts = sw.Elapsed;
+                        DebugForm.instance.addMsg($"TIME : {ts}");
                     }
 
                 } else if ((str.Length == 4) && (str.Substring(0, 4) == "stop")) {

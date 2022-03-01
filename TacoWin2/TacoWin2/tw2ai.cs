@@ -158,7 +158,7 @@ namespace TacoWin2 {
                 int ret;
                 DebugForm.instance.addMsg("thinkMateMove" + mateDepth);
                 (bestmove, ret) = thinkMateMove(turn, ban, mateDepth);
-                if (ret > 5000) return (bestmove, ret);
+                if (ret < 999) return (bestmove, 99999);
             }
 
             int teCnt = 0; //手の進捗
@@ -210,6 +210,7 @@ namespace TacoWin2 {
 
                 //手数が多い場合
                 if ((vla > 150) && (depth > 5)) depth = 5;
+                DebugForm.instance.addMsg("tenum = " + vla + "/ depth = " + depth + "/ workMin =" + workMin);
 
                 Parallel.For(0, workMin, id => {
                     int cnt_local;
@@ -586,7 +587,9 @@ namespace TacoWin2 {
 
         // 敵の次移動ポイントを計算
         void getEnemyMoveList(ref ban ban, int turn, out emove emv) {
+            
             emv = new emove();
+            return;
             int cnt = 0;
             unsafe {
                 // 王将
