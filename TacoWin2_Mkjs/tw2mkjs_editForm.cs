@@ -134,41 +134,47 @@ namespace TacoWin2_Mkjs {
         }
 
         private void AddBtn_Click(object sender, EventArgs e) {
-            int ox = (int)OxIpt.Value;
-            string oy = tw2mkjs_csaIO.int2Dafb((int)OyIpt.Value - 1);
-            int nx = (int)NxIpt.Value;
-            string ny = tw2mkjs_csaIO.int2Dafb((int)NyIpt.Value - 1);
-            string nari;
-            if (NariChk.Checked == true) {
-                nari = "*";
+            Pturn tursn = TebanChk.Checked ? Pturn.Sente : Pturn.Gote;
+            int ret = ban.chkMoveable((int)OxIpt.Value - 1, (int)OyIpt.Value - 1, (int)NxIpt.Value - 1, (int)NyIpt.Value - 1, tursn, NariChk.Checked);
+            if (ret == 0) {
+                int ox = (int)OxIpt.Value;
+                string oy = tw2mkjs_csaIO.int2Dafb((int)OyIpt.Value - 1);
+                int nx = (int)NxIpt.Value;
+                string ny = tw2mkjs_csaIO.int2Dafb((int)NyIpt.Value - 1);
+                string nari;
+                if (NariChk.Checked == true) {
+                    nari = "*";
+                } else {
+                    nari = "";
+                }
+                string turn;
+                if (TebanChk.Checked == true) {
+                    turn = "+";
+                } else {
+                    turn = "-";
+                }
+
+                int val = ((int)ValIpt.Value);
+                int weight = ((int)WeyIpt.Value);
+                int type = ((int)TpeIpt.Value);
+
+                NextLst.Items.Add(turn + ox.ToString() + oy.ToString() + nx.ToString() + ny.ToString() + nari + "/" + val + "/" + weight + "/" + type);
+
+                string oki = "";
+                string mochi = "";
+                sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
+
+                List<string> str = new List<string>();
+                for (int i = 0; i < NextLst.Items.Count; i++) {
+                    str.Add(NextLst.Items[i].ToString());
+                    Debug.WriteLine(str[i]);
+                }
+                Debug.WriteLine(oki + " " + mochi);
+
+                sMove.updateAll(ban.hash, oki + " " + mochi, str);
             } else {
-                nari = "";
+                Debug.WriteLine(" chkMoveable = " + ret);
             }
-            string turn;
-            if (TebanChk.Checked == true) {
-                turn = "+";
-            } else {
-                turn = "-";
-            }
-
-            int val = ((int)ValIpt.Value);
-            int weight = ((int)WeyIpt.Value);
-            int type = ((int)TpeIpt.Value);
-
-            NextLst.Items.Add(turn + ox.ToString() + oy.ToString() + nx.ToString() + ny.ToString() + nari + "/" + val + "/" + weight + "/" + type);
-
-            string oki = "";
-            string mochi = "";
-            sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
-
-            List<string> str = new List<string>();
-            for (int i = 0; i < NextLst.Items.Count; i++) {
-                str.Add(NextLst.Items[i].ToString());
-                Debug.WriteLine(str[i]);
-            }
-            Debug.WriteLine(oki + " " + mochi);
-
-            sMove.updateAll(ban.hash, oki + " " + mochi, str);
         }
 
         private void SetBtn_Click(object sender, EventArgs e) {

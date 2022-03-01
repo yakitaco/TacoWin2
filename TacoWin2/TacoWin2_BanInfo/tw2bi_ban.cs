@@ -2,6 +2,7 @@
 
 namespace TacoWin2_BanInfo {
     public unsafe struct ban {
+
         public fixed ushort onBoard[81]; // 盤上情報(X<筋>*9+Y<段>)
         // WWWWWWWW000XYYYY [X]0:先手/1:後手 [Y]enum ktype [W]置き駒情報
 
@@ -553,6 +554,8 @@ namespace TacoWin2_BanInfo {
                 ushort mk = 0;
 
                 // hash更新
+                if ((int)getOnBoardPturn(ox, oy)> 1) Console.WriteLine(debugShow());
+                if (getOnBoardKtype(ox, oy) == ktype.None) Console.WriteLine( debugShow());
                 hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(ox, oy) * 14 + (int)getOnBoardKtype(ox, oy) - 1, ox * 9 + oy];
 
                 if (renewMoveable == true) chgMoveable(ox, oy, getOnBoardPturn(ox, oy), -1);
@@ -645,6 +648,54 @@ namespace TacoWin2_BanInfo {
 
             }
 
+            return 0;
+        }
+
+
+        /// <summary>
+        /// 指定した駒の移動が可能かチェック
+        /// </summary>
+        /// <param name="ox"></param>
+        /// <param name="oy"></param>
+        /// <param name="nx"></param>
+        /// <param name="ny"></param>
+        /// <param name="turn"></param>
+        /// <param name="nari"></param>
+        /// <returns>0:OK -1:NG</returns>
+        public int chkMoveable(int ox, int oy, int nx, int ny, Pturn turn, bool nari) {
+            if ((turn != Pturn.Sente) && (turn != Pturn.Gote)) return -1;
+            if ((ox == nx) && (ox == ny)) return -2;
+            if ((ox < 0) || (ox > 9)) return -3;
+            if ((oy < 0) || (oy > 8)) return -4;
+            if ((nx < 0) || (nx > 8)) return -5;
+            if ((ny < 0) || (ny > 8)) return -6;
+
+            // 駒打ち
+            if (ox == 9) {
+                if (nari == true) return -7;
+                // 置き場所に駒があるか
+                if ((onBoard[nx * 9 + ny] > 0)) return -8;
+                // 持ち駒を持っていない
+                if (captPiece[(int)turn * 7 + oy - 1] == 0) return -9;
+
+                if (((oy == (int)ktype.Fuhyou) || (oy == (int)ktype.Kyousha)) && (pturn.psY(turn, ny) == 8)) return -10;
+                if ((oy == (int)ktype.Keima) && (pturn.psY(turn, ny) > 6)) return -11;
+
+                // 駒移動
+            } else if ((ox > -1) && (ox < 9)) {
+                if ((onBoard[ox * 9 + oy] == 0)) return -12;
+                if (getOnBoardPturn(ox, oy) != turn) return -13;
+                // TODO : 個々の駒移動チェック
+                if ((onBoard[nx * 9 + ny] > 0) && (getOnBoardPturn(ox, oy) == turn)) return -14;
+                if ((nari == true) && (getOnBoardKtype(ox, oy) > ktype.Kakugyou)) return -15;
+                if ((nari == true) && (pturn.psY(turn, oy) < 6) && (pturn.psY(turn, ny) < 6)) return -16;
+
+                if ((nari == false) && ((getOnBoardKtype(ox, oy) == ktype.Fuhyou) || (getOnBoardKtype(ox, oy) == ktype.Kyousha)) && (pturn.psX(turn, ny) == 8)) return -17;
+                if ((nari == false) && (getOnBoardKtype(ox, oy) == ktype.Keima) && (pturn.psX(turn, ny) > 6)) return -18;
+
+            } else {
+                return -19;
+            }
             return 0;
         }
 
@@ -1108,6 +1159,12 @@ namespace TacoWin2_BanInfo {
                 str += putFuhyou[i] + " ";
 
             }
+
+            for (int i = 0; i < 4; i++) {
+                str += putHisya[i] + " ";
+
+            }
+
             str += Environment.NewLine;
             for (int i = 0; i < 9; i++) {
                 str += putFuhyou[9 + i] + " ";

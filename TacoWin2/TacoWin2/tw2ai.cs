@@ -157,8 +157,8 @@ namespace TacoWin2 {
             if (mateDepth > 0) {
                 int ret;
                 DebugForm.instance.addMsg("thinkMateMove" + mateDepth);
-                (bestmove, ret) = thinkMateMove(turn, ban, mateDepth);
-                if (ret > 5000) return (bestmove, ret);
+                (bestmove, ret) = thinkMateMove(turn, ban, 9);
+                if (ret < 999) return (bestmove, 99999);
             }
 
             int teCnt = 0; //手の進捗
@@ -209,7 +209,9 @@ namespace TacoWin2 {
                 (int vla, int sp) = getAllMoveList(ref ban, turn, moveList);
 
                 //手数が多い場合
-                if ((vla > 150) && (depth > 5)) depth = 5;
+                if ((vla > 150) && (depMax > 5)) depMax = 5;
+                if ((vla > 100) && (depMax > 6)) depMax = 6;
+                DebugForm.instance.addMsg("tenum = " + vla + "/ depMax = " + depMax + "/ workMin =" + workMin);
 
                 Parallel.For(0, workMin, id => {
                     int cnt_local;
@@ -238,6 +240,11 @@ namespace TacoWin2 {
                         } else {
                             retVal = -think(pturn.aturn(turn), ref tmp_ban, out retList, -beta, -alpha, moveList[cnt_local].val, 1, depth);
                             retList[0] = moveList[cnt_local];
+
+                            /* 打ち歩詰めチェック */
+                            if ((retVal > 5000) && (moveList[cnt_local].op == 82) && ((retList[2].op == 0) || (retList[2].np == 0))) { /* 9*9+(int)ktype.Fuhyou */
+                                continue;
+                            };
 
                             string str = "";
                             for (int i = 0; retList[i].op > 0 || retList[i].np > 0; i++) {
@@ -586,7 +593,9 @@ namespace TacoWin2 {
 
         // 敵の次移動ポイントを計算
         void getEnemyMoveList(ref ban ban, int turn, out emove emv) {
+            
             emv = new emove();
+            return;
             int cnt = 0;
             unsafe {
                 // 王将
@@ -916,7 +925,7 @@ namespace TacoWin2 {
                 if (ban.onBoard[nPos] > 0) {
                     if (ban.getOnBoardPturn(nx, ny) != turn) {
                         val = kVal[(int)ban.getOnBoardKtype(nx, ny)] + sval;
-                        if ((pturn.psY(turn, ny) > 5) && ((int)ban.getOnBoardKtype(oPos) < 7)) {
+                        if (((pturn.psY(turn, oPos % 9) > 5)||(pturn.psY(turn, ny) > 5)) && ((int)ban.getOnBoardKtype(oPos) < 7)) {
 
                             // 不成
                             if ((ban.getOnBoardKtype(oPos) == ktype.Ginsyou) || ((ban.getOnBoardKtype(oPos) == ktype.Kyousha) && (pturn.psY(turn, ny) < 8)) || ((ban.getOnBoardKtype(oPos) == ktype.Kyousha) && (pturn.psY(turn, ny) < 7))) {
@@ -953,7 +962,7 @@ namespace TacoWin2 {
                     }
 
                 }
-                if ((pturn.psY(turn, ny) > 5) && ((int)ban.getOnBoardKtype(oPos) < 7)) {
+                if (((pturn.psY(turn, oPos % 9) > 5) || (pturn.psY(turn, ny) > 5)) && ((int)ban.getOnBoardKtype(oPos) < 7)) {
                     if ((ban.getOnBoardKtype(oPos) == ktype.Ginsyou) || ((ban.getOnBoardKtype(oPos) == ktype.Kyousha) && (pturn.psY(turn, ny) < 8)) || ((ban.getOnBoardKtype(oPos) == ktype.Kyousha) && (pturn.psY(turn, ny) < 7))) {
                         kmv[startPoint + kCnt++].set(oPos, nPos, sval, eVal, false, turn);
                     }
