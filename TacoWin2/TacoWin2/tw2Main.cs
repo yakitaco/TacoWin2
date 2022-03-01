@@ -156,10 +156,14 @@ namespace TacoWin2 {
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
                         sw.Restart();
                         aiTaskMain = Task.Run(() => {
-                            if (nokori < 60000) {
+                            if (nokori < 120000) {
+                                return ai.thinkMove(turn, ban, 4, 0);
+                            } else if ((tesuu < 50) || (nokori < 180000)) {
                                 return ai.thinkMove(turn, ban, 5, 0);
                             } else if ((tesuu < 50) || (nokori < 300000)) {
                                 return ai.thinkMove(turn, ban, 6, 7);
+                            } else if ((tesuu < 50) || (nokori < 600000)) {
+                                return ai.thinkMove(turn, ban, 6, 11);
                             } else {
                                 return ai.thinkMove(turn, ban, 7, 11);
                             }
@@ -234,10 +238,14 @@ namespace TacoWin2 {
                         } else {
                             // 詰みが見えてない場合のみ先読み実施
                             aiTaskMain = Task.Run(() => {
-                                if (nokori < 60000) {
+                                if (nokori < 120000) {
+                                    return ai.thinkMove(turn, ban, 4, 0);
+                                } else if ((tesuu < 50) || (nokori < 180000)) {
                                     return ai.thinkMove(turn, ban, 5, 0);
                                 } else if ((tesuu < 50) || (nokori < 300000)) {
                                     return ai.thinkMove(turn, ban, 6, 7);
+                                } else if ((tesuu < 50) || (nokori < 600000)) {
+                                    return ai.thinkMove(turn, ban, 6, 11);
                                 } else {
                                     return ai.thinkMove(turn, ban, 7, 11);
                                 }
@@ -247,10 +255,10 @@ namespace TacoWin2 {
                     } else if (arr[1] == "mate") {
 
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 11);
+                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15);
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
 
-                        if (best > 5000) {
+                        if (best < 999) {
                             string pstr = "";
                             for (int i = 0; i < km.Length && (km[i].op > 0 || km[i].np > 0); i++) {
                                 pstr += " " + tw2usiIO.pos2usi(km[i].op / 9, km[i].op % 9, km[i].np / 9, km[i].np % 9, km[i].nari);
@@ -336,6 +344,7 @@ namespace TacoWin2 {
                 } else if ((str.Length > 4) && (str.Substring(0, 4) == "test")) {
                     // テスト用
                     string[] arr = str.Split(' ');
+
                     if (arr[1] == "bestmove") {
                         kmove[] mLst = new kmove[500];
                         (int vla, int sp) = ai.getBestMove(ref ban, turn, mLst);
@@ -343,12 +352,30 @@ namespace TacoWin2 {
                         for (int i = sp; i < vla + sp; i++) {
                             DebugForm.instance.addMsg("aList" + i + ":" + (mLst[i].op / 9 + 1) + "/" + (mLst[i].op % 9 + 1) + "/" + (mLst[i].np / 9 + 1) + "/" + (mLst[i].np % 9 + 1) + "/" + mLst[i].val + "/" + mLst[i].aval);
                         }
+                    } else if (arr[1] == "move") {
+                        kmove[] km;
+                        int best;
+                        sw.Restart();
+                        if (arr.Length > 3) {
 
+                            (km, best) = ai.thinkMove(turn, ban, Convert.ToInt32(arr[2]), Convert.ToInt32(arr[3]));
+                        } else {
+                            (km, best) = ai.thinkMove(turn, ban, Convert.ToInt32(arr[2]), 0);
+                        }
+                        sw.Stop();
+                        if ((km[1].op > 0) || (km[1].np > 0)) {
+                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari));
+                        } else {
+                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
+                        }
+
+                        TimeSpan ts = sw.Elapsed;
+                        DebugForm.instance.addMsg($"TIME : {ts}");
                     }
 
                 } else if ((str.Length == 4) && (str.Substring(0, 4) == "stop")) {
                     mateMove = null;
-                    ai.stopFlg = true;
+                    if (aiTaskMain != null) ai.stopFlg = true;
 
                     (kmove[] km, int best) = aiTaskMain.Result;
 
@@ -360,12 +387,16 @@ namespace TacoWin2 {
                     mList.reset();
 
                 } else if ((str.Length > 8) && (str.Substring(0, 8) == "gameover")) {
-                    ai.stopFlg = true;
+                    if (aiTaskMain != null) ai.stopFlg = true;
+                    (kmove[] km, int best) = aiTaskMain.Result;
+                    ai.stopFlg = false;
                     if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
                     inGame = 2;
 
                 } else if ((str.Length == 4) && (str.Substring(0, 4) == "quit")) {
-                    ai.stopFlg = true;
+                    if (aiTaskMain != null) ai.stopFlg = true;
+                    (kmove[] km, int best) = aiTaskMain.Result;
+                    ai.stopFlg = false;
                     if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
 
                 } else {
