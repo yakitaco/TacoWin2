@@ -87,6 +87,12 @@ namespace TacoWin2 {
                             retVal = thinkMateDef(pturn.aturn(turn), ref tmp_ban, moveList[cnt_local].val, out retList, 1, mateDepMax);
 
                             /* 打ち歩詰めチェック */
+                            if ((retVal  == 1) && (moveList[cnt_local].op == 82)) { /* 9*9+(int)ktype.Fuhyou */
+                                continue;
+                            };
+
+                            retList[0] = moveList[cnt_local];
+                            /* 打ち歩詰めチェック */
                             if ((retVal == 1) && (moveList[cnt_local].op == 82)) { /* 9*9+(int)ktype.Fuhyou */
                                 continue;
                             };
@@ -221,6 +227,8 @@ namespace TacoWin2 {
                     aid = mList.assignAlist(out moveList);
                 }
 
+                if ((depth < mateDepMax) && (depth < depMax)) {// 
+                                           //[攻め方]王手を指せる手を全てリスト追加
                 if ((depth < mateDepMax) && (depth < depMax)) {// 
                                                                //[攻め方]王手を指せる手を全てリスト追加
                     int vla = getAllCheckList(ref ban, turn, moveList);
