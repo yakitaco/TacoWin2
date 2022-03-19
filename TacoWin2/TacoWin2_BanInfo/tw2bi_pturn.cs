@@ -40,6 +40,8 @@ namespace TacoWin2_BanInfo {
             }
         }
 
+
+
         /// <summary>
         /// 自分中心X相対位置を取得
         /// </summary>
@@ -47,6 +49,7 @@ namespace TacoWin2_BanInfo {
         /// <param name="sx">自分の絶対X位置</param>
         /// <param name="dx">相手の絶対X位置</param>
         /// <returns>自分中心X相対位置(+ 自分が相手より右側/- 自分が相手より左側)</returns>
+        [Obsolete("このメソッドの使用は非推奨です")]
         public static int dfX(Pturn turn, int sx, int dx) {
             if (turn == Pturn.Sente) {
                 return dx - sx;
@@ -62,6 +65,7 @@ namespace TacoWin2_BanInfo {
         /// <param name="sy">自分の絶対Y位置</param>
         /// <param name="dy">相手の絶対Y位置</param>
         /// <returns>自分中心Y相対位置(+ 自分が相手より上側/- 自分が相手より下側)</returns>
+        [Obsolete("このメソッドの使用は非推奨です")]
         public static int dfY(Pturn turn, int sy, int dy) {
             if (turn == Pturn.Sente) {
                 return dy - sy;
@@ -77,6 +81,7 @@ namespace TacoWin2_BanInfo {
         /// <param name="x">絶対X位置</param>
         /// <param name="moval">自分中心X移動量(+ 右側へ/- 左側へ)</param>
         /// <returns>移動後X絶対位置</returns>
+        [Obsolete("このメソッドの使用は非推奨です")]
         public static int mvX(Pturn t, int x, int moval) {
             if (t == Pturn.Sente) {
                 return x - moval;
@@ -92,6 +97,7 @@ namespace TacoWin2_BanInfo {
         /// <param name="y">絶対Y位置</param>
         /// <param name="moval">自分中心Y移動量(+ 前側へ/- 後側へ)</param>
         /// <returns>移動後Y絶対位置</returns>
+        [Obsolete("このメソッドの使用は非推奨です")]
         public static int mvY(Pturn t, int y, int moval) {
             if (t == Pturn.Sente) {
                 return y - moval;
@@ -101,16 +107,49 @@ namespace TacoWin2_BanInfo {
         }
 
         // 前後の移動
+        [Obsolete("このメソッドの使用は非推奨です")]
         public static (int, int) mvXY(Pturn t, int x, int y, int movalx, int movaly) {
             return (mvX(t, x, movalx), mvY(t, y, movaly));
         }
 
         // 前後の移動(XY統合)[pos=x*9+y/move=movalx*9+movaly]
+        [Obsolete("このメソッドの使用は非推奨です")]
         public static int mvXY(Pturn t, int pos, int move) {
             if (t == Pturn.Sente) {
                 return pos - move;
             } else {
                 return pos + move;
+            }
+        }
+
+        public static int dx(Pturn turn, byte sPos, byte dPos) {
+            if (turn == Pturn.Sente) {
+                return (dPos >> 4) - (sPos >> 4);
+            } else {
+                return (sPos >> 4) - (dPos >> 4);
+            }
+        }
+        
+        public static int dy(Pturn turn, byte sPos, byte dPos) {
+            if (turn == Pturn.Sente) {
+                return (dPos & 0xF) - (sPos & 0xF);
+            } else {
+                return (sPos & 0xF) - (dPos & 0xF);
+            }
+        }
+
+        /// <summary>
+        /// 駒の移動絶対位置(手番,現在の絶対位置,自分中心移動相対)
+        /// </summary>
+        /// <param name="turn"></param>
+        /// <param name="pos"></param>
+        /// <param name="move"></param>
+        /// <returns>移動先の絶対位置</returns>
+        public static byte mv(Pturn turn, byte pos, int move) {
+            if (turn == Pturn.Sente) {
+                return (byte)(pos - move);
+            } else {
+                return (byte)(pos + move);
             }
         }
 

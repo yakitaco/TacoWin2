@@ -5,23 +5,29 @@ namespace TacoWin2_sfenIO {
 
         public static void sfen2ban(ref ban ban, string oki, string mochi) {
 
-            ban.putOusyou[0] = 0xFF;
-            ban.putOusyou[1] = 0xFF;
-            for (int i = 0; i < 4; i++) {
-                ban.putHisya[i] = 0xFF;
-                ban.putKakugyou[i] = 0xFF;
+            ban.data[ban.setOu] = System.UInt32.MaxValue;
+            ban.data[ban.GoOffset + ban.setOu] = System.UInt32.MaxValue;
+            ban.data[ban.setKin] = System.UInt32.MaxValue;
+            ban.data[ban.GoOffset + ban.setKin] = System.UInt32.MaxValue;
+            ban.data[ban.setGin] = System.UInt32.MaxValue;
+            ban.data[ban.GoOffset + ban.setGin] = System.UInt32.MaxValue;
+            ban.data[ban.setKei] = System.UInt32.MaxValue;
+            ban.data[ban.GoOffset + ban.setKei] = System.UInt32.MaxValue;
+            ban.data[ban.setKyo] = System.UInt32.MaxValue;
+            ban.data[ban.GoOffset + ban.setKyo] = System.UInt32.MaxValue;
+            ban.data[ban.setHi] = System.UInt32.MaxValue;
+            ban.data[ban.GoOffset + ban.setHi] = System.UInt32.MaxValue;
+            ban.data[ban.setKa] = System.UInt32.MaxValue;
+            ban.data[ban.GoOffset + ban.setKa] = System.UInt32.MaxValue;
+
+            for (int i = 0; i < 3; i++) {
+                ban.data[ban.setFu + i] = System.UInt32.MaxValue;
+                ban.data[ban.GoOffset + ban.setFu + i] = System.UInt32.MaxValue;
             }
-            for (int i = 0; i < 8; i++) {
-                ban.putKinsyou[i] = 0xFF;
-                ban.putKyousha[i] = 0xFF;
-                ban.putKeima[i] = 0xFF;
-                ban.putGinsyou[i] = 0xFF;
-            }
-            for (int i = 0; i < 18; i++) {
-                ban.putFuhyou[i] = 9;
-            }
-            for (int i = 0; i < 60; i++) {
-                ban.putNarigoma[i] = 0xFF;
+
+            for (int i = 0; i < 7; i++) {
+                ban.data[ban.setNa + i] = System.UInt32.MaxValue;
+                ban.data[ban.GoOffset + ban.setNa + i] = System.UInt32.MaxValue;
             }
 
             // 場面の設定
@@ -36,7 +42,7 @@ namespace TacoWin2_sfenIO {
                     } else {
                         // 駒配置
                         (ktype k, Pturn p) = toKoma(oki, ref j);
-                        ban.putKoma(suzi, i, p, k);
+                        ban.putKoma((suzi<< 4) + i, p, 0, k);
                         ban.hash ^= tw2bi_hash.okiSeed[(int)p * 14 + (int)k - 1, suzi * 9 + i];
                         suzi--;
                     }
@@ -56,7 +62,8 @@ namespace TacoWin2_sfenIO {
                     if (num == 0) num = 1;
                     // 持ち駒追加(複数駒ありを考慮)
                     (ktype k, Pturn p) = toKoma(mochi, ref j);
-                    ban.captPiece[(int)p * 7 + (int)k - 1] += (byte)num;
+                    ban.data[((int)p << 6) + ban.hand + (int)k] += (byte)num;
+
                     for (int i = 0; i < num; i++) {
                         ban.hash ^= tw2bi_hash.mochiSeed[(int)p * 7 + (int)k - 1, i];
                     }
@@ -70,13 +77,12 @@ namespace TacoWin2_sfenIO {
 
         public static void ban2sfen(ref ban ban, ref string oki, ref string mochi) {
             // 場面の設定
-            int j = 0;
             int empty = 0;
             for (int i = 0; i < 9; i++) {
                 int suzi = 9 - 1;
                 while (suzi > -1) {
                     // 数字(空白の数)
-                    if (ban.onBoard[suzi * 9 + i] == 0) {
+                    if (ban.getOnBoardKtype((suzi << 4) + i) == ktype.None) {
                         empty++;
                     } else {
                         // 駒配置
@@ -84,7 +90,7 @@ namespace TacoWin2_sfenIO {
                             oki += empty;
                             empty = 0;
                         }
-                        oki += fromKoma(ban.getOnBoardKtype(suzi * 9 + i), ban.getOnBoardPturn(suzi * 9 + i));
+                        oki += fromKoma(ban.getOnBoardKtype((suzi << 4) + i), ban.getOnBoardPturn((suzi << 4) + i));
                     }
                     suzi--;
                 }
@@ -97,51 +103,51 @@ namespace TacoWin2_sfenIO {
 
             // 持ち駒の設定(先手→後手、飛車→角→金→銀→桂→香→歩の順)
             for (int i = 0; i < 2; i++) {
-                if (ban.captPiece[(int)i * 7 + (int)ktype.Hisya - 1] > 0) {
-                    if (ban.captPiece[(int)i * 7 + (int)ktype.Hisya - 1] > 1) {
-                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Hisya - 1];
+                if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Hisya] > 0) {
+                    if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Hisya] > 1) {
+                        mochi += ban.data[((int)i << 6) + ban.hand + (int)ktype.Hisya];
                     }
                     mochi += fromKoma(ktype.Hisya, (Pturn)i);
                 }
 
-                if (ban.captPiece[(int)i * 7 + (int)ktype.Kakugyou - 1] > 0) {
-                    if (ban.captPiece[(int)i * 7 + (int)ktype.Kakugyou - 1] > 1) {
-                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Kakugyou - 1];
+                if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Kakugyou] > 0) {
+                    if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Kakugyou] > 1) {
+                        mochi += ban.data[((int)i << 6) + ban.hand + (int)ktype.Kakugyou];
                     }
                     mochi += fromKoma(ktype.Kakugyou, (Pturn)i);
                 }
 
-                if (ban.captPiece[(int)i * 7 + (int)ktype.Kinsyou - 1] > 0) {
-                    if (ban.captPiece[(int)i * 7 + (int)ktype.Kinsyou - 1] > 1) {
-                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Kinsyou - 1];
+                if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Kinsyou] > 0) {
+                    if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Kinsyou] > 1) {
+                        mochi += ban.data[((int)i << 6) + ban.hand + (int)ktype.Kinsyou];
                     }
                     mochi += fromKoma(ktype.Kinsyou, (Pturn)i);
                 }
 
-                if (ban.captPiece[(int)i * 7 + (int)ktype.Ginsyou - 1] > 0) {
-                    if (ban.captPiece[(int)i * 7 + (int)ktype.Ginsyou - 1] > 1) {
-                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Ginsyou - 1];
+                if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Ginsyou] > 0) {
+                    if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Ginsyou] > 1) {
+                        mochi += ban.data[((int)i << 6) + ban.hand + (int)ktype.Ginsyou];
                     }
                     mochi += fromKoma(ktype.Ginsyou, (Pturn)i);
                 }
 
-                if (ban.captPiece[(int)i * 7 + (int)ktype.Keima - 1] > 0) {
-                    if (ban.captPiece[(int)i * 7 + (int)ktype.Keima - 1] > 1) {
-                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Keima - 1];
+                if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Keima] > 0) {
+                    if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Keima] > 1) {
+                        mochi += ban.data[((int)i << 6) + ban.hand + (int)ktype.Keima];
                     }
                     mochi += fromKoma(ktype.Keima, (Pturn)i);
                 }
 
-                if (ban.captPiece[(int)i * 7 + (int)ktype.Kyousha - 1] > 0) {
-                    if (ban.captPiece[(int)i * 7 + (int)ktype.Kyousha - 1] > 1) {
-                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Kyousha - 1];
+                if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Kyousha] > 0) {
+                    if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Kyousha] > 1) {
+                        mochi += ban.data[((int)i << 6) + ban.hand + (int)ktype.Kyousha];
                     }
                     mochi += fromKoma(ktype.Kyousha, (Pturn)i);
                 }
 
-                if (ban.captPiece[(int)i * 7 + (int)ktype.Fuhyou - 1] > 0) {
-                    if (ban.captPiece[(int)i * 7 + (int)ktype.Fuhyou - 1] > 1) {
-                        mochi += ban.captPiece[(int)i * 7 + (int)ktype.Fuhyou - 1];
+                if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Fuhyou] > 0) {
+                    if (ban.data[((int)i << 6) + ban.hand + (int)ktype.Fuhyou] > 1) {
+                        mochi += ban.data[((int)i << 6) + ban.hand + (int)ktype.Fuhyou];
                     }
                     mochi += fromKoma(ktype.Fuhyou, (Pturn)i);
                 }

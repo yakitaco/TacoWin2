@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Windows.Forms;
 using TacoWin2_BanInfo;
 
 namespace TacoWin2 {
@@ -118,76 +116,76 @@ namespace TacoWin2 {
         // 局面のチェック★暫定版
         public static void tmpChk(ban ban) {
             unsafe {
-                //序盤のみ
-                if (stage == 0) {
-                    //先手
-                    int hisya_x = ban.putHisya[(int)Pturn.Sente];
-                    if (hisya_x != 0xFF) {
-                        switch (hisya_x / 9) {
-                            case 0:    // 1筋 (右地下鉄？)
-                                setType(OPLIST.MIGICHIKATETU, (int)Pturn.Sente, 0);
-                                break;
-                            case 1:    // 2筋 (居飛車？)
-                                if ((ban.putFuhyou[1] < 6) || (ban.putFuhyou[1] == 9)) setType(OPLIST.IBISYA, (int)Pturn.Sente, 0);
-                                break;
-                            case 2:    // 3筋 (袖飛車？)
-                                if ((ban.putFuhyou[2] < 6) || (ban.putFuhyou[2] == 9)) setType(OPLIST.SODEBISYA, (int)Pturn.Sente, 0);
-                                break;
-                            case 3:    // 4筋 (右四間飛車？)
-                                if ((ban.putFuhyou[3] < 6) || (ban.putFuhyou[3] == 9)) setType(OPLIST.MIGISIKENBISYA, (int)Pturn.Sente, 0);
-                                break;
-                            case 4:    // 5筋 (中飛車？)
-                                if ((ban.putFuhyou[4] < 6) || (ban.putFuhyou[4] == 9)) setType(OPLIST.NAKBISYA, (int)Pturn.Sente, 0);
-                                break;
-                            case 5:    // 6筋 (四間飛車？)
-                                if ((ban.putFuhyou[5] < 6) || (ban.putFuhyou[5] == 9)) setType(OPLIST.SIKENBISYA, (int)Pturn.Sente, 0);
-                                break;
-                            case 6:    // 7筋 (三間飛車？)
-                                if ((ban.putFuhyou[6] < 6) || (ban.putFuhyou[6] == 9)) setType(OPLIST.SANKENBISYA, (int)Pturn.Sente, 0);
-                                break;
-                            case 7:    // 8筋 (向かい飛車？)
-                                if ((ban.putFuhyou[7] < 6) || (ban.putFuhyou[7] == 9)) setType(OPLIST.MUKAIBISYA, (int)Pturn.Sente, 0);
-                                break;
-                            case 8:    // 9筋 (左地下鉄？)
-                                setType(OPLIST.HIDARICHIKATETU, (int)Pturn.Sente, 0);
-                                break;
-                        }
-                    }
-
-                    hisya_x = ban.putHisya[(int)Pturn.Gote * 2];
-                    if (hisya_x != 0xFF) {
-                        switch (hisya_x / 9) {
-                            case 8:    // 1筋 (右地下鉄？)
-                                setType(OPLIST.MIGICHIKATETU, (int)Pturn.Gote, 0);
-                                break;
-                            case 7:    // 2筋 (居飛車？)
-                                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 7] > 2) setType(OPLIST.IBISYA, (int)Pturn.Gote, 0);
-                                break;
-                            case 6:    // 3筋 (袖飛車？)
-                                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 6] > 2) setType(OPLIST.SODEBISYA, (int)Pturn.Gote, 0);
-                                break;
-                            case 5:    // 4筋 (右四間飛車？)
-                                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 5] > 2) setType(OPLIST.MIGISIKENBISYA, (int)Pturn.Gote, 0);
-                                break;
-                            case 4:    // 5筋 (中飛車？)
-                                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 4] > 2) setType(OPLIST.NAKBISYA, (int)Pturn.Gote, 0);
-                                break;
-                            case 3:    // 6筋 (四間飛車？)
-                                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 3] > 2) setType(OPLIST.SIKENBISYA, (int)Pturn.Gote, 0);
-                                break;
-                            case 2:    // 7筋 (三間飛車？)
-                                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 2] > 2) setType(OPLIST.SANKENBISYA, (int)Pturn.Gote, 0);
-                                break;
-                            case 1:    // 8筋 (向かい飛車？)
-                                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 1] > 2) setType(OPLIST.MUKAIBISYA, (int)Pturn.Gote, 0);
-                                break;
-                            case 0:    // 9筋 (左地下鉄？)
-                                setType(OPLIST.HIDARICHIKATETU, (int)Pturn.Gote, 0);
-                                break;
-                        }
-                    }
-                    DebugForm.instance.addMsg("SENKEI[" + senTeNum + ":" + mV[senTeNum].type + "]-[" + goTeNum + ":" + mV[goTeNum].type + "]");
-                }
+                ////序盤のみ
+                //if (stage == 0) {
+                //    //先手
+                //    int hisya_x = ban.putHisya[(int)Pturn.Sente];
+                //    if (hisya_x != 0xFF) {
+                //        switch (hisya_x / 9) {
+                //            case 0:    // 1筋 (右地下鉄？)
+                //                setType(OPLIST.MIGICHIKATETU, (int)Pturn.Sente, 0);
+                //                break;
+                //            case 1:    // 2筋 (居飛車？)
+                //                if ((ban.putFuhyou[1] < 6) || (ban.putFuhyou[1] == 9)) setType(OPLIST.IBISYA, (int)Pturn.Sente, 0);
+                //                break;
+                //            case 2:    // 3筋 (袖飛車？)
+                //                if ((ban.putFuhyou[2] < 6) || (ban.putFuhyou[2] == 9)) setType(OPLIST.SODEBISYA, (int)Pturn.Sente, 0);
+                //                break;
+                //            case 3:    // 4筋 (右四間飛車？)
+                //                if ((ban.putFuhyou[3] < 6) || (ban.putFuhyou[3] == 9)) setType(OPLIST.MIGISIKENBISYA, (int)Pturn.Sente, 0);
+                //                break;
+                //            case 4:    // 5筋 (中飛車？)
+                //                if ((ban.putFuhyou[4] < 6) || (ban.putFuhyou[4] == 9)) setType(OPLIST.NAKBISYA, (int)Pturn.Sente, 0);
+                //                break;
+                //            case 5:    // 6筋 (四間飛車？)
+                //                if ((ban.putFuhyou[5] < 6) || (ban.putFuhyou[5] == 9)) setType(OPLIST.SIKENBISYA, (int)Pturn.Sente, 0);
+                //                break;
+                //            case 6:    // 7筋 (三間飛車？)
+                //                if ((ban.putFuhyou[6] < 6) || (ban.putFuhyou[6] == 9)) setType(OPLIST.SANKENBISYA, (int)Pturn.Sente, 0);
+                //                break;
+                //            case 7:    // 8筋 (向かい飛車？)
+                //                if ((ban.putFuhyou[7] < 6) || (ban.putFuhyou[7] == 9)) setType(OPLIST.MUKAIBISYA, (int)Pturn.Sente, 0);
+                //                break;
+                //            case 8:    // 9筋 (左地下鉄？)
+                //                setType(OPLIST.HIDARICHIKATETU, (int)Pturn.Sente, 0);
+                //                break;
+                //        }
+                //    }
+                //
+                //    hisya_x = ban.putHisya[(int)Pturn.Gote * 2];
+                //    if (hisya_x != 0xFF) {
+                //        switch (hisya_x / 9) {
+                //            case 8:    // 1筋 (右地下鉄？)
+                //                setType(OPLIST.MIGICHIKATETU, (int)Pturn.Gote, 0);
+                //                break;
+                //            case 7:    // 2筋 (居飛車？)
+                //                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 7] > 2) setType(OPLIST.IBISYA, (int)Pturn.Gote, 0);
+                //                break;
+                //            case 6:    // 3筋 (袖飛車？)
+                //                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 6] > 2) setType(OPLIST.SODEBISYA, (int)Pturn.Gote, 0);
+                //                break;
+                //            case 5:    // 4筋 (右四間飛車？)
+                //                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 5] > 2) setType(OPLIST.MIGISIKENBISYA, (int)Pturn.Gote, 0);
+                //                break;
+                //            case 4:    // 5筋 (中飛車？)
+                //                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 4] > 2) setType(OPLIST.NAKBISYA, (int)Pturn.Gote, 0);
+                //                break;
+                //            case 3:    // 6筋 (四間飛車？)
+                //                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 3] > 2) setType(OPLIST.SIKENBISYA, (int)Pturn.Gote, 0);
+                //                break;
+                //            case 2:    // 7筋 (三間飛車？)
+                //                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 2] > 2) setType(OPLIST.SANKENBISYA, (int)Pturn.Gote, 0);
+                //                break;
+                //            case 1:    // 8筋 (向かい飛車？)
+                //                if (ban.putFuhyou[(int)Pturn.Gote * 9 + 1] > 2) setType(OPLIST.MUKAIBISYA, (int)Pturn.Gote, 0);
+                //                break;
+                //            case 0:    // 9筋 (左地下鉄？)
+                //                setType(OPLIST.HIDARICHIKATETU, (int)Pturn.Gote, 0);
+                //                break;
+                //        }
+                //    }
+                //    DebugForm.instance.addMsg("SENKEI[" + senTeNum + ":" + mV[senTeNum].type + "]-[" + goTeNum + ":" + mV[goTeNum].type + "]");
+                //}
             }
 
         }
@@ -221,13 +219,21 @@ namespace TacoWin2 {
         }
 
         // 指定評価値を取得
-        public static int get(ktype type, int nx, int ny, int ox, int oy, int turn) {
+        /// <summary>
+        /// 指定評価値を取得 ()
+        /// </summary>
+        /// <param name="type">駒種</param>
+        /// <param name="oPos">移動元</param>
+        /// <param name="nPos">移動先</param>
+        /// <param name="turn">手番</param>
+        /// <returns>指定評価値</returns>
+        public static int get(ktype type, byte oPos, byte nPos, Pturn turn) {
             if (stage == 0) {
-                if (turn == (int)Pturn.Sente) {
+                if (turn == Pturn.Sente) {
                     //Console.WriteLine("VAL[=" + mV[senTeNum].val[(int)type - 1, ny, 8 - nx] +"-"+ mV[senTeNum].val[(int)type - 1, oy, 8 - ox] +  "/" + nx + "," + ny + "/" + ox + "," + oy + "/" + (int)type);
-                    return mV[senTeNum].val[(int)type - 1, ny, 8 - nx] - mV[senTeNum].val[(int)type - 1, oy, 8 - ox];
+                    return mV[senTeNum].val[(int)type - 1, nPos & 0x0F, 8 - (nPos >> 4)] - mV[senTeNum].val[(int)type - 1, oPos & 0x0F, 8 - (oPos >> 4)];
                 } else {
-                    return mV[goTeNum].val[(int)type - 1, 8 - ny, nx] - mV[goTeNum].val[(int)type - 1, 8 - oy, ox];
+                    return mV[goTeNum].val[(int)type - 1, 8 - (nPos & 0x0F), nPos >> 4] - mV[goTeNum].val[(int)type - 1, 8 - (oPos & 0x0F), oPos >> 4];
                 }
             } else {
                 return 0;
