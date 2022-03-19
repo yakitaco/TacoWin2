@@ -1,9 +1,33 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace TacoWin2_BanInfo {
     public unsafe struct ban {
 
-        public fixed ushort onBoard[81]; // 盤上情報(X<筋>*9+Y<段>)
+        /// <summary>
+        /// 盤情報
+        /// [0x0FMMPQTK]
+        /// </summary>
+        public fixed uint data[137]; // [9*9(盤上) + 7*8(位置・持ち駒)]
+
+        public const int setOu = 0x09;
+        public const int setKin = 0x0A;
+        public const int setGin = 0x0B;
+        public const int setKei = 0x0C;
+        public const int setKyo = 0x0D;
+        public const int setHi = 0x0E;
+        public const int setKa = 0x0F;
+        public const int setFu = 0x19;
+        public const int setNaNum = 0x1F;
+        public const int setNa = 0x29;
+
+        // 持ち駒情報オフセット
+        public const int hand = 0x38; //(+GoOffset +ktype)
+
+        public const int GoOffset = 0x40;
+
+        //public fixed ushort onBoard[81]; // 盤上情報(X<筋>*9+Y<段>)
         // WWWWWWWW000XYYYY [X]0:先手/1:後手 [Y]enum ktype [W]置き駒情報
 
         //public fixed byte putPieceNum[2]; // 置き駒数情報(盤上情報の番号を入れる)
@@ -13,171 +37,180 @@ namespace TacoWin2_BanInfo {
         // [0-39]先手 [40-79]後手
         // enum ktype
 
-        public fixed int putOusyou[2]; // 王将置き駒情報(X*9+Y)
-        public fixed int putKinsyou[8]; // 金将置き駒情報(X*9+Y)
-        public fixed int putKyousha[8]; // 香車置き駒情報(X*9+Y)
-        public fixed int putKeima[8]; // 桂馬置き駒情報(X*9+Y)
-        public fixed int putGinsyou[8]; // 銀将置き駒情報(X*9+Y)
-        public fixed int putHisya[4]; // 飛車置き駒情報(X*9+Y)
-        public fixed int putKakugyou[4]; // 角行置き駒情報(X*9+Y)
-        public fixed int putFuhyou[18]; // 歩兵置き駒情報(0-9) 9:無し// [0-8]先手 / [9-17]後手
-        public fixed int putNarigoma[60]; // 成り駒置き駒情報(と金・成香・成桂・成銀)(X*9+Y)
-        public fixed int putNarigomaNum[2]; // 成り駒数
+        //public fixed int putOusyou[2]; // 王将置き駒情報(X*9+Y)
+        //public fixed int putKinsyou[8]; // 金将置き駒情報(X*9+Y)
+        //public fixed int putKyousha[8]; // 香車置き駒情報(X*9+Y)
+        //public fixed int putKeima[8]; // 桂馬置き駒情報(X*9+Y)
+        //public fixed int putGinsyou[8]; // 銀将置き駒情報(X*9+Y)
+        //public fixed int putHisya[4]; // 飛車置き駒情報(X*9+Y)
+        //public fixed int putKakugyou[4]; // 角行置き駒情報(X*9+Y)
+        //public fixed int putFuhyou[18]; // 歩兵置き駒情報(0-9) 9:無し// [0-8]先手 / [9-17]後手
+        //public fixed int putNarigoma[60]; // 成り駒置き駒情報(と金・成香・成桂・成銀)(X*9+Y)
+        //public fixed int putNarigomaNum[2]; // 成り駒数
 
 
 
-        public fixed byte captPiece[14]; // 持ち駒情報
+        //public fixed byte captPiece[14]; // 持ち駒情報
         // [0-6]先手 [7-13]後手
 
 
-        public fixed byte moveable[162]; //駒の移動可能リスト(turn*81+X*9+Y)
+        //public fixed byte moveable[162]; //駒の移動可能リスト(turn*81+X*9+Y)
 
         public ulong hash; //現局面のハッシュ値
 
-        // 初期盤情報
+        /// <summary>
+        /// 初期位置設定
+        /// </summary>
         public void startpos() {
+            unsafe {
+                data[setOu] = System.UInt32.MaxValue;
+                data[GoOffset + setOu] = System.UInt32.MaxValue;
+                data[setKin] = System.UInt32.MaxValue;
+                data[GoOffset + setKin] = System.UInt32.MaxValue;
+                data[setGin] = System.UInt32.MaxValue;
+                data[GoOffset + setGin] = System.UInt32.MaxValue;
+                data[setKei] = System.UInt32.MaxValue;
+                data[GoOffset + setKei] = System.UInt32.MaxValue;
+                data[setKyo] = System.UInt32.MaxValue;
+                data[GoOffset + setKyo] = System.UInt32.MaxValue;
+                data[setHi] = System.UInt32.MaxValue;
+                data[GoOffset + setHi] = System.UInt32.MaxValue;
+                data[setKa] = System.UInt32.MaxValue;
+                data[GoOffset + setKa] = System.UInt32.MaxValue;
 
-            putOusyou[0] = 0xFF;
-            putOusyou[1] = 0xFF;
-            for (int i = 0; i < 4; i++) {
-                putHisya[i] = 0xFF;
-                putKakugyou[i] = 0xFF;
+                for (int i = 0; i < 3; i++) {
+                    data[setFu + i] = System.UInt32.MaxValue;
+                    data[GoOffset + setFu + i] = System.UInt32.MaxValue;
+                }
+
+                for (int i = 0; i < 7; i++) {
+                    data[setNa + i] = System.UInt32.MaxValue;
+                    data[GoOffset + setNa + i] = System.UInt32.MaxValue;
+                }
+
+                //王の配置
+                putKoma(0x48, Pturn.Sente, 0, ktype.Ousyou);
+                putKoma(0x40, Pturn.Gote, 0, ktype.Ousyou);
+
+                //金の配置
+                putKoma(0x38, Pturn.Sente, 0, ktype.Kinsyou);
+                putKoma(0x58, Pturn.Sente, 0, ktype.Kinsyou);
+                putKoma(0x30, Pturn.Gote, 0, ktype.Kinsyou);
+                putKoma(0x50, Pturn.Gote, 0, ktype.Kinsyou);
+
+                //銀の配置
+                putKoma(0x28, Pturn.Sente, 0, ktype.Ginsyou);
+                putKoma(0x68, Pturn.Sente, 0, ktype.Ginsyou);
+                putKoma(0x20, Pturn.Gote, 0, ktype.Ginsyou);
+                putKoma(0x60, Pturn.Gote, 0, ktype.Ginsyou);
+
+                //桂の配置
+                putKoma(0x18, Pturn.Sente, 0, ktype.Keima);
+                putKoma(0x78, Pturn.Sente, 0, ktype.Keima);
+                putKoma(0x10, Pturn.Gote, 0, ktype.Keima);
+                putKoma(0x70, Pturn.Gote, 0, ktype.Keima);
+
+                //香の配置
+                putKoma(0x08, Pturn.Sente, 0, ktype.Kyousha);
+                putKoma(0x88, Pturn.Sente, 0, ktype.Kyousha);
+                putKoma(0x00, Pturn.Gote, 0, ktype.Kyousha);
+                putKoma(0x80, Pturn.Gote, 0, ktype.Kyousha);
+
+                //角の配置
+                putKoma(0x77, Pturn.Sente, 0, ktype.Kakugyou);
+                putKoma(0x11, Pturn.Gote, 0, ktype.Kakugyou);
+
+                //飛の配置
+                putKoma(0x17, Pturn.Sente, 0, ktype.Hisya);
+                putKoma(0x71, Pturn.Gote, 0, ktype.Hisya);
+
+                //歩の配置
+                for (int i = 0; i < 9; i++) {
+                    putKoma((i << 4) + 6, Pturn.Sente, 0, ktype.Fuhyou);
+                    putKoma((i << 4) + 2, Pturn.Gote, 0, ktype.Fuhyou);
+                }
+
+                //hash値作成(固定値事前保持のため削除)
+                //for (int i = 0; i < 81; i++) {
+                //    if (onBoard[i] > 0) {
+                //        hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(i) * 14 + (int)getOnBoardKtype(i) - 1, i];
+                //    }
+                //}
+                //Console.WriteLine("[HASH]" + (hash).ToString("X16"));
+                hash = tw2bi_hash.startHash;
+
+                // 移動リスト新規作成
+                //renewMoveable();
+
+                //for (int i = 0; i < 162; i++) {
+                //    Console.WriteLine(i + ":" + moveable[i]);
+                //}
             }
-            for (int i = 0; i < 8; i++) {
-                putKinsyou[i] = 0xFF;
-                putKyousha[i] = 0xFF;
-                putKeima[i] = 0xFF;
-                putGinsyou[i] = 0xFF;
-            }
-            for (int i = 0; i < 18; i++) {
-                putFuhyou[i] = 9;
-            }
-            for (int i = 0; i < 60; i++) {
-                putNarigoma[i] = 0xFF;
-            }
-
-            //王の配置
-            putKoma(4, 8, Pturn.Sente, ktype.Ousyou);
-            putKoma(4, 0, Pturn.Gote, ktype.Ousyou);
-
-            //金の配置
-            putKoma(3, 8, Pturn.Sente, ktype.Kinsyou);
-            putKoma(5, 8, Pturn.Sente, ktype.Kinsyou);
-            putKoma(3, 0, Pturn.Gote, ktype.Kinsyou);
-            putKoma(5, 0, Pturn.Gote, ktype.Kinsyou);
-
-            //銀の配置
-            putKoma(2, 8, Pturn.Sente, ktype.Ginsyou);
-            putKoma(6, 8, Pturn.Sente, ktype.Ginsyou);
-            putKoma(2, 0, Pturn.Gote, ktype.Ginsyou);
-            putKoma(6, 0, Pturn.Gote, ktype.Ginsyou);
-
-            //桂の配置
-            putKoma(1, 8, Pturn.Sente, ktype.Keima);
-            putKoma(7, 8, Pturn.Sente, ktype.Keima);
-            putKoma(1, 0, Pturn.Gote, ktype.Keima);
-            putKoma(7, 0, Pturn.Gote, ktype.Keima);
-
-            //香の配置
-            putKoma(0, 8, Pturn.Sente, ktype.Kyousha);
-            putKoma(8, 8, Pturn.Sente, ktype.Kyousha);
-            putKoma(0, 0, Pturn.Gote, ktype.Kyousha);
-            putKoma(8, 0, Pturn.Gote, ktype.Kyousha);
-
-            //角の配置
-            putKoma(7, 7, Pturn.Sente, ktype.Kakugyou);
-            putKoma(1, 1, Pturn.Gote, ktype.Kakugyou);
-
-            //飛の配置
-            putKoma(1, 7, Pturn.Sente, ktype.Hisya);
-            putKoma(7, 1, Pturn.Gote, ktype.Hisya);
-
-            //歩の配置
-            for (int i = 0; i < 9; i++) {
-                putKoma(i, 6, Pturn.Sente, ktype.Fuhyou);
-                putKoma(i, 2, Pturn.Gote, ktype.Fuhyou);
-            }
-
-            //hash値作成(固定値事前保持のため削除)
-            //for (int i = 0; i < 81; i++) {
-            //    if (onBoard[i] > 0) {
-            //        hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(i) * 14 + (int)getOnBoardKtype(i) - 1, i];
-            //    }
-            //}
-            //Console.WriteLine("[HASH]" + (hash).ToString("X16"));
-            hash = tw2bi_hash.startHash;
-
-            // 移動リスト新規作成
-            //renewMoveable();
-
-            //for (int i = 0; i < 162; i++) {
-            //    Console.WriteLine(i + ":" + moveable[i]);
-            //}
-
         }
 
         //移動可能リスト生成(先手・後手の駒が移動可能場所を加算する)
         public void renewMoveable() {
             //指せる手を全てリスト追加
-            for (int p = 0; p < 2; p++) {
+            for (int turn = 0; turn < 2; turn++) {
                 // 王将
-                if (putOusyou[p] != 0xFF) {
-                    chgMoveable(putOusyou[p] / 9, putOusyou[p] % 9, (Pturn)p, 1);
+                if ((byte)data[((int)turn << 6) + setOu] != 0xFF) {
+                    chgMoveable((byte)data[((int)turn << 6) + setOu], (Pturn)turn, 1);
                 }
 
                 // 歩兵
                 for (int i = 0; i < 9; i++) {
-                    if (putFuhyou[p * 9 + i] != 9) {
-                        chgMoveable(i, putFuhyou[p * 9 + i], (Pturn)p, 1);
+                    if ((data[((int)turn << 6) + setFu + (i >> 2)] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        chgMoveable((byte)(data[((int)turn << 6) + setFu + (i >> 2)] >> ((i & 3) << 3)), (Pturn)turn, 1);
                     }
                 }
 
                 // 香車
                 for (int i = 0; i < 4; i++) {
-                    if (putKyousha[p * 4 + i] != 0xFF) {
-                        chgMoveable(putKyousha[p * 4 + i] / 9, putKyousha[p * 4 + i] % 9, (Pturn)p, 1);
+                    if ((data[((int)turn << 6) + setKyo] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        chgMoveable((byte)(data[((int)turn << 6) + setKyo] >> ((i & 3) << 3) & 0xFF), (Pturn)turn, 1);
                     }
                 }
 
                 // 桂馬
                 for (int i = 0; i < 4; i++) {
-                    if (putKeima[p * 4 + i] != 0xFF) {
-                        chgMoveable(putKeima[p * 4 + i] / 9, putKeima[p * 4 + i] % 9, (Pturn)p, 1);
+                    if ((data[((int)turn << 6) + setKei] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        chgMoveable((byte)(data[((int)turn << 6) + setKei] >> ((i & 3) << 3) & 0xFF), (Pturn)turn, 1);
                     }
                 }
 
                 // 銀将
                 for (int i = 0; i < 4; i++) {
-                    if (putGinsyou[p * 4 + i] != 0xFF) {
-                        chgMoveable(putGinsyou[p * 4 + i] / 9, putGinsyou[p * 4 + i] % 9, (Pturn)p, 1);
+                    if ((data[((int)turn << 6) + setGin] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        chgMoveable((byte)(data[((int)turn << 6) + setGin] >> ((i & 3) << 3) & 0xFF), (Pturn)turn, 1);
                     }
                 }
 
                 // 飛車
                 for (int i = 0; i < 2; i++) {
-                    if (putHisya[p * 2 + i] != 0xFF) {
-                        chgMoveable(putHisya[p * 2 + i] / 9, putHisya[p * 2 + i] % 9, (Pturn)p, 1);
+                    if ((data[((int)turn << 6) + setHi] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        chgMoveable((byte)(data[((int)turn << 6) + setHi] >> ((i & 3) << 3) & 0xFF), (Pturn)turn, 1);
                     }
                 }
 
                 // 角行
                 for (int i = 0; i < 2; i++) {
-                    if (putKakugyou[p * 2 + i] != 0xFF) {
-                        chgMoveable(putKakugyou[p * 2 + i] / 9, putKakugyou[p * 2 + i] % 9, (Pturn)p, 1);
+                    if ((data[((int)turn << 6) + setKa] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        chgMoveable((byte)(data[((int)turn << 6) + setKa] >> ((i & 3) << 3) & 0xFF), (Pturn)turn, 1);
                     }
                 }
 
                 // 金将
                 for (int i = 0; i < 4; i++) {
-                    if (putKinsyou[p * 4 + i] != 0xFF) {
-                        chgMoveable(putKinsyou[p * 4 + i] / 9, putKinsyou[p * 4 + i] % 9, (Pturn)p, 1);
+                    if ((data[((int)turn << 6) + setKin] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        chgMoveable((byte)(data[((int)turn << 6) + setKin] >> ((i & 3) << 3) & 0xFF), (Pturn)turn, 1);
                     }
                 }
 
                 // 成駒
-                for (int i = 0, j = 0; j < putNarigomaNum[p]; i++) {
-                    if (putNarigoma[p * 30 + i] != 0xFF) {
-                        chgMoveable(putNarigoma[p * 30 + i] / 9, putNarigoma[p * 30 + i] % 9, (Pturn)p, 1);
+                for (int i = 0, j = 0; j < data[((int)turn << 6) + setNaNum] && i < 28; i++) {
+                    //Console.WriteLine(99999.ToString("X"));
+                    if ((data[((int)turn << 6) + setNa + (i >> 2)] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        chgMoveable((byte)(data[((int)turn << 6) + setNa + (i >> 2)] >> ((i & 3) << 3) & 0xFF), (Pturn)turn, 1);
                         j++;
                     }
                 }
@@ -185,125 +218,137 @@ namespace TacoWin2_BanInfo {
 
         }
 
-        public void changeMoveableDir(int x, int y, int val) {
+        public void changeMoveableDir(byte oPos, int val) {
             //上
-            for (int i = 1; y - i >= 0; i++) {
-                if (onBoard[x * 9 + (y - i)] == 0) continue;
-                if ((getOnBoardKtype(x, y - i) == ktype.Hisya) || (getOnBoardKtype(x, y - i) == ktype.Ryuuou) || ((getOnBoardKtype(x, y - i) == ktype.Kyousha) && (getOnBoardPturn(x, y - i) == Pturn.Gote))) {
+            for (byte tPos = (byte)(oPos + 0x01); (tPos & 0x0F) < 0x09; tPos++) {
+                //Console.WriteLine("hh1" + tPos.ToString("X") + "," + oPos.ToString("X") + getOnBoardKtype(tPos));
+                if (getOnBoardKtype(tPos) == ktype.None) continue;
+                if ((getOnBoardKtype(tPos) == ktype.Hisya) || (getOnBoardKtype(tPos) == ktype.Ryuuou) || ((getOnBoardKtype(tPos) == ktype.Kyousha) && (getOnBoardPturn(tPos) == Pturn.Sente))) {
+                    //Console.WriteLine("hh1" + tPos.ToString("X"));
                     // 下を更新
-                    for (int j = 1; y + j < 9; j++) {
-                        moveable[(int)getOnBoardPturn(x, y - i) * 81 + x * 9 + (y + j)] += (byte)val;
-                        if (onBoard[x * 9 + (y + j)] > 0) break;
+                    for (byte cPos = (byte)(oPos - 0x01); (cPos & 0x0F) < 0x09; cPos--) {
+                        data[cPos] += (uint)(val << (8 + (int)getOnBoardPturn(tPos) * 4));
+                        if (getOnBoardKtype(cPos) > ktype.None) break;
                     }
                 }
                 break;
             }
 
             //下
-            for (int i = 1; y + i < 9; i++) {
-                if (onBoard[x * 9 + (y + i)] == 0) continue;
-                if ((getOnBoardKtype(x, y + i) == ktype.Hisya) || (getOnBoardKtype(x, y + i) == ktype.Ryuuou) || ((getOnBoardKtype(x, y + i) == ktype.Kyousha) && (getOnBoardPturn(x, y + i) == Pturn.Sente))) {
-                    // 下を更新
-                    for (int j = 1; y - j >= 0; j++) {
-                        moveable[(int)getOnBoardPturn(x, y + i) * 81 + x * 9 + (y - j)] += (byte)val;
-                        if (onBoard[x * 9 + (y - j)] > 0) break;
+            for (byte tPos = (byte)(oPos - 0x01); (tPos & 0x0F) < 0x09; tPos--) {
+                if (getOnBoardKtype(tPos) == ktype.None) continue;
+                if ((getOnBoardKtype(tPos) == ktype.Hisya) || (getOnBoardKtype(tPos) == ktype.Ryuuou) || ((getOnBoardKtype(tPos) == ktype.Kyousha) && (getOnBoardPturn(tPos) == Pturn.Gote))) {
+                    // 上を更新
+                    //Console.WriteLine("hh2" + tPos.ToString("X"));
+                    for (byte cPos = (byte)(oPos + 0x01); (cPos & 0x0F) < 0x09; cPos++) {
+                        data[cPos] += (uint)(val << (8 + (int)getOnBoardPturn(tPos) * 4));
+                        if (getOnBoardKtype(cPos) > ktype.None) break;
                     }
                 }
                 break;
             }
 
             //右
-            for (int i = 1; x + i < 9; i++) {
-                if (onBoard[(x + i) * 9 + y] == 0) continue;
-                if ((getOnBoardKtype(x + i, y) == ktype.Hisya) || (getOnBoardKtype(x + i, y) == ktype.Ryuuou)) {
+            for (byte tPos = (byte)(oPos + 0x10); tPos < 0x89; tPos += 0x10) {
+                if (getOnBoardKtype(tPos) == ktype.None) continue;
+                if ((getOnBoardKtype(tPos) == ktype.Hisya) || (getOnBoardKtype(tPos) == ktype.Ryuuou)) {
+                    //Console.WriteLine("hh3" + tPos.ToString("X"));
                     // 左を更新
-                    for (int j = 1; x - j >= 0; j++) {
-                        moveable[(int)getOnBoardPturn(x + i, y) * 81 + (x - j) * 9 + y] += (byte)val;
-                        if (onBoard[(x - j) * 9 + y] > 0) break;
+                    for (byte cPos = (byte)(oPos - 0x10); cPos < 0x89; cPos -= 0x10) {
+                        data[cPos] += (uint)(val << (8 + (int)getOnBoardPturn(tPos) * 4));
+                        if (getOnBoardKtype(cPos) > ktype.None) break;
                     }
                 }
                 break;
             }
 
             //左
-            for (int i = 1; x - i >= 0; i++) {
-                if (onBoard[(x - i) * 9 + y] == 0) continue;
-                if ((getOnBoardKtype(x - i, y) == ktype.Hisya) || (getOnBoardKtype(x - i, y) == ktype.Ryuuou)) {
-                    // 左を更新
-                    for (int j = 1; x + j < 9; j++) {
-                        moveable[(int)getOnBoardPturn(x - i, y) * 81 + (x + j) * 9 + y] += (byte)val;
-                        if (onBoard[(x + j) * 9 + y] > 0) break;
+            for (byte tPos = (byte)(oPos - 0x10); tPos < 0x89; tPos -= 0x10) {
+                if (getOnBoardKtype(tPos) == ktype.None) continue;
+                if ((getOnBoardKtype(tPos) == ktype.Hisya) || (getOnBoardKtype(tPos) == ktype.Ryuuou)) {
+                    //Console.WriteLine("hh4" + tPos.ToString("X"));
+                    // 右を更新
+                    for (byte cPos = (byte)(oPos + 0x10); cPos < 0x89; cPos += 0x10) {
+                        data[cPos] += (uint)(val << (8 + (int)getOnBoardPturn(tPos) * 4));
+                        if (getOnBoardKtype(cPos) > ktype.None) break;
                     }
                 }
                 break;
             }
 
-            //右上
-            for (int i = 1; x - i >= 0 && y - i >= 0; i++) {
-                if (onBoard[(x - i) * 9 + (y - i)] == 0) continue;
-                if ((getOnBoardKtype(x - i, y - i) == ktype.Kakugyou) || (getOnBoardKtype(x - i, y - i) == ktype.Ryuuma)) {
-                    // 左を更新
-                    for (int j = 1; x + j < 9 && y + j < 9; j++) {
-                        moveable[(int)getOnBoardPturn(x - i, y - i) * 81 + (x + j) * 9 + y + j] += (byte)val;
-                        if (onBoard[(x + j) * 9 + y + j] > 0) break;
+            //右上 (+0x10 +0x01)
+            for (byte tPos = (byte)(oPos + 0x11); tPos < 0x89 && (tPos & 0x0F) < 0x09; tPos += 0x11) {
+                //Console.WriteLine("kk1" + tPos.ToString("X") + "," + oPos.ToString("X") + getOnBoardKtype(tPos));
+                if (getOnBoardKtype(tPos) == ktype.None) continue;
+                if ((getOnBoardKtype(tPos) == ktype.Kakugyou) || (getOnBoardKtype(tPos) == ktype.Ryuuma)) {
+                    //Console.WriteLine("kk1" + tPos.ToString("X"));
+                    // 左下を更新
+                    for (byte cPos = (byte)(oPos - 0x11); cPos < 0x89 && (cPos & 0x0F) < 0x09; cPos -= 0x11) {
+                        data[cPos] += (uint)(val << (8 + (int)getOnBoardPturn(tPos) * 4));
+                        if (getOnBoardKtype(cPos) > ktype.None) break;
                     }
                 }
                 break;
             }
 
-            //右下
-            for (int i = 1; x - i >= 0 && y + i < 9; i++) {
-                if (onBoard[(x - i) * 9 + y + i] == 0) continue;
-                if ((getOnBoardKtype(x - i, y + i) == ktype.Kakugyou) || (getOnBoardKtype(x - i, y + i) == ktype.Ryuuma)) {
-                    // 左を更新
-                    for (int j = 1; x + j < 9 && y - j >= 0; j++) {
-                        moveable[(int)getOnBoardPturn(x - i, y + i) * 81 + (x + j) * 9 + y - j] += (byte)val;
-                        if (onBoard[(x + j) * 9 + y - j] > 0) break;
+            //左下 (-0x10 -0x01)
+            for (byte tPos = (byte)(oPos - 0x11); tPos < 0x89 && (tPos & 0x0F) < 0x09; tPos -= 0x11) {
+                if (getOnBoardKtype(tPos) == ktype.None) continue;
+                if ((getOnBoardKtype(tPos) == ktype.Kakugyou) || (getOnBoardKtype(tPos) == ktype.Ryuuma)) {
+                    //Console.WriteLine("kk4" + tPos.ToString("X"));
+                    // 右上を更新
+                    for (byte cPos = (byte)(oPos + 0x11); cPos < 0x89 && (cPos & 0x0F) < 0x09; cPos += 0x11) {
+                        data[cPos] += (uint)(val << (8 + (int)getOnBoardPturn(tPos) * 4));
+                        if (getOnBoardKtype(cPos) > ktype.None) break;
                     }
                 }
                 break;
             }
 
-            //左上
-            for (int i = 1; x + i < 9 && y - i >= 0; i++) {
-                if (onBoard[(x + i) * 9 + y - i] == 0) continue;
-                if ((getOnBoardKtype(x + i, y - i) == ktype.Kakugyou) || (getOnBoardKtype(x + i, y - i) == ktype.Ryuuma)) {
-                    // 左を更新
-                    for (int j = 1; x - j >= 0 && y + j < 9; j++) {
-                        moveable[(int)getOnBoardPturn(x + i, y - i) * 81 + (x - j) * 9 + y + j] += (byte)val;
-                        if (onBoard[(x - j) * 9 + y + j] > 0) break;
+            //右下 (+0x10 -0x01)
+            for (byte tPos = (byte)(oPos + 0x0F); tPos < 0x89 && (tPos & 0x0F) < 0x09; tPos += 0x0F) {
+                if (getOnBoardKtype(tPos) == ktype.None) continue;
+                if ((getOnBoardKtype(tPos) == ktype.Kakugyou) || (getOnBoardKtype(tPos) == ktype.Ryuuma)) {
+                    //Console.WriteLine("kk2" + tPos.ToString("X"));
+                    // 左上を更新
+                    for (byte cPos = (byte)(oPos - 0x0F); cPos < 0x89 && (cPos & 0x0F) < 0x09; cPos -= 0x0F) {
+                        data[cPos] += (uint)(val << (8 + (int)getOnBoardPturn(tPos) * 4));
+                        if (getOnBoardKtype(cPos) > ktype.None) break;
                     }
                 }
                 break;
             }
 
-            //左下
-            for (int i = 1; x + i < 9 && y + i < 9; i++) {
-                if (onBoard[(x + i) * 9 + y + i] == 0) continue;
-                if ((getOnBoardKtype(x + i, y + i) == ktype.Kakugyou) || (getOnBoardKtype(x + i, y + i) == ktype.Ryuuma)) {
-                    // 左を更新
-                    for (int j = 1; x - j >= 0 && y - j >= 0; j++) {
-                        moveable[(int)getOnBoardPturn(x + i, y + i) * 81 + (x - j) * 9 + y - j] += (byte)val;
-                        if (onBoard[(x - j) * 9 + y - j] > 0) break;
+            //左上 (-0x10 +0x01)
+            for (byte tPos = (byte)(oPos - 0x0F); tPos < 0x89 && (tPos & 0x0F) < 0x09; tPos -= 0x0F) {
+                //Console.WriteLine("kk3[1]" + tPos.ToString("X") + "," + oPos.ToString("X") + getOnBoardKtype(tPos));
+                if (getOnBoardKtype(tPos) == ktype.None) continue;
+                if ((getOnBoardKtype(tPos) == ktype.Kakugyou) || (getOnBoardKtype(tPos) == ktype.Ryuuma)) {
+                    //Console.WriteLine("kk3[2]" + tPos.ToString("X"));
+                    // 右下を更新
+                    for (byte cPos = (byte)(oPos + 0x0F); cPos < 0x89 && (cPos & 0x0F) < 0x09; cPos += 0x0F) {
+                        data[cPos] += (uint)(val << (8 + (int)getOnBoardPturn(tPos) * 4));
+                        if (getOnBoardKtype(cPos) > ktype.None) break;
                     }
                 }
                 break;
             }
+
         }
 
         //盤上に駒を置く
-        public void putKoma(int x, int y, Pturn turn, ktype type) {
+        public void putKoma(int pos, Pturn turn, uint moveable, ktype type) {
             switch (type) {
                 case ktype.Fuhyou:
-                    putFuhyou[(int)turn * 9 + x] = y;
-                    onBoard[x * 9 + y] = setOnBordDatat(turn, 0, type);
+                    data[((int)turn << 6) + setFu + (pos >> 6)] = (uint)(data[((int)turn << 6) + setFu + (pos >> 6)] & ~(0xFF << (((pos >> 4) & 3) << 3)) | (uint)(pos << (((pos >> 4) & 3) << 3)));
+                    data[pos] = setOnBoardData(((int)turn << 6) + setFu + (pos >> 6), (pos >> 4) & 3, turn, moveable, type);
                     break;
 
                 case ktype.Kyousha:
                     for (int i = 0; i < 4; i++) {
-                        if (putKyousha[(int)turn * 4 + i] == 0xFF) {
-                            putKyousha[(int)turn * 4 + i] = x * 9 + y;
-                            onBoard[x * 9 + y] = setOnBordDatat(turn, i, type);
+                        if ((data[((int)turn << 6) + setKyo] >> ((i & 3) << 3) & 0xFF) == 0xFF) {
+                            data[((int)turn << 6) + setKyo] = (uint)(data[((int)turn << 6) + setKyo] & ~(0xFF << ((i & 3) << 3)) | (uint)(pos << ((i & 3) << 3)));
+                            data[pos] = setOnBoardData(((int)turn << 6) + setKyo, i & 3, turn, moveable, type);
                             break;
                         }
                     }
@@ -311,9 +356,9 @@ namespace TacoWin2_BanInfo {
 
                 case ktype.Keima:
                     for (int i = 0; i < 4; i++) {
-                        if (putKeima[(int)turn * 4 + i] == 0xFF) {
-                            putKeima[(int)turn * 4 + i] = x * 9 + y;
-                            onBoard[x * 9 + y] = setOnBordDatat(turn, i, type);
+                        if ((data[((int)turn << 6) + setKei] >> ((i & 3) << 3) & 0xFF) == 0xFF) {
+                            data[((int)turn << 6) + setKei] = (uint)(data[((int)turn << 6) + setKei] & ~(0xFF << ((i & 3) << 3)) | (uint)(pos << ((i & 3) << 3)));
+                            data[pos] = setOnBoardData(((int)turn << 6) + setKei, i & 3, turn, moveable, type);
                             break;
                         }
                     }
@@ -321,9 +366,9 @@ namespace TacoWin2_BanInfo {
 
                 case ktype.Ginsyou:
                     for (int i = 0; i < 4; i++) {
-                        if (putGinsyou[(int)turn * 4 + i] == 0xFF) {
-                            putGinsyou[(int)turn * 4 + i] = x * 9 + y;
-                            onBoard[x * 9 + y] = setOnBordDatat(turn, i, type);
+                        if ((data[((int)turn << 6) + setGin] >> ((i & 3) << 3) & 0xFF) == 0xFF) {
+                            data[((int)turn << 6) + setGin] = (uint)(data[((int)turn << 6) + setGin] & ~(0xFF << ((i & 3) << 3)) | (uint)(pos << ((i & 3) << 3)));
+                            data[pos] = setOnBoardData(((int)turn << 6) + setGin, i & 3, turn, moveable, type);
                             break;
                         }
                     }
@@ -332,9 +377,9 @@ namespace TacoWin2_BanInfo {
                 case ktype.Hisya:
                 case ktype.Ryuuou:
                     for (int i = 0; i < 2; i++) {
-                        if (putHisya[(int)turn * 2 + i] == 0xFF) {
-                            putHisya[(int)turn * 2 + i] = x * 9 + y;
-                            onBoard[x * 9 + y] = setOnBordDatat(turn, i, type);
+                        if ((data[((int)turn << 6) + setHi] >> ((i & 3) << 3) & 0xFF) == 0xFF) {
+                            data[((int)turn << 6) + setHi] = (uint)(data[((int)turn << 6) + setHi] & ~(0xFF << ((i & 3) << 3)) | (uint)(pos << ((i & 3) << 3)));
+                            data[pos] = setOnBoardData(((int)turn << 6) + setHi, i & 3, turn, moveable, type);
                             break;
                         }
                     }
@@ -343,9 +388,9 @@ namespace TacoWin2_BanInfo {
                 case ktype.Kakugyou:
                 case ktype.Ryuuma:
                     for (int i = 0; i < 2; i++) {
-                        if (putKakugyou[(int)turn * 2 + i] == 0xFF) {
-                            putKakugyou[(int)turn * 2 + i] = x * 9 + y;
-                            onBoard[x * 9 + y] = setOnBordDatat(turn, i, type);
+                        if ((data[((int)turn << 6) + setKa] >> ((i & 3) << 3) & 0xFF) == 0xFF) {
+                            data[((int)turn << 6) + setKa] = (uint)(data[((int)turn << 6) + setKa] & ~(0xFF << ((i & 3) << 3)) | (uint)(pos << ((i & 3) << 3)));
+                            data[pos] = setOnBoardData(((int)turn << 6) + setKa, i & 3, turn, moveable, type);
                             break;
                         }
                     }
@@ -353,28 +398,31 @@ namespace TacoWin2_BanInfo {
 
                 case ktype.Kinsyou:
                     for (int i = 0; i < 4; i++) {
-                        if (putKinsyou[(int)turn * 4 + i] == 0xFF) {
-                            putKinsyou[(int)turn * 4 + i] = x * 9 + y;
-                            onBoard[x * 9 + y] = setOnBordDatat(turn, i, type);
+                        if ((data[((int)turn << 6) + setKin] >> ((i & 3) << 3) & 0xFF) == 0xFF) {
+                            data[((int)turn << 6) + setKin] = (uint)(data[((int)turn << 6) + setKin] & ~(0xFF << ((i & 3) << 3)) | (uint)(pos << ((i & 3) << 3)));
+                            data[pos] = setOnBoardData(((int)turn << 6) + setKin, i & 3, turn, moveable, type);
                             break;
                         }
                     }
                     break;
 
                 case ktype.Ousyou:
-                    putOusyou[(int)turn] = x * 9 + y;
-                    onBoard[x * 9 + y] = setOnBordDatat(turn, 0, type);
+                    data[((int)turn << 6) + setOu] = (uint)pos;
+                    data[pos] = setOnBoardData(((int)turn << 6) + setOu, 0, turn, moveable, type);
+
+                    //putOusyou[(int)turn] = pos;
+                    //onBoard[pos] = setOnBordDatat(turn, 0, type);
                     break;
 
                 case ktype.Tokin:
                 case ktype.Narikyou:
                 case ktype.Narikei:
                 case ktype.Narigin:
-                    for (int i = 0; i < 30; i++) {
-                        if (putNarigoma[(int)turn * 30 + i] == 0xFF) {
-                            putNarigoma[(int)turn * 30 + i] = (byte)(x * 9 + y);
-                            onBoard[x * 9 + y] = setOnBordDatat(turn, i, type);
-                            putNarigomaNum[(int)turn]++;
+                    for (int i = 0; i < 28; i++) {
+                        if ((data[((int)turn << 6) + setNa + (i >> 2)] >> ((i & 3) << 3) & 0xFF) == 0xFF) {
+                            data[((int)turn << 6) + setNa + (i >> 2)] = (uint)(data[((int)turn << 6) + setNa + (i >> 2)] & ~(0xFF << ((i & 3) << 3)) | (uint)(pos << ((i & 3) << 3)));
+                            data[pos] = setOnBoardData(((int)turn << 6) + setNa + (i >> 2), i & 3, turn, moveable, type);
+                            ++data[((int)turn << 6) + setNaNum];
                             break;
                         }
                     }
@@ -386,102 +434,19 @@ namespace TacoWin2_BanInfo {
         }
 
         //盤上から駒を取り除く(onBoardは更新不要)
-        void removeKoma(int x, int id, Pturn turn, ktype type) {
-            switch (type) {
-                case ktype.Fuhyou:
-                    putFuhyou[(int)turn * 9 + x] = 9;
-                    break;
-
-                case ktype.Kyousha:
-                    putKyousha[(int)turn * 4 + id] = 0xFF;
-                    break;
-
-                case ktype.Keima:
-                    putKeima[(int)turn * 4 + id] = 0xFF;
-                    break;
-
-                case ktype.Ginsyou:
-                    putGinsyou[(int)turn * 4 + id] = 0xFF;
-                    break;
-
-                case ktype.Hisya:
-                case ktype.Ryuuou:
-                    putHisya[(int)turn * 2 + id] = 0xFF;
-                    break;
-
-                case ktype.Kakugyou:
-                case ktype.Ryuuma:
-                    putKakugyou[(int)turn * 2 + id] = 0xFF;
-                    break;
-
-                case ktype.Kinsyou:
-                    putKinsyou[(int)turn * 4 + id] = 0xFF;
-                    break;
-
-                case ktype.Ousyou: // ありえないが
-                    putOusyou[(int)turn] = 0xFF;
-                    break;
-
-                case ktype.Tokin:
-                case ktype.Narikyou:
-                case ktype.Narikei:
-                case ktype.Narigin:
-                    putNarigoma[(int)turn * 30 + id] = 0xFF;
-                    putNarigomaNum[(int)turn]--;
-                    break;
-
-                default:
-                    break;
+        void removeKoma(int pos) {
+            //byte map_offset, Pturn turn, ktype type
+            //Debug.WriteLine("removeKoma 1 = " + pos.ToString("X2") + " " + data[pos].ToString("X8") + " " + (data[((data[pos] >> 16) & 0xFF)]).ToString("X8"));
+            data[((data[pos] >> 16) & 0xFF)] |= (uint)(0xFF << (int)((data[pos] >> 24) << 3));
+            //Debug.WriteLine("removeKoma 2 = " + pos.ToString("X2") + " " + data[pos].ToString("X8") + " " + (data[((data[pos] >> 16) & 0xFF)]).ToString("X8"));
+            if ((getOnBoardKtype(pos) >= ktype.Tokin) && (getOnBoardKtype(pos) <= ktype.Narigin)) {
+                data[(((data[pos] >> 4) & 1) << 6) + setNaNum]--;
             }
         }
 
-        //盤上から駒を移動する
-        void moveKoma(int x, int y, int id, Pturn turn, ktype type) {
-            switch (type) {
-                case ktype.Fuhyou:
-                    putFuhyou[(int)turn * 9 + x] = y;
-                    break;
-
-                case ktype.Kyousha:
-                    putKyousha[(int)turn * 4 + id] = x * 9 + y;
-                    break;
-
-                case ktype.Keima:
-                    putKeima[(int)turn * 4 + id] = x * 9 + y;
-                    break;
-
-                case ktype.Ginsyou:
-                    putGinsyou[(int)turn * 4 + id] = x * 9 + y;
-                    break;
-
-                case ktype.Hisya:
-                case ktype.Ryuuou:
-                    putHisya[(int)turn * 2 + id] = x * 9 + y;
-                    break;
-
-                case ktype.Kakugyou:
-                case ktype.Ryuuma:
-                    putKakugyou[(int)turn * 2 + id] = x * 9 + y;
-                    break;
-
-                case ktype.Kinsyou:
-                    putKinsyou[(int)turn * 4 + id] = x * 9 + y;
-                    break;
-
-                case ktype.Ousyou: // ありえないが
-                    putOusyou[(int)turn] = x * 9 + y;
-                    break;
-
-                case ktype.Tokin:
-                case ktype.Narikyou:
-                case ktype.Narikei:
-                case ktype.Narigin:
-                    putNarigoma[(int)turn * 30 + id] = x * 9 + y;
-                    break;
-
-                default:
-                    break;
-            }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        uint setOnBoardData(int map, int offset, Pturn turn, uint moveable, ktype type) {
+            return (uint)((offset << 24) + (map << 16) + (moveable << 8) + ((int)turn << 4) + (int)type);
         }
 
         ushort setOnBordDatat(Pturn trn, int putPieceNum, ktype type) {
@@ -496,161 +461,152 @@ namespace TacoWin2_BanInfo {
         // nari : 成り(false 不成 true 成)
         // chk : 移動整合性チェック(false チェック無 true チェック有)
         // 戻り値 0 OK / -1 NG(chk=true時のみ)
-        public int moveKoma(int ox, int oy, int nx, int ny, Pturn turn, bool nari, bool chk, bool renewMoveable) {
-
-            //Span<int> renewMoveableList = stackalloc int[40];
-            //int renewMoveableListNum = 0;
-
+        public int moveKoma(byte oPos, byte nPos, Pturn turn, bool nari, bool renewMoveable) {
+            //Console.WriteLine("getOnBoardPturn = " + getOnBoardKtype(nPos) + " " + nPos.ToString("X2"));
             // 駒打ち
-            if (ox == 9) {
-                // 合法手チェック
-                if (chk) if ((onBoard[nx * 9 + ny] > 0)) return -1;
-                captPiece[oy - 1 + (int)turn * 7]--;
+            if (oPos > 0x90) {
+
+                // 持ち駒情報からデクリメント
+                data[((int)turn << 6) + hand + (oPos & 0x0F)]--;
 
                 // hash更新
-                hash ^= tw2bi_hash.mochiSeed[(int)turn * 7 + oy - 1, captPiece[oy - 1 + (int)turn * 7]];
-                hash ^= tw2bi_hash.okiSeed[(int)turn * 14 + (int)oy - 1, nx * 9 + ny];
+                hash ^= tw2bi_hash.mochiSeed[(int)turn * 7 + (oPos & 0x0F) - 1, data[((int)turn << 6) + hand + (oPos & 0x0F)]];
+                hash ^= tw2bi_hash.okiSeed[(int)turn * 14 + (int)(oPos & 0x0F) - 1, (nPos >> 4) * 9 + (nPos & 0x0F)];
 
                 // 更新
                 //onBoard[nx + ny * 9] = (byte)(((int)turn << 4) + oy);
 
                 //置き駒情報・盤上情報を更新
-                putKoma(nx, ny, turn, (ktype)oy);
+                putKoma(nPos, turn, (data[nPos] >> 8) & 0xFF, (ktype)(oPos & 0x0F));
 
                 if (renewMoveable == true) {
-                    changeMoveableDir(nx, ny, -1);
-                    chgMoveable(nx, ny, getOnBoardPturn(nx, ny), 1);
+                    changeMoveableDir(nPos, -1);
+                    chgMoveable((byte)nPos, turn, 1);
                 }
-
-                //renewMoveableList[renewMoveableListNum++] = ox + oy * 9;
-                //renewMoveableLink(ox, oy, ref renewMoveableListNum, ref renewMoveableList);
 
                 // 駒移動
             } else {
-                // 合法手チェック
-                if (chk) if ((captPiece[oy + (int)turn * 7] < 1) || (checkMoveable(getOnBoardKtype(ox, oy), getOnBoardPturn(ox, oy), ox, oy, nx, ny) < 0)) return -1;
-
+                turn = getOnBoardPturn(oPos);// 移動する駒の持ち手
+                //Console.WriteLine("getOnBoardPturn = " + getOnBoardKtype(nPos) + " " + nPos.ToString("X2"));
                 // 移動先に既にある
-                if (onBoard[nx * 9 + ny] > 0) {
-                    // 味方駒は取れない
-                    if (chk) if (getOnBoardPturn(ox, oy) == getOnBoardPturn(nx, ny)) return -1;
-                    if (renewMoveable == true) chgMoveable(nx, ny, getOnBoardPturn(nx, ny), -1);
-                    removeKoma(nx, getOnBoardPutPiece(nx, ny), (Pturn)pturn.aturn((int)turn), getOnBoardKtype(nx, ny));
+                if (getOnBoardKtype(nPos) > ktype.None) {
+                    if (renewMoveable == true) chgMoveable((byte)nPos, getOnBoardPturn(nPos), -1);
 
                     // hash更新
-                    hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(nx, ny) * 14 + (int)getOnBoardKtype(nx, ny) - 1, nx * 9 + ny];
-                    hash ^= tw2bi_hash.mochiSeed[(int)getOnBoardPturn(ox, oy) * 7 + (int)kNoNari(getOnBoardKtype(nx, ny)) - 1, captPiece[(int)kNoNari(getOnBoardKtype(nx, ny)) - 1 + (int)getOnBoardPturn(ox, oy) * 7]];
+                    hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(nPos) * 14 + (int)getOnBoardKtype(nPos) - 1, (nPos >> 4) * 9 + (nPos & 0x0F)];
+                    //int aaa = (int)getOnBoardKtype(nPos);
+                    //int aasa = ((int)turn << 6) + hand + (int)kNoNari(getOnBoardKtype(nPos));
+                    //int bbb = (int)data[((int)turn << 6) + hand + (int)kNoNari(getOnBoardKtype(nPos))];
+                    //if (nPos == 104) { Debug.WriteLine("move " + aaa + "  " + aasa + "  " + bbb.ToString("X8") + " " + oPos.ToString("X2") + "->" + nPos.ToString("X2") + " \n" + debugShow()); }
 
-                    // 追加
-                    captPiece[(int)kNoNari(getOnBoardKtype(nx, ny)) - 1 + (int)getOnBoardPturn(ox, oy) * 7]++;
-                    onBoard[nx * 9 + ny] = setOnBordDatat(pturn.aturn(turn), 9, ktype.None); //駒情報を一時クリア
+                    hash ^= tw2bi_hash.mochiSeed[(int)turn * 7 + (int)kNoNari(getOnBoardKtype(nPos)) - 1, data[((int)turn << 6) + hand + (int)kNoNari(getOnBoardKtype(nPos))]];
+
+                    removeKoma(nPos);
+
+                    // 持ち駒情報追加
+                    data[((int)turn << 6) + hand + (int)kNoNari(getOnBoardKtype(nPos))]++;
+
+                    data[nPos] |= 0xFFU; //駒情報を一時クリア
                 } else {
                     //changeMoveableDir(nx, ny, -1);
                 }
 
-                // 成れる位置ではない
-                if (chk) if ((pturn.psX(getOnBoardPturn(ox, oy), nx) > 5) && (nari == true)) return -1;
 
-                ushort mk = 0;
+                uint mk = data[oPos];
 
                 // hash更新
-                if ((int)getOnBoardPturn(ox, oy)> 1) Console.WriteLine(debugShow());
-                if (getOnBoardKtype(ox, oy) == ktype.None) Console.WriteLine( debugShow());
-                hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(ox, oy) * 14 + (int)getOnBoardKtype(ox, oy) - 1, ox * 9 + oy];
+                hash ^= tw2bi_hash.okiSeed[(int)turn * 14 + (int)getOnBoardKtype(oPos) - 1, (oPos >> 4) * 9 + (oPos & 0x0F)];
 
-                if (renewMoveable == true) chgMoveable(ox, oy, getOnBoardPturn(ox, oy), -1);
+                if (renewMoveable == true) chgMoveable((byte)(oPos), turn, -1);
 
                 // 成り
                 if (nari) {
                     // 歩情報更新
-                    switch (getOnBoardKtype(ox, oy)) {
+                    switch (getOnBoardKtype(oPos)) {
                         case ktype.Fuhyou:
-                            putFuhyou[(int)turn * 9 + nx] = 9;
-                            for (int i = 0; i < 30; i++) {
-                                if (putNarigoma[(int)turn * 30 + i] == 0xFF) {
-                                    putNarigoma[(int)turn * 30 + i] = (byte)(nx * 9 + ny);
-                                    mk = setOnBordDatat(turn, i, ktype.Tokin);
-                                    putNarigomaNum[(int)turn]++;
+                            data[((data[oPos] >> 16) & 0xFF)] |= (uint)(0xFF << (int)((data[oPos] >> 24) << 3)); //マップ情報クリア
+                            for (int i = 0; i < 28; i++) {
+                                if ((data[((int)turn << 6) + setNa + (i >> 2)] >> ((i & 3) << 3) & 0xFF) == 0xFF) {
+                                    data[((int)turn << 6) + setNa + (i >> 2)] = (uint)(data[((int)turn << 6) + setNa + (i >> 2)] & ~(0xFF << ((i & 3) << 3)) | (uint)(nPos << ((i & 3) << 3)));
+                                    mk = setOnBoardData(((int)turn << 6) + setNa + (i >> 2), i & 3, turn, (data[nPos] >> 8) & 0xFF, ktype.Tokin);
+                                    ++data[((int)turn << 6) + setNaNum];
                                     break;
                                 }
                             }
                             break;
 
                         case ktype.Kyousha:
-                            putKyousha[(int)turn * 4 + getOnBoardPutPiece(ox, oy)] = 0xFF;
+                            data[((data[oPos] >> 16) & 0xFF)] |= (uint)(0xFF << (int)((data[oPos] >> 24) << 3)); //マップ情報クリア
                             for (int i = 0; i < 30; i++) {
-                                if (putNarigoma[(int)turn * 30 + i] == 0xFF) {
-                                    putNarigoma[(int)turn * 30 + i] = (byte)(nx * 9 + ny);
-                                    mk = setOnBordDatat(turn, i, ktype.Narikyou);
-                                    putNarigomaNum[(int)turn]++;
+                                if ((data[((int)turn << 6) + setNa + (i >> 2)] >> ((i & 3) << 3) & 0xFF) == 0xFF) {
+                                    data[((int)turn << 6) + setNa + (i >> 2)] = (uint)(data[((int)turn << 6) + setNa + (i >> 2)] & ~(0xFF << ((i & 3) << 3)) | (uint)(nPos << ((i & 3) << 3)));
+                                    mk = setOnBoardData(((int)turn << 6) + setNa + (i >> 2), i & 3, turn, (data[nPos] >> 8) & 0xFF, ktype.Narikyou);
+                                    ++data[((int)turn << 6) + setNaNum];
                                     break;
                                 }
                             }
                             break;
                         case ktype.Keima:
-                            putKeima[(int)turn * 4 + getOnBoardPutPiece(ox, oy)] = 0xFF;
+                            data[((data[oPos] >> 16) & 0xFF)] |= (uint)(0xFF << (int)((data[oPos] >> 24) << 3)); //マップ情報クリア
                             for (int i = 0; i < 30; i++) {
-                                if (putNarigoma[(int)turn * 30 + i] == 0xFF) {
-                                    putNarigoma[(int)turn * 30 + i] = (byte)(nx * 9 + ny);
-                                    mk = setOnBordDatat(turn, i, ktype.Narikei);
-                                    putNarigomaNum[(int)turn]++;
+                                if ((data[((int)turn << 6) + setNa + (i >> 2)] >> ((i & 3) << 3) & 0xFF) == 0xFF) {
+                                    data[((int)turn << 6) + setNa + (i >> 2)] = (uint)(data[((int)turn << 6) + setNa + (i >> 2)] & ~(0xFF << ((i & 3) << 3)) | (uint)(nPos << ((i & 3) << 3)));
+                                    mk = setOnBoardData(((int)turn << 6) + setNa + (i >> 2), i & 3, turn, (data[nPos] >> 8) & 0xFF, ktype.Narikei);
+                                    ++data[((int)turn << 6) + setNaNum];
                                     break;
                                 }
                             }
                             break;
                         case ktype.Ginsyou:
-                            putGinsyou[(int)turn * 4 + getOnBoardPutPiece(ox, oy)] = 0xFF;
+                            data[((data[oPos] >> 16) & 0xFF)] |= (uint)(0xFF << (int)((data[oPos] >> 24) << 3)); //マップ情報クリア
                             for (int i = 0; i < 30; i++) {
-                                if (putNarigoma[(int)turn * 30 + i] == 0xFF) {
-                                    putNarigoma[(int)turn * 30 + i] = (byte)(nx * 9 + ny);
-                                    mk = setOnBordDatat(turn, i, ktype.Narigin);
-                                    putNarigomaNum[(int)turn]++;
+                                if ((data[((int)turn << 6) + setNa + (i >> 2)] >> ((i & 3) << 3) & 0xFF) == 0xFF) {
+                                    data[((int)turn << 6) + setNa + (i >> 2)] = (uint)(data[((int)turn << 6) + setNa + (i >> 2)] & ~(0xFF << ((i & 3) << 3)) | (uint)(nPos << ((i & 3) << 3)));
+                                    mk = setOnBoardData(((int)turn << 6) + setNa + (i >> 2), i & 3, turn, (data[nPos] >> 8) & 0xFF, ktype.Narigin);
+                                    ++data[((int)turn << 6) + setNaNum];
                                     break;
                                 }
                             }
                             break;
                         default:
-                            moveKoma(nx, ny, getOnBoardPutPiece(ox, oy), turn, getOnBoardKtype(ox, oy));
-                            mk = setOnBordDatat(turn, getOnBoardPutPiece(ox, oy), kDoNari(getOnBoardKtype(ox, oy)));
+                            data[(data[oPos] >> 16) & 0xFF] = (uint)(data[(data[oPos] >> 16) & 0xFF] & ~(0xFF << ((int)(data[oPos] >> 24) << 3)) | (uint)(nPos << (int)((data[oPos] >> 24) << 3)));
+                            mk = setOnBoardData((int)(data[oPos] >> 16 & 0xFF), (int)(data[oPos] >> 24), turn, (data[nPos] >> 8) & 0xFF, kDoNari(getOnBoardKtype(oPos)));
                             break;
                     }
-                    onBoard[ox * 9 + oy] = 0;
-                    if (renewMoveable == true) {
-                        if (onBoard[nx * 9 + ny] == 0) {
-                            changeMoveableDir(nx, ny, -1);
-                        }
-                        changeMoveableDir(ox, oy, 1);
-                    }
 
-                    onBoard[nx * 9 + ny] = mk;
 
-                    if (renewMoveable == true) chgMoveable(nx, ny, getOnBoardPturn(nx, ny), 1);
 
                     // 不成or通常移動
                 } else {
-                    moveKoma(nx, ny, getOnBoardPutPiece(ox, oy), turn, getOnBoardKtype(ox, oy));
-                    mk = onBoard[ox * 9 + oy];
-                    onBoard[ox * 9 + oy] = 0;
-                    if (renewMoveable == true) {
-                        if (onBoard[nx * 9 + ny] == 0) {
-                            changeMoveableDir(nx, ny, -1);
-                        }
-                        changeMoveableDir(ox, oy, 1);
-                    }
-
-                    onBoard[nx * 9 + ny] = mk;
-
-                    if (renewMoveable == true) chgMoveable(nx, ny, getOnBoardPturn(nx, ny), 1);
+                    data[(data[oPos] >> 16) & 0xFF] = (uint)(data[(data[oPos] >> 16) & 0xFF] & ~(0xFF << ((int)(data[oPos] >> 24) << 3)) | (uint)(nPos << (int)((data[oPos] >> 24) << 3))); //Map情報更新
+                    mk = setOnBoardData((int)(data[oPos] >> 16 & 0xFF), (int)(data[oPos] >> 24), turn, (data[nPos] >> 8) & 0xFF, getOnBoardKtype(oPos));
                 }
 
+                data[oPos] &= ~0xFFU; //移動元駒情報クリア
+                //Debug.WriteLine("move " + oPos.ToString("X2") + "  " + data[oPos].ToString("X8"));
+
+                if (renewMoveable == true) {
+                    if (getOnBoardKtype(nPos) == ktype.None) {
+                        changeMoveableDir(nPos, -1);
+                    }
+                    changeMoveableDir(oPos, 1);
+                }
+
+                //Debug.WriteLine("DDDv\n" + debugShow());
+
+                //data[nPos] = mk;
+                data[nPos] = setOnBoardData((int)mk >> 16 & 0xFF, (int)(mk >> 24), turn, (data[nPos] >> 8) & 0xFF, (ktype)(mk & 0x0F));
+
+                if (renewMoveable == true) chgMoveable(nPos, turn, 1);
+
+
                 // hash更新
-                hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(nx, ny) * 14 + (int)getOnBoardKtype(nx, ny) - 1, nx * 9 + ny];
+                hash ^= tw2bi_hash.okiSeed[(int)turn * 14 + (int)getOnBoardKtype(nPos) - 1, (nPos >> 4) * 9 + (nPos & 0x0F)];
 
             }
 
             return 0;
         }
-
 
         /// <summary>
         /// 指定した駒の移動が可能かチェック
@@ -662,36 +618,35 @@ namespace TacoWin2_BanInfo {
         /// <param name="turn"></param>
         /// <param name="nari"></param>
         /// <returns>0:OK -1:NG</returns>
-        public int chkMoveable(int ox, int oy, int nx, int ny, Pturn turn, bool nari) {
+        public int chkMoveable(byte oPos, byte nPos, Pturn turn, bool nari) {
             if ((turn != Pturn.Sente) && (turn != Pturn.Gote)) return -1;
-            if ((ox == nx) && (ox == ny)) return -2;
-            if ((ox < 0) || (ox > 9)) return -3;
-            if ((oy < 0) || (oy > 8)) return -4;
-            if ((nx < 0) || (nx > 8)) return -5;
-            if ((ny < 0) || (ny > 8)) return -6;
+            if (oPos == nPos) return -2;
+            if ((oPos > 0x98) || ((oPos & 0x0F) > 8)) return -3;
+            if ((nPos > 0x88) || ((nPos & 0x0F) > 8)) return -4;
 
             // 駒打ち
-            if (ox == 9) {
+            if (oPos > 0x90) {
                 if (nari == true) return -7;
                 // 置き場所に駒があるか
-                if ((onBoard[nx * 9 + ny] > 0)) return -8;
-                // 持ち駒を持っていない
-                if (captPiece[(int)turn * 7 + oy - 1] == 0) return -9;
+                if (getOnBoardKtype(nPos) > ktype.None) return -8;
 
-                if (((oy == (int)ktype.Fuhyou) || (oy == (int)ktype.Kyousha)) && (pturn.psY(turn, ny) == 8)) return -10;
-                if ((oy == (int)ktype.Keima) && (pturn.psY(turn, ny) > 6)) return -11;
+                // 持ち駒を持っていない
+                if (data[((int)turn << 6) + ban.hand + (oPos & 0x0F)] == 0) return -9;
+
+                if ((((oPos & 0x0F) == (int)ktype.Fuhyou) || ((oPos & 0x0F) == (int)ktype.Kyousha)) && (pturn.psY(turn, (byte)(nPos & 0x0F)) == 8)) return -10;
+                if (((oPos & 0x0F) == (int)ktype.Keima) && (pturn.psY(turn, (byte)(nPos & 0x0F)) > 6)) return -11;
 
                 // 駒移動
-            } else if ((ox > -1) && (ox < 9)) {
-                if ((onBoard[ox * 9 + oy] == 0)) return -12;
-                if (getOnBoardPturn(ox, oy) != turn) return -13;
+            } else if (oPos < 0x90) {
+                if (getOnBoardKtype(oPos) == ktype.None) return -12;
+                if (getOnBoardPturn(oPos) != turn) return -13;
                 // TODO : 個々の駒移動チェック
-                if ((onBoard[nx * 9 + ny] > 0) && (getOnBoardPturn(ox, oy) == turn)) return -14;
-                if ((nari == true) && (getOnBoardKtype(ox, oy) > ktype.Kakugyou)) return -15;
-                if ((nari == true) && (pturn.psY(turn, oy) < 6) && (pturn.psY(turn, ny) < 6)) return -16;
+                if ((getOnBoardKtype(nPos) > ktype.None) && (getOnBoardPturn(nPos) == turn)) return -14;
+                if ((nari == true) && (getOnBoardKtype(oPos) > ktype.Kakugyou)) return -15;
+                if ((nari == true) && (pturn.psY(turn, (byte)(oPos & 0x0F)) < 6) && (pturn.psY(turn, (byte)(nPos & 0x0F)) < 6)) return -16;
 
-                if ((nari == false) && ((getOnBoardKtype(ox, oy) == ktype.Fuhyou) || (getOnBoardKtype(ox, oy) == ktype.Kyousha)) && (pturn.psX(turn, ny) == 8)) return -17;
-                if ((nari == false) && (getOnBoardKtype(ox, oy) == ktype.Keima) && (pturn.psX(turn, ny) > 6)) return -18;
+                if ((nari == false) && ((getOnBoardKtype(oPos) == ktype.Fuhyou) || (getOnBoardKtype(oPos) == ktype.Kyousha)) && (pturn.psX(turn, (byte)(nPos & 0x0F)) == 8)) return -17;
+                if ((nari == false) && (getOnBoardKtype(oPos) == ktype.Keima) && (pturn.psX(turn, (byte)(nPos & 0x0F)) > 6)) return -18;
 
             } else {
                 return -19;
@@ -699,179 +654,22 @@ namespace TacoWin2_BanInfo {
             return 0;
         }
 
-        // 盤上情報上の駒情報を取得**将来廃止
-        public ktype getOnBoardKtype(int x, int y) {
-            return (ktype)(onBoard[x * 9 + y] & 0x0F);
-        }
-
         // 盤上情報上の駒情報を取得
-        public ktype getOnBoardKtype(int pos) {
-            return (ktype)(onBoard[pos] & 0x0F);
+        public ktype getOnBoardKtype(byte pos) {
+            return (ktype)(data[pos] & 0x0F);
         }
 
-        // 盤上情報上の駒所有者を取得**将来廃止
-        public Pturn getOnBoardPturn(int x, int y) {
-            return (Pturn)((onBoard[x * 9 + y] & 0xF0) >> 4);
+        public ktype getOnBoardKtype(int pos) {
+            return (ktype)(data[pos] & 0x0F);
         }
 
         public Pturn getOnBoardPturn(int pos) {
-            return (Pturn)((onBoard[pos] & 0xF0) >> 4);
+            return (Pturn)((data[pos] & 0xF0) >> 4);
         }
-
-        // 盤上情報上の置き駒情報を取得
-        public int getOnBoardPutPiece(int x, int y) {
-            return ((onBoard[x * 9 + y] & 0xFF00) >> 8);
-        }
-
-        // 指定位置から指定位置への駒移動可能チェック
-        // 戻り値 0:OK / 1:NG
-        public int checkMoveable(ktype type, Pturn trn, int ox, int oy, int nx, int ny) {
-            switch (type) {
-                case ktype.Fuhyou:
-                    if ((ox == nx) && (oy == ny + pturn.mvY(trn, ny, 1))) return 0;
-
-                    break;
-
-                case ktype.Kyousha:
-                    if ((ox == nx) && (oy == ny + 1)) return 0;
-
-                    break;
-
-                case ktype.Keima:
-
-                    break;
-
-                case ktype.Ginsyou:
-
-                    break;
-
-                case ktype.Hisya:
-
-                    break;
-
-                case ktype.Kakugyou:
-
-                    break;
-
-                case ktype.Kinsyou:
-
-                    break;
-
-                case ktype.Ousyou:
-
-                    break;
-
-                case ktype.Tokin:
-
-                    break;
-
-                case ktype.Narikyou:
-
-                    break;
-
-                case ktype.Narikei:
-
-                    break;
-
-                case ktype.Narigin:
-
-                    break;
-
-                case ktype.Ryuuou:
-
-                    break;
-
-                case ktype.Ryuuma:
-
-                    break;
-
-                default:
-                    break;
-            }
-
-            return 0;
-        }
-
-        // 指定位置から指定位置への駒移動可能チェック
-        // 戻り値 0:OK / 1:NG
-        public int pickMoveable(ktype type, Pturn trn, int ox, int oy, int nx, int ny) {
-            switch (type) {
-                case ktype.Fuhyou:
-                    if ((ox == nx) && (oy == ny + pturn.mvY(trn, ny, 1))) return 0;
-
-                    break;
-
-                case ktype.Kyousha:
-                    if ((ox == nx) && (oy == ny + 1)) return 0;
-
-                    break;
-
-                case ktype.Keima:
-
-                    break;
-
-                case ktype.Ginsyou:
-
-                    break;
-
-                case ktype.Hisya:
-
-                    break;
-
-                case ktype.Kakugyou:
-
-                    break;
-
-                case ktype.Kinsyou:
-
-                    break;
-
-                case ktype.Ousyou:
-
-                    break;
-
-                case ktype.Tokin:
-
-                    break;
-
-                case ktype.Narikyou:
-
-                    break;
-
-                case ktype.Narikei:
-
-                    break;
-
-                case ktype.Narigin:
-
-                    break;
-
-                case ktype.Ryuuou:
-
-                    break;
-
-                case ktype.Ryuuma:
-
-                    break;
-
-                default:
-                    break;
-            }
-
-            return 0;
-        }
-
-        //void renewMoveableLink(int x, int y, ref int num, ref Span<int> list) {
-        //
-        //}
 
         // 処理軽減のためチェック省略
         public static ktype kDoNari(ktype t) {
-            //if (( t > 0 )&&( t < ktype.Kinsyou)) {
             return t + 8;
-            //} else {
-            //    return t;
-            //}
         }
 
         public ktype kNoNari(ktype t) {
@@ -882,41 +680,42 @@ namespace TacoWin2_BanInfo {
             }
         }
 
-        public void chgMoveable(int ox, int oy, Pturn turn, int val) {
-            switch (getOnBoardKtype(ox, oy)) {
+        public void chgMoveable(byte oPos, Pturn turn, int val) {
+            //Console.WriteLine("chgMoveable "+ oPos.ToString("X"));
+            switch (getOnBoardKtype(oPos)) {
                 case ktype.Fuhyou:
-                    addMoveableEachKoma(ox, oy, 0, 1, turn, val);
+                    addMoveableEachKoma(oPos, 0x01, turn, val);
                     break;
 
                 case ktype.Kyousha:
-                    for (int i = 1; addMoveableEachKoma(ox, oy, 0, i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, i, turn, val) < 1; i++) ;
                     break;
 
                 case ktype.Keima:
-                    addMoveableEachKoma(ox, oy, 1, 2, turn, val);
-                    addMoveableEachKoma(ox, oy, -1, 2, turn, val);
+                    addMoveableEachKoma(oPos, 0x10 + 0x02, turn, val);
+                    addMoveableEachKoma(oPos, -0x10 + 0x02, turn, val);
                     break;
 
                 case ktype.Ginsyou:
-                    addMoveableEachKoma(ox, oy, 1, 1, turn, val);
-                    addMoveableEachKoma(ox, oy, 0, 1, turn, val);
-                    addMoveableEachKoma(ox, oy, -1, 1, turn, val);
-                    addMoveableEachKoma(ox, oy, 1, -1, turn, val);
-                    addMoveableEachKoma(ox, oy, -1, -1, turn, val);
+                    addMoveableEachKoma(oPos, 0x10 + 0x01, turn, val);
+                    addMoveableEachKoma(oPos, 0x00 + 0x01, turn, val);
+                    addMoveableEachKoma(oPos, -0x10 + 0x01, turn, val);
+                    addMoveableEachKoma(oPos, 0x10 - 0x01, turn, val);
+                    addMoveableEachKoma(oPos, -0x10 - 0x01, turn, val);
                     break;
 
                 case ktype.Hisya:
-                    for (int i = 1; addMoveableEachKoma(ox, oy, 0, i, turn, val) < 1; i++) ;
-                    for (int i = 1; addMoveableEachKoma(ox, oy, 0, -i, turn, val) < 1; i++) ;
-                    for (int i = 1; addMoveableEachKoma(ox, oy, i, 0, turn, val) < 1; i++) ;
-                    for (int i = 1; addMoveableEachKoma(ox, oy, -i, 0, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, -i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, i << 4, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, -(i << 4), turn, val) < 1; i++) ;
                     break;
 
                 case ktype.Kakugyou:
-                    for (int i = 1; addMoveableEachKoma(ox, oy, i, i, turn, val) < 1; i++) ;
-                    for (int i = 1; addMoveableEachKoma(ox, oy, i, -i, turn, val) < 1; i++) ;
-                    for (int i = 1; addMoveableEachKoma(ox, oy, -i, i, turn, val) < 1; i++) ;
-                    for (int i = 1; addMoveableEachKoma(ox, oy, -i, -i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, (i << 4) + i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, (i << 4) - i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, -(i << 4) + i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, -(i << 4) - i, turn, val) < 1; i++) ;
                     break;
 
                 case ktype.Kinsyou:
@@ -924,45 +723,45 @@ namespace TacoWin2_BanInfo {
                 case ktype.Narikyou:
                 case ktype.Narikei:
                 case ktype.Narigin:
-                    addMoveableEachKoma(ox, oy, 1, 1, turn, val);
-                    addMoveableEachKoma(ox, oy, 0, 1, turn, val);
-                    addMoveableEachKoma(ox, oy, -1, 1, turn, val);
-                    addMoveableEachKoma(ox, oy, 1, 0, turn, val);
-                    addMoveableEachKoma(ox, oy, -1, 0, turn, val);
-                    addMoveableEachKoma(ox, oy, 0, -1, turn, val);
+                    addMoveableEachKoma(oPos, 0x10 + 0x01, turn, val);
+                    addMoveableEachKoma(oPos, 0x00 + 0x01, turn, val);
+                    addMoveableEachKoma(oPos, -0x10 + 0x01, turn, val);
+                    addMoveableEachKoma(oPos, -0x10 + 0x00, turn, val);
+                    addMoveableEachKoma(oPos, 0x10 + 0x00, turn, val);
+                    addMoveableEachKoma(oPos, 0x00 - 0x01, turn, val);
                     break;
 
                 case ktype.Ousyou:
-                    addMoveableEachKoma(ox, oy, 1, 1, turn, val);
-                    addMoveableEachKoma(ox, oy, 0, 1, turn, val);
-                    addMoveableEachKoma(ox, oy, -1, 1, turn, val);
-                    addMoveableEachKoma(ox, oy, 1, 0, turn, val);
-                    addMoveableEachKoma(ox, oy, -1, 0, turn, val);
-                    addMoveableEachKoma(ox, oy, 1, -1, turn, val);
-                    addMoveableEachKoma(ox, oy, 0, -1, turn, val);
-                    addMoveableEachKoma(ox, oy, -1, -1, turn, val);
+                    addMoveableEachKoma(oPos, 0x10 + 0x01, turn, val);
+                    addMoveableEachKoma(oPos, 0x00 + 0x01, turn, val);
+                    addMoveableEachKoma(oPos, -0x10 + 0x01, turn, val);
+                    addMoveableEachKoma(oPos, 0x10 + 0x00, turn, val);
+                    addMoveableEachKoma(oPos, -0x10 + 0x00, turn, val);
+                    addMoveableEachKoma(oPos, 0x10 - 0x01, turn, val);
+                    addMoveableEachKoma(oPos, 0x00 - 0x01, turn, val);
+                    addMoveableEachKoma(oPos, -0x10 - 0x01, turn, val);
                     break;
 
                 case ktype.Ryuuou:
-                    addMoveableEachKoma(ox, oy, 1, 1, turn, val);
-                    addMoveableEachKoma(ox, oy, -1, 1, turn, val);
-                    addMoveableEachKoma(ox, oy, 1, -1, turn, val);
-                    addMoveableEachKoma(ox, oy, -1, -1, turn, val);
-                    for (int i = 1; addMoveableEachKoma(ox, oy, 0, i, turn, val) < 1; i++) ;
-                    for (int i = 1; addMoveableEachKoma(ox, oy, 0, -i, turn, val) < 1; i++) ;
-                    for (int i = 1; addMoveableEachKoma(ox, oy, i, 0, turn, val) < 1; i++) ;
-                    for (int i = 1; addMoveableEachKoma(ox, oy, -i, 0, turn, val) < 1; i++) ;
+                    addMoveableEachKoma(oPos, 0x10 + 0x01, turn, val);
+                    addMoveableEachKoma(oPos, -0x10 + 0x01, turn, val);
+                    addMoveableEachKoma(oPos, 0x10 - 0x01, turn, val);
+                    addMoveableEachKoma(oPos, -0x10 - 0x01, turn, val);
+                    for (int i = 1; addMoveableEachKoma(oPos, i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, -i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, i << 4, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, -(i << 4), turn, val) < 1; i++) ;
                     break;
 
                 case ktype.Ryuuma:
-                    addMoveableEachKoma(ox, oy, 0, 1, turn, val);
-                    addMoveableEachKoma(ox, oy, 1, 0, turn, val);
-                    addMoveableEachKoma(ox, oy, -1, 0, turn, val);
-                    addMoveableEachKoma(ox, oy, 0, -1, turn, val);
-                    for (int i = 1; addMoveableEachKoma(ox, oy, i, i, turn, val) < 1; i++) ;
-                    for (int i = 1; addMoveableEachKoma(ox, oy, i, -i, turn, val) < 1; i++) ;
-                    for (int i = 1; addMoveableEachKoma(ox, oy, -i, i, turn, val) < 1; i++) ;
-                    for (int i = 1; addMoveableEachKoma(ox, oy, -i, -i, turn, val) < 1; i++) ;
+                    addMoveableEachKoma(oPos, 0x00 + 0x01, turn, val);
+                    addMoveableEachKoma(oPos, 0x10 + 0x00, turn, val);
+                    addMoveableEachKoma(oPos, -0x10 + 0x00, turn, val);
+                    addMoveableEachKoma(oPos, 0x00 - 0x01, turn, val);
+                    for (int i = 1; addMoveableEachKoma(oPos, (i << 4) + i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, (i << 4) - i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, -(i << 4) + i, turn, val) < 1; i++) ;
+                    for (int i = 1; addMoveableEachKoma(oPos, -(i << 4) - i, turn, val) < 1; i++) ;
                     break;
 
                 default:
@@ -970,212 +769,227 @@ namespace TacoWin2_BanInfo {
             }
         }
 
-        int addMoveableEachKoma(int ox, int oy, int mx, int my, Pturn turn, int val) {
-            int nx = pturn.mvX(turn, ox, mx);
-            int ny = pturn.mvY(turn, oy, my);
-            if ((nx < 0) || (nx > 8) || (ny < 0) || (ny > 8)) return 1; // 移動できない
-            moveable[(int)turn * 81 + nx * 9 + ny] += (byte)val;
-            if (onBoard[nx * 9 + ny] > 0) {
+        int addMoveableEachKoma(uint oPos, int mPos, Pturn turn, int val) {
+            byte nPos = (byte)pturn.mv(turn, (byte)oPos, mPos);
+            if ((nPos > 0x88) || ((nPos & 0xF) > 0x08)) {
+                //Console.WriteLine("[n]" + nPos.ToString("X") + " " + turn);
+                return 1;
+            }; // 移動できない
+
+            //Console.WriteLine("[N]" + nPos.ToString("X") + " " + turn);
+            data[nPos] += (uint)(val << (8 + (int)turn * 4));
+            if (getOnBoardKtype(nPos) > ktype.None) {
                 return 1; // 駒がある
             } else {
                 return 0; // 駒がない
             }
         }
 
-        // ban情報のデバッグ表示
         public string debugShow() {
             string str = "";
-            for (int i = 0; i < 81; i++) {
-                if (onBoard[(i / 9) + (8 - i % 9) * 9] != 0) {
-                    // 先手
-                    if (getOnBoardPturn(8 - i % 9, (i / 9)) == Pturn.Sente) {
-                        switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
-                            case ktype.Fuhyou:
-                                str += "P_|";
-                                break;
-                            case ktype.Kyousha:
-                                str += "L_|";
-                                break;
-                            case ktype.Keima:
-                                str += "N_|";
-                                break;
-                            case ktype.Ginsyou:
-                                str += "S_|";
-                                break;
-                            case ktype.Hisya:
-                                str += "R_|";
-                                break;
-                            case ktype.Kakugyou:
-                                str += "B_|";
-                                break;
-                            case ktype.Kinsyou:
-                                str += "G_|";
-                                break;
-                            case ktype.Ousyou:
-                                str += "K_|";
-                                break;
-                            case ktype.Tokin:
-                                str += "+P|";
-                                break;
-                            case ktype.Narikyou:
-                                str += "+L|";
-                                break;
-                            case ktype.Narikei:
-                                str += "+N|";
-                                break;
-                            case ktype.Narigin:
-                                str += "+G|";
-                                break;
-                            case ktype.Ryuuou:
-                                str += "+R|";
-                                break;
-                            case ktype.Ryuuma:
-                                str += "+B|";
-                                break;
-                            default:
-                                str += "!_|";
-                                break;
-                        }
-                    } else if (getOnBoardPturn(8 - i % 9, (i / 9)) == Pturn.Gote) {
-                        switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
-                            case ktype.Fuhyou:
-                                str += "p_|";
-                                break;
-                            case ktype.Kyousha:
-                                str += "l_|";
-                                break;
-                            case ktype.Keima:
-                                str += "n_|";
-                                break;
-                            case ktype.Ginsyou:
-                                str += "s_|";
-                                break;
-                            case ktype.Hisya:
-                                str += "r_|";
-                                break;
-                            case ktype.Kakugyou:
-                                str += "b_|";
-                                break;
-                            case ktype.Kinsyou:
-                                str += "g_|";
-                                break;
-                            case ktype.Ousyou:
-                                str += "k_|";
-                                break;
-                            case ktype.Tokin:
-                                str += "+p|";
-                                break;
-                            case ktype.Narikyou:
-                                str += "+l|";
-                                break;
-                            case ktype.Narikei:
-                                str += "+n|";
-                                break;
-                            case ktype.Narigin:
-                                str += "+g|";
-                                break;
-                            case ktype.Ryuuou:
-                                str += "+r|";
-                                break;
-                            case ktype.Ryuuma:
-                                str += "+b|";
-                                break;
-                            default:
-                                str += "!_|";
-                                break;
-                        }
-                    } else {
-                        switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
-                            case ktype.Fuhyou:
-                                str += "p!|";
-                                break;
-                            case ktype.Kyousha:
-                                str += "l!|";
-                                break;
-                            case ktype.Keima:
-                                str += "n!|";
-                                break;
-                            case ktype.Ginsyou:
-                                str += "s!|";
-                                break;
-                            case ktype.Hisya:
-                                str += "r!|";
-                                break;
-                            case ktype.Kakugyou:
-                                str += "b!|";
-                                break;
-                            case ktype.Kinsyou:
-                                str += "g!|";
-                                break;
-                            case ktype.Ousyou:
-                                str += "k!|";
-                                break;
-                            case ktype.Tokin:
-                                str += "!p|";
-                                break;
-                            case ktype.Narikyou:
-                                str += "!l|";
-                                break;
-                            case ktype.Narikei:
-                                str += "!n|";
-                                break;
-                            case ktype.Narigin:
-                                str += "!g|";
-                                break;
-                            case ktype.Ryuuou:
-                                str += "!r|";
-                                break;
-                            case ktype.Ryuuma:
-                                str += "!b|";
-                                break;
-                            default:
-                                str += "!!|";
-                                break;
-                        }
-                    }
-
-                } else {
-                    str += "__|";
-                }
-                if ((i + 1) % 9 == 0) {
-                    str += "    ";
-                    // 移動可能リスト
-                    for (int j = 8; j >= 0; j--) {
-                        str +=  /* "("+ j + ","+ ((i + 1)/9-1) + ")" + */ moveable[j * 9 + ((i + 1) / 9 - 1)] + "," + moveable[81 + j * 9 + ((i + 1) / 9 - 1)] + "|";
-
-                    }
-
-                    // 改行
-                    str += Environment.NewLine;
-
-                }
-            }
-
-            // 持ち駒情報
-            str += "FU:" + captPiece[0] + "/KY:" + captPiece[1] + "/KE:" + captPiece[2] + "/GI:" + captPiece[3] + "/HI:" + captPiece[4] + "/KA:" + captPiece[5] + "/KI:" + captPiece[6] + Environment.NewLine;
-            str += "FU:" + captPiece[7] + "/KY:" + captPiece[8] + "/KE:" + captPiece[9] + "/GI:" + captPiece[10] + "/HI:" + captPiece[11] + "/KA:" + captPiece[12] + "/KI:" + captPiece[13] + Environment.NewLine;
-
-            for (int i = 0; i < 9; i++) {
-                str += putFuhyou[i] + " ";
-
-            }
-
-            for (int i = 0; i < 4; i++) {
-                str += putHisya[i] + " ";
-
-            }
-
-            str += Environment.NewLine;
-            for (int i = 0; i < 9; i++) {
-                str += putFuhyou[9 + i] + " ";
-
+            for (int i = 0; i < 137; i++) {
+                str += data[i].ToString("X8") + " ";
+                if ((i & 15) == 15) str += Environment.NewLine;
             }
             str += Environment.NewLine;
             str += "[HASH]" + hash.ToString("X16");
-
-            str += Environment.NewLine;
             return str;
         }
+
+        //// ban情報のデバッグ表示
+        //public string old_debugShow() {
+        //    string str = "";
+        //    for (int i = 0; i < 81; i++) {
+        //        if (onBoard[(i / 9) + (8 - i % 9) * 9] != 0) {
+        //            // 先手
+        //            if (getOnBoardPturn(8 - i % 9, (i / 9)) == Pturn.Sente) {
+        //                switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
+        //                    case ktype.Fuhyou:
+        //                        str += "P_|";
+        //                        break;
+        //                    case ktype.Kyousha:
+        //                        str += "L_|";
+        //                        break;
+        //                    case ktype.Keima:
+        //                        str += "N_|";
+        //                        break;
+        //                    case ktype.Ginsyou:
+        //                        str += "S_|";
+        //                        break;
+        //                    case ktype.Hisya:
+        //                        str += "R_|";
+        //                        break;
+        //                    case ktype.Kakugyou:
+        //                        str += "B_|";
+        //                        break;
+        //                    case ktype.Kinsyou:
+        //                        str += "G_|";
+        //                        break;
+        //                    case ktype.Ousyou:
+        //                        str += "K_|";
+        //                        break;
+        //                    case ktype.Tokin:
+        //                        str += "+P|";
+        //                        break;
+        //                    case ktype.Narikyou:
+        //                        str += "+L|";
+        //                        break;
+        //                    case ktype.Narikei:
+        //                        str += "+N|";
+        //                        break;
+        //                    case ktype.Narigin:
+        //                        str += "+G|";
+        //                        break;
+        //                    case ktype.Ryuuou:
+        //                        str += "+R|";
+        //                        break;
+        //                    case ktype.Ryuuma:
+        //                        str += "+B|";
+        //                        break;
+        //                    default:
+        //                        str += "!_|";
+        //                        break;
+        //                }
+        //            } else if (getOnBoardPturn(8 - i % 9, (i / 9)) == Pturn.Gote) {
+        //                switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
+        //                    case ktype.Fuhyou:
+        //                        str += "p_|";
+        //                        break;
+        //                    case ktype.Kyousha:
+        //                        str += "l_|";
+        //                        break;
+        //                    case ktype.Keima:
+        //                        str += "n_|";
+        //                        break;
+        //                    case ktype.Ginsyou:
+        //                        str += "s_|";
+        //                        break;
+        //                    case ktype.Hisya:
+        //                        str += "r_|";
+        //                        break;
+        //                    case ktype.Kakugyou:
+        //                        str += "b_|";
+        //                        break;
+        //                    case ktype.Kinsyou:
+        //                        str += "g_|";
+        //                        break;
+        //                    case ktype.Ousyou:
+        //                        str += "k_|";
+        //                        break;
+        //                    case ktype.Tokin:
+        //                        str += "+p|";
+        //                        break;
+        //                    case ktype.Narikyou:
+        //                        str += "+l|";
+        //                        break;
+        //                    case ktype.Narikei:
+        //                        str += "+n|";
+        //                        break;
+        //                    case ktype.Narigin:
+        //                        str += "+g|";
+        //                        break;
+        //                    case ktype.Ryuuou:
+        //                        str += "+r|";
+        //                        break;
+        //                    case ktype.Ryuuma:
+        //                        str += "+b|";
+        //                        break;
+        //                    default:
+        //                        str += "!_|";
+        //                        break;
+        //                }
+        //            } else {
+        //                switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
+        //                    case ktype.Fuhyou:
+        //                        str += "p!|";
+        //                        break;
+        //                    case ktype.Kyousha:
+        //                        str += "l!|";
+        //                        break;
+        //                    case ktype.Keima:
+        //                        str += "n!|";
+        //                        break;
+        //                    case ktype.Ginsyou:
+        //                        str += "s!|";
+        //                        break;
+        //                    case ktype.Hisya:
+        //                        str += "r!|";
+        //                        break;
+        //                    case ktype.Kakugyou:
+        //                        str += "b!|";
+        //                        break;
+        //                    case ktype.Kinsyou:
+        //                        str += "g!|";
+        //                        break;
+        //                    case ktype.Ousyou:
+        //                        str += "k!|";
+        //                        break;
+        //                    case ktype.Tokin:
+        //                        str += "!p|";
+        //                        break;
+        //                    case ktype.Narikyou:
+        //                        str += "!l|";
+        //                        break;
+        //                    case ktype.Narikei:
+        //                        str += "!n|";
+        //                        break;
+        //                    case ktype.Narigin:
+        //                        str += "!g|";
+        //                        break;
+        //                    case ktype.Ryuuou:
+        //                        str += "!r|";
+        //                        break;
+        //                    case ktype.Ryuuma:
+        //                        str += "!b|";
+        //                        break;
+        //                    default:
+        //                        str += "!!|";
+        //                        break;
+        //                }
+        //            }
+        //
+        //        } else {
+        //            str += "__|";
+        //        }
+        //        if ((i + 1) % 9 == 0) {
+        //            str += "    ";
+        //            // 移動可能リスト
+        //            for (int j = 8; j >= 0; j--) {
+        //                str +=  /* "("+ j + ","+ ((i + 1)/9-1) + ")" + */ moveable[j * 9 + ((i + 1) / 9 - 1)] + "," + moveable[81 + j * 9 + ((i + 1) / 9 - 1)] + "|";
+        //
+        //            }
+        //
+        //            // 改行
+        //            str += Environment.NewLine;
+        //
+        //        }
+        //    }
+        //
+        //    // 持ち駒情報
+        //    str += "FU:" + captPiece[0] + "/KY:" + captPiece[1] + "/KE:" + captPiece[2] + "/GI:" + captPiece[3] + "/HI:" + captPiece[4] + "/KA:" + captPiece[5] + "/KI:" + captPiece[6] + Environment.NewLine;
+        //    str += "FU:" + captPiece[7] + "/KY:" + captPiece[8] + "/KE:" + captPiece[9] + "/GI:" + captPiece[10] + "/HI:" + captPiece[11] + "/KA:" + captPiece[12] + "/KI:" + captPiece[13] + Environment.NewLine;
+        //
+        //    for (int i = 0; i < 9; i++) {
+        //        str += putFuhyou[i] + " ";
+        //
+        //    }
+        //
+        //    for (int i = 0; i < 4; i++) {
+        //        str += putHisya[i] + " ";
+        //
+        //    }
+        //
+        //    str += Environment.NewLine;
+        //    for (int i = 0; i < 9; i++) {
+        //        str += putFuhyou[9 + i] + " ";
+        //
+        //    }
+        //    str += Environment.NewLine;
+        //    str += "[HASH]" + hash.ToString("X16");
+        //
+        //    str += Environment.NewLine;
+        //    return str;
+        //}
 
 
     }

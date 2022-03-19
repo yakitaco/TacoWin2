@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace TacoWin2 {
 
@@ -93,11 +92,18 @@ namespace TacoWin2 {
 
     }
 
-    class tw2mem {
+    static class tw2mem {
+        const int kmListMax = 20;
+        public static kmove[][] killerMove = new kmove[kmListMax][];
+        const int kmListElMax = 20;
 
-
-
-
-
+        static tw2mem() {
+            reset();
+        }
+        public static void reset() {
+            for (int i = 0; i < kmListMax; i++) {
+                killerMove[i] = new kmove[kmListElMax];
+            }
+        }
     }
 }

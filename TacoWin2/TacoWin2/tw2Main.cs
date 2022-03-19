@@ -48,7 +48,7 @@ namespace TacoWin2 {
             }
 
             // 定跡ファイル
-            string fileName = "default.ytj";
+            string fileName = "sdefault.ytj";
             int ret = sMove.load(fileName);
             if (ret < 0) {
                 DebugForm.instance.addMsg("[NG]Load " + fileName);
@@ -127,16 +127,13 @@ namespace TacoWin2 {
 
                     // 手を更新(差分のみ)
                     for (tesuu = 0; tesuu + startStrPos < arr.Length; tesuu++) {
-                        int ox;
-                        int oy;
-                        int nx;
-                        int ny;
+                        byte oPos;
+                        byte nPos;
                         bool nari;
-                        tw2usiIO.usi2pos(arr[tesuu + startStrPos], out ox, out oy, out nx, out ny, out nari);
+                        tw2usiIO.usi2pos(arr[tesuu + startStrPos], out oPos, out nPos, out nari);
 
                         //Console.Write("MV({0},{1})->({2},{3})\n", ox + 1, oy + 1, nx + 1, ny + 1);
-                        ban.moveKoma(ox, oy, nx, ny, turn, nari, false, false);
-
+                        ban.moveKoma(oPos, nPos, turn, nari, false);
                         turn = (Pturn)pturn.aturn((int)turn);
 
                     }
@@ -157,9 +154,9 @@ namespace TacoWin2 {
                         sw.Restart();
                         aiTaskMain = Task.Run(() => {
                             if (nokori < 120000) {
-                                return ai.thinkMove(turn, ban, 4, 0);
+                                return ai.thinkMove(turn, ban, 2, 0);
                             } else if ((tesuu < 50) || (nokori < 180000)) {
-                                return ai.thinkMove(turn, ban, 5, 0);
+                                return ai.thinkMove(turn, ban, 6, 0);
                             } else if ((tesuu < 50) || (nokori < 300000)) {
                                 return ai.thinkMove(turn, ban, 6, 7);
                             } else if ((tesuu < 50) || (nokori < 600000)) {
@@ -186,15 +183,21 @@ namespace TacoWin2 {
                                     if (best > 5000) {
                                         string pstr = "";
                                         for (mateMoveNum = 0; mateMoveNum < km.Length && km[mateMoveNum].op > 0 && km[mateMoveNum].np > 0; mateMoveNum++) {
-                                            pstr += " " + tw2usiIO.pos2usi(km[mateMoveNum].op / 9, km[mateMoveNum].op % 9, km[mateMoveNum].np / 9, km[mateMoveNum].np % 9, km[mateMoveNum].nari);
+                                            pstr += " " + tw2usiIO.pos2usi(km[mateMoveNum].op, km[mateMoveNum].np, km[mateMoveNum].nari);
                                         }
                                         Console.WriteLine("info score mate " + mateMoveNum + " pv " + pstr);  //標準出力
+                                    } else {
+                                        string pstr = "";
+                                        for (mateMoveNum = 0; mateMoveNum < km.Length && km[mateMoveNum].op > 0 && km[mateMoveNum].np > 0; mateMoveNum++) {
+                                            pstr += " " + tw2usiIO.pos2usi(km[mateMoveNum].op, km[mateMoveNum].np, km[mateMoveNum].nari);
+                                        }
+                                        Console.WriteLine("info score " + best + " pv " + pstr);  //標準出力
                                     }
 
                                     if ((km[1].op > 0) || (km[1].np > 0)) {
-                                        sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari);
+                                        sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op, km[1].np, km[1].nari);
                                     } else {
-                                        sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari);
+                                        sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari);
                                     }
                                 }
                                 Console.WriteLine(sendStr);
@@ -254,25 +257,25 @@ namespace TacoWin2 {
 
                     } else if (arr[1] == "mate") {
 
-                        thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15);
-                        thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
-
-                        if (best < 999) {
-                            string pstr = "";
-                            for (int i = 0; i < km.Length && (km[i].op > 0 || km[i].np > 0); i++) {
-                                pstr += " " + tw2usiIO.pos2usi(km[i].op / 9, km[i].op % 9, km[i].np / 9, km[i].np % 9, km[i].nari);
-                            }
-                            Console.WriteLine("checkmate" + pstr);
-                            DebugForm.instance.addMsg("checkmate" + pstr);
-                        } else {
-                            Console.WriteLine("checkmate nomate");
-                            DebugForm.instance.addMsg("checkmate nomate");
-                        }
+                        //thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
+                        //(kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15);
+                        //thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
+                        //
+                        //if (best < 999) {
+                        //    string pstr = "";
+                        //    for (int i = 0; i < km.Length && (km[i].op > 0 || km[i].np > 0); i++) {
+                        //        pstr += " " + tw2usiIO.pos2usi(km[i].op / 9, km[i].op % 9, km[i].np / 9, km[i].np % 9, km[i].nari);
+                        //    }
+                        //    Console.WriteLine("checkmate" + pstr);
+                        //    DebugForm.instance.addMsg("checkmate" + pstr);
+                        //} else {
+                        //    Console.WriteLine("checkmate nomate");
+                        //    DebugForm.instance.addMsg("checkmate nomate");
+                        //}
 
                     } else if (arr[1] == "matetest") {
 
-                        (kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 8);
+                        //(kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 8);
 
                     }
 
@@ -282,16 +285,12 @@ namespace TacoWin2 {
 
                     // 手を更新(差分のみ)
                     for (tesuu = 0; tesuu + 1 < arr.Length; tesuu++) {
-                        int ox;
-                        int oy;
-                        int nx;
-                        int ny;
+                        byte oPos;
+                        byte nPos;
                         bool nari;
-                        tw2usiIO.usi2pos(arr[tesuu + 1], out ox, out oy, out nx, out ny, out nari);
+                        tw2usiIO.usi2pos(arr[tesuu + 1], out oPos, out nPos, out nari);
 
-                        //Console.Write("MV({0},{1})->({2},{3})\n", ox + 1, oy + 1, nx + 1, ny + 1);
-                        ban.moveKoma(ox, oy, nx, ny, turn, nari, false, true);
-
+                        ban.moveKoma(oPos, nPos, turn, nari, true);
                         turn = (Pturn)pturn.aturn((int)turn);
 
                     }
@@ -305,10 +304,10 @@ namespace TacoWin2 {
                     if (mateMove != null) {
                         string pstr = "";
                         for (int i = mateMovePos + 1; i < mateMove.Length && mateMove[i].op > 0 && mateMove[i].np > 0; i++) {
-                            pstr += " " + tw2usiIO.pos2usi(mateMove[i].op / 9, mateMove[i].op % 9, mateMove[i].np / 9, mateMove[i].np % 9, mateMove[i].nari);
+                            pstr += " " + tw2usiIO.pos2usi(mateMove[i].op, mateMove[i].np, mateMove[i].nari);
                         }
                         Console.WriteLine("info score mate " + (mateMoveNum - mateMovePos) + " pv " + pstr);  //標準出力
-                        Console.WriteLine("bestmove " + tw2usiIO.pos2usi(mateMove[mateMovePos].op / 9, mateMove[mateMovePos].op % 9, mateMove[mateMovePos].np / 9, mateMove[mateMovePos].np % 9, mateMove[mateMovePos].nari) + " ponder " + tw2usiIO.pos2usi(mateMove[mateMovePos + 1].op / 9, mateMove[mateMovePos + 1].op % 9, mateMove[mateMovePos + 1].np / 9, mateMove[mateMovePos + 1].np % 9, mateMove[mateMovePos + 1].nari));
+                        Console.WriteLine("bestmove " + tw2usiIO.pos2usi(mateMove[mateMovePos].op, mateMove[mateMovePos].np, mateMove[mateMovePos].nari) + " ponder " + tw2usiIO.pos2usi(mateMove[mateMovePos + 1].op , mateMove[mateMovePos + 1].np, mateMove[mateMovePos + 1].nari));
                         //+ usiIO.pos2usi(mateMove[mateMovePos].ko, mateMove[0]) + " ponder " + usiIO.pos2usi(mateMove[mateMovePos+1].ko, mateMove[1]));
                         mateMovePos += 2;
                     } else {
@@ -324,9 +323,9 @@ namespace TacoWin2 {
                                     Console.WriteLine("bestmove resign");
                                 } else {
                                     if ((km[1].op > 0) || (km[1].np > 0)) {
-                                        Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari));
+                                        Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op, km[1].np, km[1].nari));
                                     } else {
-                                        Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
+                                        Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari));
                                     }
                                 }
 
@@ -350,7 +349,7 @@ namespace TacoWin2 {
                         (int vla, int sp) = ai.getBestMove(ref ban, turn, mLst);
                         DebugForm.instance.addMsg(vla + " " + sp + " " + mLst[sp].aval);
                         for (int i = sp; i < vla + sp; i++) {
-                            DebugForm.instance.addMsg("aList" + i + ":" + (mLst[i].op / 9 + 1) + "/" + (mLst[i].op % 9 + 1) + "/" + (mLst[i].np / 9 + 1) + "/" + (mLst[i].np % 9 + 1) + "/" + mLst[i].val + "/" + mLst[i].aval);
+                            DebugForm.instance.addMsg("aList" + i + ":" + (mLst[i].op + 0x11).ToString("X2") + "->" + (mLst[i].np + 0x11).ToString("X2") + "/" + mLst[i].val + "/" + mLst[i].aval);
                         }
                     } else if (arr[1] == "move") {
                         kmove[] km;
@@ -364,9 +363,9 @@ namespace TacoWin2 {
                         }
                         sw.Stop();
                         if ((km[1].op > 0) || (km[1].np > 0)) {
-                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op / 9, km[1].op % 9, km[1].np / 9, km[1].np % 9, km[1].nari));
+                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op, km[1].np, km[1].nari));
                         } else {
-                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari));
+                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari));
                         }
 
                         TimeSpan ts = sw.Elapsed;
