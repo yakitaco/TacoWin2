@@ -48,7 +48,7 @@ namespace TacoWin2 {
             }
 
             // 定跡ファイル
-            string fileName = "sdefault.ytj";
+            string fileName = "default.ytj";
             int ret = sMove.load(fileName);
             if (ret < 0) {
                 DebugForm.instance.addMsg("[NG]Load " + fileName);
@@ -256,26 +256,27 @@ namespace TacoWin2 {
                         }
 
                     } else if (arr[1] == "mate") {
+                        //(kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 8);
 
-                        //thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-                        //(kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15);
-                        //thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
-                        //
-                        //if (best < 999) {
-                        //    string pstr = "";
-                        //    for (int i = 0; i < km.Length && (km[i].op > 0 || km[i].np > 0); i++) {
-                        //        pstr += " " + tw2usiIO.pos2usi(km[i].op / 9, km[i].op % 9, km[i].np / 9, km[i].np % 9, km[i].nari);
-                        //    }
-                        //    Console.WriteLine("checkmate" + pstr);
-                        //    DebugForm.instance.addMsg("checkmate" + pstr);
-                        //} else {
-                        //    Console.WriteLine("checkmate nomate");
-                        //    DebugForm.instance.addMsg("checkmate nomate");
-                        //}
+                        thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
+                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15);
+                        thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
+
+                        if (best < 999) {
+                            string pstr = "";
+                            for (int i = 0; i < km.Length && (km[i].op > 0 || km[i].np > 0); i++) {
+                                pstr += " " + tw2usiIO.pos2usi(km[i].op, km[i].np, km[i].nari);
+                            }
+                            Console.WriteLine("checkmate" + pstr);
+                            DebugForm.instance.addMsg("checkmate" + pstr);
+                        } else {
+                            Console.WriteLine("checkmate nomate");
+                            DebugForm.instance.addMsg("checkmate nomate");
+                        }
 
                     } else if (arr[1] == "matetest") {
 
-                        //(kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 8);
+                        (kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 8);
 
                     }
 
@@ -307,7 +308,7 @@ namespace TacoWin2 {
                             pstr += " " + tw2usiIO.pos2usi(mateMove[i].op, mateMove[i].np, mateMove[i].nari);
                         }
                         Console.WriteLine("info score mate " + (mateMoveNum - mateMovePos) + " pv " + pstr);  //標準出力
-                        Console.WriteLine("bestmove " + tw2usiIO.pos2usi(mateMove[mateMovePos].op, mateMove[mateMovePos].np, mateMove[mateMovePos].nari) + " ponder " + tw2usiIO.pos2usi(mateMove[mateMovePos + 1].op , mateMove[mateMovePos + 1].np, mateMove[mateMovePos + 1].nari));
+                        Console.WriteLine("bestmove " + tw2usiIO.pos2usi(mateMove[mateMovePos].op, mateMove[mateMovePos].np, mateMove[mateMovePos].nari) + " ponder " + tw2usiIO.pos2usi(mateMove[mateMovePos + 1].op, mateMove[mateMovePos + 1].np, mateMove[mateMovePos + 1].nari));
                         //+ usiIO.pos2usi(mateMove[mateMovePos].ko, mateMove[0]) + " ponder " + usiIO.pos2usi(mateMove[mateMovePos+1].ko, mateMove[1]));
                         mateMovePos += 2;
                     } else {
@@ -370,8 +371,17 @@ namespace TacoWin2 {
 
                         TimeSpan ts = sw.Elapsed;
                         DebugForm.instance.addMsg($"TIME : {ts}");
+                    } else if (arr[1] == "matedef") {
+                        kmove[] km = new kmove[100];
+                        int rets = ai.getAllDefList(ref ban, turn, km, (byte)Convert.ToInt32(arr[2]));
+                        for (int i = 0; i < rets; i++) {
+                            if (km[i].nari == true) {
+                                DebugForm.instance.addMsg("MV: " + (km[i].op + 0x11).ToString("X2") + "-" + (km[i].np + 0x11).ToString("X2") + "*");
+                            } else {
+                                DebugForm.instance.addMsg("MV: " + (km[i].op + 0x11).ToString("X2") + "-" + (km[i].np + 0x11).ToString("X2"));
+                            }
+                        }
                     }
-
                 } else if ((str.Length == 4) && (str.Substring(0, 4) == "stop")) {
                     mateMove = null;
                     if (aiTaskMain != null) ai.stopFlg = true;

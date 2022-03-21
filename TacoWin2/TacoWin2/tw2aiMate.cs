@@ -17,12 +17,14 @@ namespace TacoWin2 {
 
             for (int i = 0; i < vla; i++) {
                 if (moveList[i].nari == true) {
-                    DebugForm.instance.addMsg("MV:(" + (moveList[i].op / 9 + 1) + "," + (moveList[i].op % 9 + 1) + ")->(" + (moveList[i].np / 9 + 1) + "," + (moveList[i].np % 9 + 1) + ")*");
+                    DebugForm.instance.addMsg("MV: " + (moveList[i].op + 0x11).ToString("X2") + "-" + (moveList[i].np + 0x11).ToString("X2") + "*");
                 } else {
-                    DebugForm.instance.addMsg("MV:(" + (moveList[i].op / 9 + 1) + "," + (moveList[i].op % 9 + 1) + ")->(" + (moveList[i].np / 9 + 1) + "," + (moveList[i].np % 9 + 1) + ")");
+                    DebugForm.instance.addMsg("MV: " + (moveList[i].op + 0x11).ToString("X2") + "-" + (moveList[i].np + 0x11).ToString("X2"));
                 }
             }
             mList.freeAlist(aid);
+
+            DebugForm.instance.addMsg("checkmate nomate");
             return (null, 0);
         }
 
@@ -61,12 +63,10 @@ namespace TacoWin2 {
 
                         // debug
                         if (moveList[cnt_local].nari == true) {
-                            DebugForm.instance.addMsg("MVV:(" + (moveList[cnt_local].op / 9 + 1) + "," + (moveList[cnt_local].op % 9 + 1) + ")->(" + (moveList[cnt_local].np / 9 + 1) + "," + (moveList[cnt_local].np % 9 + 1) + ")* + " + moveList[cnt_local].val);
+                            DebugForm.instance.addMsg("MVV:" + (moveList[cnt_local].op + 0x11).ToString("X2") + "-" + (moveList[cnt_local].np + 0x11).ToString("X2") + "*," + moveList[cnt_local].val);
                         } else {
-                            DebugForm.instance.addMsg("MVV:(" + (moveList[cnt_local].op / 9 + 1) + "," + (moveList[cnt_local].op % 9 + 1) + ")->(" + (moveList[cnt_local].np / 9 + 1) + "," + (moveList[cnt_local].np % 9 + 1) + ") + " + moveList[cnt_local].val);
+                            DebugForm.instance.addMsg("MVV:" + (moveList[cnt_local].op + 0x11).ToString("X2") + "-" + (moveList[cnt_local].np + 0x11).ToString("X2") + "," + moveList[cnt_local].val);
                         }
-
-                        //mList.ls[cnt_local + 1][0] = mList.ls[0][sp + cnt_local];
 
                         // 駒移動
                         ban tmp_ban = ban;
@@ -75,15 +75,13 @@ namespace TacoWin2 {
                         kmove[] retList = null;
 
                         //駒を動かす
-                        //★★tmp_ban.moveKoma(moveList[cnt_local].op / 9, moveList[cnt_local].op % 9, moveList[cnt_local].np / 9, moveList[cnt_local].np % 9, turn, moveList[cnt_local].nari, false, true);
+                        tmp_ban.moveKoma(moveList[cnt_local].op, moveList[cnt_local].np, turn, moveList[cnt_local].nari, true);
 
                         // 王手はスキップ
                         if (((byte)tmp_ban.data[((int)turn << 6) + ban.setOu] != 0xFF) &&
-                        (tmp_ban.data[tmp_ban.data[((int)turn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(turn) << 2)) > 0)) {
+                        ((tmp_ban.data[tmp_ban.data[((int)turn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(turn) << 2)) & 0x0F) > 0)) {
                             retVal = 0;
-                            //DebugForm.Form1Instance.addMsg("TASK[{0}:{1}]MV[{2}]({3},{4})->({5},{6})[{7}]\n", Task.CurrentId, cnt_local, retVal, moveList[cnt_local].op / 9 + 1, moveList[cnt_local].op % 9 + 1, moveList[cnt_local].np / 9 + 1, moveList[cnt_local].np % 9 + 1, moveList[cnt_local].val);
                         } else {
-                            //moveList[cnt_local].val = val;
                             retVal = thinkMateDef(pturn.aturn(turn), ref tmp_ban, (byte)moveList[cnt_local].val, out retList, 1, mateDepMax);
 
                             /* 打ち歩詰めチェック */
@@ -95,7 +93,11 @@ namespace TacoWin2 {
                             string str = "";
                             int i;
                             for (i = 0; retList[i].op > 0 || retList[i].np > 0; i++) {
-                                str += "(" + (retList[i].op / 9 + 1) + "," + (retList[i].op % 9 + 1) + ")->(" + (retList[i].np / 9 + 1) + "," + (retList[i].np % 9 + 1) + "):" + retList[i].val + "/";
+                                if (retList[i].nari == true) {
+                                    str += "/" + (retList[i].op + 0x11).ToString("X2") + "-" + (retList[i].np + 0x11).ToString("X2") + "*:" + retList[i].val.ToString("X2");
+                                } else {
+                                    str += "/" + (retList[i].op + 0x11).ToString("X2") + "-" + (retList[i].np + 0x11).ToString("X2") + ":" + retList[i].val.ToString("X2");
+                                }
                             }
                             if ((retVal < 999) && (i < mateDepMax)) mateDepMax = i;
 
@@ -149,18 +151,17 @@ namespace TacoWin2 {
                     aid = mList.assignAlist(out moveList);
                 }
                 teNum = getAllDefList(ref ban, turn, moveList, cPos);
-                //Debug.WriteLine("DDD ");
                 for (int cnt = 0; cnt < teNum; cnt++) {
 
                     kmove[] retList = null;
 
                     // 駒を動かす
                     ban tmp_ban = ban;
-                    //★★tmp_ban.moveKoma(moveList[cnt].op / 9, moveList[cnt].op % 9, moveList[cnt].np / 9, moveList[cnt].np % 9, turn, moveList[cnt].nari, false, true);
+                    tmp_ban.moveKoma(moveList[cnt].op, moveList[cnt].np, turn, moveList[cnt].nari, true);
 
                     // 王手が解けない
                     if (((byte)tmp_ban.data[((int)turn << 6) + ban.setOu] != 0xFF) &&
-                        (tmp_ban.data[tmp_ban.data[((int)turn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(turn) << 2)) > 0)) {
+                        ((tmp_ban.data[tmp_ban.data[((int)turn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(turn) << 2)) & 0x0F) > 0)) {
                         // なにもしない
                     } else {
                         int retVal = thinkMateAtk(pturn.aturn(turn), ref tmp_ban, out retList, depth + 1, depMax);
@@ -222,49 +223,43 @@ namespace TacoWin2 {
                     aid = mList.assignAlist(out moveList);
                 }
 
+                //[攻め方]王手を指せる手を全てリスト追加
                 if ((depth < mateDepMax) && (depth < depMax)) {// 
                                                                //[攻め方]王手を指せる手を全てリスト追加
-                    if ((depth < mateDepMax) && (depth < depMax)) {// 
-                                                                   //[攻め方]王手を指せる手を全てリスト追加
-                        int vla = getAllCheckList(ref ban, turn, moveList);
-                        for (int cnt = 0; cnt < vla; cnt++) {
+                    int vla = getAllCheckList(ref ban, turn, moveList);
+                    for (int cnt = 0; cnt < vla; cnt++) {
 
-                            //駒を動かす
-                            ban tmp_ban = ban;
-                            //★★tmp_ban.moveKoma(moveList[cnt].op / 9, moveList[cnt].op % 9, moveList[cnt].np / 9, moveList[cnt].np % 9, turn, moveList[cnt].nari, false, true);
+                        //駒を動かす
+                        ban tmp_ban = ban;
+                        tmp_ban.moveKoma(moveList[cnt].op, moveList[cnt].np, turn, moveList[cnt].nari, true);
 
-                            // 自分の駒が王手の場合はNG
-                            if (((byte)tmp_ban.data[((int)turn << 6) + ban.setOu] != 0xFF) &&
-                            (tmp_ban.data[tmp_ban.data[((int)turn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(turn) << 2)) > 0)) {
-                                if (bestMoveList == null) {
-                                    bestMoveList = new kmove[30];
-                                    //bestMoveList[depth] = moveList[cnt];
-                                }
-                                continue;
+                        // 自分の駒が王手の場合はNG
+                        if (((byte)tmp_ban.data[((int)turn << 6) + ban.setOu] != 0xFF) &&
+                        ((tmp_ban.data[tmp_ban.data[((int)turn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(turn) << 2)) & 0x0F) > 0)) {
+                            if (bestMoveList == null) {
+                                bestMoveList = new kmove[30];
                             }
-                            int retVal = thinkMateDef(pturn.aturn(turn), ref tmp_ban, (byte)moveList[cnt].val, out retList, depth + 1, best);
-
-                            /* 打ち歩詰めチェック */
-                            if ((depth + 1 == retVal) && (moveList[cnt].op == 0x91)) { /* 9*9+(int)ktype.Fuhyou */
-                                continue;
-                            };
-
-                            if (retVal < best) {
-                                best = retVal;
-                                bestMoveList = retList;
-                                bestMoveList[depth] = moveList[cnt];
-                            }
+                            continue;
                         }
+                        int retVal = thinkMateDef(pturn.aturn(turn), ref tmp_ban, (byte)moveList[cnt].val, out retList, depth + 1, best);
 
-                    } else {
-                        //DebugForm.instance.addMsg("FIN:" + depth);
-                        //DebugForm.instance.addMsg(ban.debugShow());
-                        //Thread.Sleep(1000);
-                        /* なにもしない */
+                        /* 打ち歩詰めチェック */
+                        if ((depth + 1 == retVal) && (moveList[cnt].op == 0x91)) { /* 9*9+(int)ktype.Fuhyou */
+                            continue;
+                        };
+
+                        if (retVal < best) {
+                            best = retVal;
+                            bestMoveList = retList;
+                            bestMoveList[depth] = moveList[cnt];
+                        }
                     }
-                    lock (lockObj) {
-                        mList.freeAlist(aid);
-                    }
+
+                } else {
+                    /* なにもしない */
+                }
+                lock (lockObj) {
+                    mList.freeAlist(aid);
                 }
                 if (bestMoveList == null) bestMoveList = new kmove[30];
                 return best;
@@ -277,12 +272,7 @@ namespace TacoWin2 {
             emove emv = new emove();
             unsafe {
                 byte bPos;  // 攻め駒の位置
-                //int AposX;  // 攻め駒のX位置
-                //int AposY;  // 攻め駒のY位置
-                byte aOpos = (byte)ban.data[((int)turn << 6) + ban.setOu];  //相手王将の位置
-                //int aOuPosX = ban.putOusyou[pturn.aturn((int)turn)] / 9; //相手王将のX位置
-                //int aOuPosY = ban.putOusyou[pturn.aturn((int)turn)] % 9; //相手王将のY位置
-                //int aOuPos = ban.putOusyou[pturn.aturn((int)turn)]; //相手王将の位置★要削除
+                byte aOpos = (byte)ban.data[(pturn.aturn((int)turn) << 6) + ban.setOu];  //相手王将の位置
 
                 //香車・飛車・角以外の駒の動きチェック
                 //01 02 03 04 05
@@ -294,9 +284,9 @@ namespace TacoWin2 {
                 //30 × 31 × 32
 
                 // 01
-                if (pturn.psY(turn, aOpos & 0x0F) < 7) {
+                if ((pturn.ps(turn, aOpos) & 0x0F) < 7) {
                     bPos = (byte)pturn.mv(turn, aOpos, -0x20 + 0x02);
-                    if ((pturn.psX(turn, bPos >> 4) > 1) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) > 0x10) && (ban.getOnBoardPturn(bPos) == turn)) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Ginsyou) { //銀将のみ
                             addCheckMovePos(ref ban, bPos, 0x10 - 0x01, turn, mType.NoNari, kmv, ref kCnt);
                         }
@@ -304,7 +294,7 @@ namespace TacoWin2 {
 
                     // 02
                     bPos = (byte)pturn.mv(turn, aOpos, -0x10 + 0x02);
-                    if ((pturn.psX(turn, bPos >> 4) > 0) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) > 0x00) && (ban.getOnBoardPturn(bPos) == turn)) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Ginsyou) { //銀将のみ
                             addCheckMovePos(ref ban, bPos, 0x10 - 0x01, turn, mType.Nari, kmv, ref kCnt);
                         }
@@ -332,7 +322,7 @@ namespace TacoWin2 {
 
                     // 04
                     bPos = (byte)pturn.mv(turn, aOpos, 0x10 + 0x02);
-                    if ((pturn.psY(turn, bPos >> 4) < 8) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) < 0x80) && (ban.getOnBoardPturn(bPos) == turn)) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Ginsyou) { //銀将のみ
                             addCheckMovePos(ref ban, bPos, -0x10 - 0x01, turn, mType.Nari, kmv, ref kCnt);
                         }
@@ -340,17 +330,17 @@ namespace TacoWin2 {
 
                     // 05
                     bPos = (byte)pturn.mv(turn, aOpos, 0x20 + 0x02);
-                    if ((pturn.psY(turn, bPos >> 4) < 7) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) < 0x70) && (ban.getOnBoardPturn(bPos) == turn)) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Ginsyou) { //銀将のみ
                             addCheckMovePos(ref ban, bPos, -0x10 - 0x01, turn, mType.NoNari, kmv, ref kCnt);
                         }
                     }
                 }
 
-                if (pturn.psY(turn, (byte)(aOpos & 0x0F)) < 8) {
+                if ((pturn.ps(turn, aOpos) & 0x0F) < 8) {
                     // 06
                     bPos = (byte)pturn.mv(turn, aOpos, -0x20 + 0x01);
-                    if ((pturn.psX(turn, bPos >> 4) > 1) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) > 0x10) && (ban.getOnBoardPturn(bPos) == turn)) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Ginsyou) { //銀将のみ
                             addCheckMovePos(ref ban, bPos, 0x10 - 0x01, turn, mType.Nari, kmv, ref kCnt);
                         }
@@ -358,7 +348,7 @@ namespace TacoWin2 {
 
                     // 07
                     bPos = (byte)pturn.mv(turn, aOpos, -0x10 + 0x01);
-                    if ((pturn.psX(turn, bPos >> 4) > 0) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) > 0x00) && (ban.getOnBoardPturn(bPos) == turn)) {
                         switch (ban.getOnBoardKtype(bPos)) {
                             case (ktype.Kinsyou):  //金将
                             case (ktype.Tokin):    //と金
@@ -384,7 +374,7 @@ namespace TacoWin2 {
 
                     // 09
                     bPos = (byte)pturn.mv(turn, aOpos, 0x10 + 0x01);
-                    if ((pturn.psX(turn, bPos >> 4) < 8) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) < 0x80) && (ban.getOnBoardPturn(bPos) == turn)) {
                         switch (ban.getOnBoardKtype(bPos)) {
                             case (ktype.Kinsyou):  //金将
                             case (ktype.Tokin):    //と金
@@ -401,7 +391,7 @@ namespace TacoWin2 {
 
                     // 10
                     bPos = (byte)pturn.mv(turn, aOpos, 0x20 + 0x01);
-                    if ((pturn.psX(turn, bPos >> 4) < 7) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) < 0x70) && (ban.getOnBoardPturn(bPos) == turn)) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Ginsyou) { //銀将のみ
                             addCheckMovePos(ref ban, bPos, -0x10 - 0x01, turn, mType.Nari, kmv, ref kCnt);
                         }
@@ -410,7 +400,7 @@ namespace TacoWin2 {
 
                 // 11
                 bPos = (byte)pturn.mv(turn, aOpos, -0x20 + 0x00);
-                if (ban.getOnBoardPturn(bPos) == turn) {
+                if (((pturn.ps(turn, aOpos) & 0xF0) > 0x10) && (ban.getOnBoardPturn(bPos) == turn)) {
                     switch (ban.getOnBoardKtype(bPos)) {
                         case (ktype.Ginsyou): //銀将
                             addCheckMovePos(ref ban, bPos, 0x10 - 0x01, turn, mType.Both, kmv, ref kCnt);
@@ -430,7 +420,7 @@ namespace TacoWin2 {
 
                 // 12
                 bPos = (byte)pturn.mv(turn, aOpos, -0x10 + 0x00);
-                if (ban.getOnBoardPturn(bPos) == turn) {
+                if (((pturn.ps(turn, aOpos) & 0xF0) > 0x00) && (ban.getOnBoardPturn(bPos) == turn)) {
                     if (ban.getOnBoardKtype(bPos) == ktype.Ginsyou) { //銀将のみ
                         addCheckMovePos(ref ban, bPos, 0x10 - 0x01, turn, mType.Both, kmv, ref kCnt);
                         addCheckMovePos(ref ban, bPos, 0x00 + 0x01, turn, mType.NoNari, kmv, ref kCnt);
@@ -440,7 +430,7 @@ namespace TacoWin2 {
 
                 // 13
                 bPos = (byte)pturn.mv(turn, aOpos, 0x10 + 0x00);
-                if ((pturn.psX(turn, bPos >> 4) < 8) && (ban.getOnBoardPturn(bPos) == turn)) {
+                if (((pturn.ps(turn, aOpos) & 0xF0) < 0x80) && (ban.getOnBoardPturn(bPos) == turn)) {
                     if (ban.getOnBoardKtype(bPos) == ktype.Ginsyou) { //銀将のみ
                         addCheckMovePos(ref ban, bPos, -0x10 - 0x01, turn, mType.Both, kmv, ref kCnt);
                         addCheckMovePos(ref ban, bPos, 0x00 + 0x01, turn, mType.NoNari, kmv, ref kCnt);
@@ -450,7 +440,7 @@ namespace TacoWin2 {
 
                 // 14
                 bPos = (byte)pturn.mv(turn, aOpos, 0x20 + 0x00);
-                if ((pturn.psX(turn, bPos >> 4) < 7) && (ban.getOnBoardPturn(bPos) == turn)) {
+                if (((pturn.ps(turn, aOpos) & 0xF0) < 0x70) && (ban.getOnBoardPturn(bPos) == turn)) {
                     switch (ban.getOnBoardKtype(bPos)) {
                         case (ktype.Ginsyou): //銀将
                             addCheckMovePos(ref ban, bPos, -0x10 - 0x01, turn, mType.Both, kmv, ref kCnt);
@@ -468,10 +458,10 @@ namespace TacoWin2 {
                     }
                 }
 
-                if (pturn.psY(turn, (byte)(aOpos & 0x0F)) > 0) {
+                if ((pturn.ps(turn, aOpos) & 0x0F) > 0) {
                     // 15
                     bPos = (byte)pturn.mv(turn, aOpos, -0x20 - 0x01);
-                    if (ban.getOnBoardPturn(bPos) == turn) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) > 0x10) && (ban.getOnBoardPturn(bPos) == turn)) {
                         switch (ban.getOnBoardKtype(bPos)) {
                             case (ktype.Ginsyou): //銀将
                                 addCheckMovePos(ref ban, bPos, 0x10 + 0x01, turn, mType.Nari, kmv, ref kCnt);
@@ -491,7 +481,7 @@ namespace TacoWin2 {
 
                     // 16
                     bPos = (byte)pturn.mv(turn, aOpos, -0x10 - 0x01);
-                    if (ban.getOnBoardPturn(bPos) == turn) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) > 0x00) && (ban.getOnBoardPturn(bPos) == turn)) {
                         switch (ban.getOnBoardKtype(bPos)) {
                             case (ktype.Fuhyou):  //歩兵
                                 addCheckMovePos(ref ban, bPos, 0x00 + 0x01, turn, mType.Nari, kmv, ref kCnt);
@@ -515,7 +505,7 @@ namespace TacoWin2 {
 
                     // 18
                     bPos = (byte)pturn.mv(turn, aOpos, 0x10 - 0x01);
-                    if ((pturn.psX(turn, bPos >> 4) < 8) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) < 0x80) && (ban.getOnBoardPturn(bPos) == turn)) {
                         switch (ban.getOnBoardKtype(bPos)) {
                             case (ktype.Fuhyou):  //歩兵
                                 addCheckMovePos(ref ban, bPos, 0x00 + 0x01, turn, mType.Nari, kmv, ref kCnt);
@@ -530,7 +520,7 @@ namespace TacoWin2 {
 
                     // 19
                     bPos = (byte)pturn.mv(turn, aOpos, 0x20 - 0x01);
-                    if ((pturn.psX(turn, bPos >> 4) < 7) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) < 0x70) && (ban.getOnBoardPturn(bPos) == turn)) {
                         switch (ban.getOnBoardKtype(bPos)) {
                             case (ktype.Ginsyou): //銀将
                                 addCheckMovePos(ref ban, bPos, -0x10 + 0x01, turn, mType.Nari, kmv, ref kCnt);
@@ -549,10 +539,10 @@ namespace TacoWin2 {
                     }
                 }
 
-                if (pturn.psY(turn, (byte)(aOpos & 0x0F)) > 1) {
+                if ((pturn.ps(turn, aOpos) & 0x0F) > 1) {
                     // 20
                     bPos = (byte)pturn.mv(turn, aOpos, -0x20 - 0x02);
-                    if ((true /* ban.onBoard[bPos] > 0 */) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) > 0x10) && (ban.getOnBoardPturn(bPos) == turn)) {
                         switch (ban.getOnBoardKtype(bPos)) {
                             case (ktype.Keima):  //桂馬
                                 addCheckMovePos(ref ban, bPos, 0x10 + 0x02, turn, mType.Nari, kmv, ref kCnt);
@@ -574,7 +564,7 @@ namespace TacoWin2 {
 
                     // 21
                     bPos = (byte)pturn.mv(turn, aOpos, -0x10 - 0x02);
-                    if ((true /* ban.onBoard[bPos] > 0 */) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) > 0x00) && (ban.getOnBoardPturn(bPos) == turn)) {
                         switch (ban.getOnBoardKtype(bPos)) {
                             case (ktype.Fuhyou):  //歩兵
                                 addCheckMovePos(ref ban, bPos, 0x00 + 0x01, turn, mType.Nari, kmv, ref kCnt);
@@ -598,7 +588,7 @@ namespace TacoWin2 {
 
                     // 22
                     bPos = (byte)pturn.mv(turn, aOpos, 0x00 - 0x02);
-                    if ((true /* ban.onBoard[bPos] > 0 */) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (ban.getOnBoardPturn(bPos) == turn) {
                         switch (ban.getOnBoardKtype(bPos)) {
                             case (ktype.Fuhyou):  //歩兵
                                 addCheckMovePos(ref ban, bPos, 0x00 + 0x01, turn, mType.Both, kmv, ref kCnt);
@@ -628,7 +618,7 @@ namespace TacoWin2 {
 
                     // 23
                     bPos = (byte)pturn.mv(turn, aOpos, 0x10 - 0x02);
-                    if ((pturn.psX(turn, bPos >> 4) < 8) && (true /* ban.onBoard[bPos] > 0 */) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) < 0x80) && (ban.getOnBoardPturn(bPos) == turn)) {
                         switch (ban.getOnBoardKtype(bPos)) {
                             case (ktype.Fuhyou):  //歩兵
                                 addCheckMovePos(ref ban, bPos, 0x00 + 0x01, turn, mType.Nari, kmv, ref kCnt);
@@ -652,7 +642,7 @@ namespace TacoWin2 {
 
                     // 24
                     bPos = (byte)pturn.mv(turn, aOpos, 0x20 - 0x02);
-                    if ((pturn.psX(turn, bPos >> 4) < 7) && (true /* ban.onBoard[bPos] > 0 */) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) < 0x70) && (ban.getOnBoardPturn(bPos) == turn)) {
                         switch (ban.getOnBoardKtype(bPos)) {
                             case (ktype.Keima):  //桂馬
                                 addCheckMovePos(ref ban, bPos, -0x10 + 0x02, turn, mType.Nari, kmv, ref kCnt);
@@ -673,10 +663,10 @@ namespace TacoWin2 {
                     }
                 }
 
-                if (pturn.psY(turn, (byte)(aOpos & 0x0F)) > 2) {
+                if ((pturn.ps(turn, aOpos) & 0x0F) > 2) {
                     // 25
                     bPos = (byte)pturn.mv(turn, aOpos, -0x20 - 0x03);
-                    if ((true /* ban.onBoard[bPos] > 0 */) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) > 0x10) && (ban.getOnBoardPturn(bPos) == turn)) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Keima) { //桂馬のみ
                             addCheckMovePos(ref ban, bPos, 0x10 + 0x02, turn, mType.Nari, kmv, ref kCnt);
                         }
@@ -684,7 +674,7 @@ namespace TacoWin2 {
 
                     // 26
                     bPos = (byte)pturn.mv(turn, aOpos, -0x10 - 0x03);
-                    if ((true /* ban.onBoard[bPos] > 0 */) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) > 0x00) && (ban.getOnBoardPturn(bPos) == turn)) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Keima) { //桂馬のみ
                             addCheckMovePos(ref ban, bPos, 0x10 + 0x02, turn, mType.Nari, kmv, ref kCnt);
                         }
@@ -692,7 +682,7 @@ namespace TacoWin2 {
 
                     // 27
                     bPos = (byte)pturn.mv(turn, aOpos, 0x00 - 0x03);
-                    if ((true /* ban.onBoard[bPos] > 0 */) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (ban.getOnBoardPturn(bPos) == turn) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Keima) { //桂馬のみ
                             addCheckMovePos(ref ban, bPos, 0x10 + 0x02, turn, mType.Nari, kmv, ref kCnt);
                             addCheckMovePos(ref ban, bPos, -0x10 + 0x02, turn, mType.Nari, kmv, ref kCnt);
@@ -701,7 +691,7 @@ namespace TacoWin2 {
 
                     // 28
                     bPos = (byte)pturn.mv(turn, aOpos, 0x10 - 0x03);
-                    if ((pturn.psX(turn, bPos >> 4) < 8) && (true /* ban.onBoard[bPos] > 0 */) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) < 0x80) && (ban.getOnBoardPturn(bPos) == turn)) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Keima) { //桂馬のみ
                             addCheckMovePos(ref ban, bPos, -0x10 + 0x02, turn, mType.Nari, kmv, ref kCnt);
                         }
@@ -709,17 +699,17 @@ namespace TacoWin2 {
 
                     // 29
                     bPos = (byte)pturn.mv(turn, aOpos, 0x20 - 0x03);
-                    if ((pturn.psX(turn, bPos >> 4) < 7) && (true /* ban.onBoard[bPos] > 0 */) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) < 0x70) && (ban.getOnBoardPturn(bPos) == turn)) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Keima) { //桂馬のみ
                             addCheckMovePos(ref ban, bPos, -0x10 + 0x02, turn, mType.Nari, kmv, ref kCnt);
                         }
                     }
                 }
 
-                if (pturn.psY(turn, (byte)(aOpos & 0x0F)) > 2) {
+                if ((pturn.ps(turn, aOpos) & 0x0F) > 3) {
                     // 30
                     bPos = (byte)pturn.mv(turn, aOpos, -0x20 - 0x04);
-                    if ((pturn.psX(turn, bPos >> 4) > 1) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) > 0x10) && (ban.getOnBoardPturn(bPos) == turn)) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Keima) { //桂馬のみ
                             addCheckMovePos(ref ban, bPos, 0x10 + 0x02, turn, mType.NoNari, kmv, ref kCnt);
                         }
@@ -736,7 +726,7 @@ namespace TacoWin2 {
 
                     // 32
                     bPos = (byte)pturn.mv(turn, aOpos, 0x20 - 0x04);
-                    if ((pturn.psX(turn, bPos >> 4) < 7) && (true /* ban.onBoard[bPos] > 0 */) && (ban.getOnBoardPturn(bPos) == turn)) {
+                    if (((pturn.ps(turn, aOpos) & 0xF0) < 0x70) && (ban.getOnBoardPturn(bPos) == turn)) {
                         if (ban.getOnBoardKtype(bPos) == ktype.Keima) { //桂馬のみ
                             addCheckMovePos(ref ban, bPos, -0x10 + 0x02, turn, mType.NoNari, kmv, ref kCnt);
                         }
@@ -978,7 +968,6 @@ namespace TacoWin2 {
                             // TODO: 要実装
                             if (dx == -1) {
                                 if (dy > 0) { // 1
-                                    //DebugForm.instance.addMsg("111:" + dx + "," + dy);
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, 0x10 - 0x01), aOpos, 0x00 - 0x01) == -1) {
@@ -1007,7 +996,6 @@ namespace TacoWin2 {
                                         }
                                     }
                                 } else {  // 2
-                                    //DebugForm.instance.addMsg("222:" + dx + "," + dy);
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, 0x10 + 0x01), aOpos, 0x00 + 0x01) == -1) {
@@ -1038,7 +1026,6 @@ namespace TacoWin2 {
                                 }
                             } else if (dx == 1) {
                                 if (dy > 0) {  // 3
-                                    //DebugForm.instance.addMsg("333:" + dx + "," + dy);
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, -0x10 - 0x01), aOpos, 0x00 - 0x01) == -1) {
@@ -1067,7 +1054,6 @@ namespace TacoWin2 {
                                         }
                                     }
                                 } else {
-                                    //DebugForm.instance.addMsg("444:" + dx + "," + dy);
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, -0x10 + 0x01), aOpos, 0x00 + 0x01) == -1) {
@@ -1098,7 +1084,6 @@ namespace TacoWin2 {
                                 }
                             } else if (dy == -1) {
                                 if (dx > 0) {
-                                    //DebugForm.instance.addMsg("555:" + dx + "," + dy);
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, -0x10 + 0x01), aOpos, -0x10 + 0x00) == -1) {
@@ -1127,7 +1112,6 @@ namespace TacoWin2 {
                                         }
                                     }
                                 } else {
-                                    //DebugForm.instance.addMsg("666:" + dx + "," + dy);
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, 0x10 + 0x01), aOpos, 0x10 + 0x00) == -1) {
@@ -1158,7 +1142,6 @@ namespace TacoWin2 {
                                 }
                             } else if (dy == 1) {
                                 if (dx > 0) {
-                                    //DebugForm.instance.addMsg("777:" + dx + "," + dy);
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, -0x10 - 0x01), aOpos, -0x10 + 0x00) == -1) {
@@ -1187,7 +1170,6 @@ namespace TacoWin2 {
                                         }
                                     }
                                 } else {
-                                    //DebugForm.instance.addMsg("888:" + dx + "," + dy);
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, 0x10 - 0x01), aOpos, 0x10 + 0x00) == -1) {
@@ -1323,7 +1305,6 @@ namespace TacoWin2 {
                                        // [不成&成り]敵を取って直進
                             if (dy < 0) { // 前方
                                 ret = chkRectMove(ref ban, turn, bPos, aOpos, 0x10 + 0x01);
-                                //Debug.WriteLine("JOSEKI HITa:({0})\n", ret);
                                 if (ret >= 0) {
                                     int rdy = pturn.dy(turn, bPos, (byte)ret);
                                     if (ban.getOnBoardPturn(ret) != turn) { // 敵の駒がある-> 駒を取る
@@ -1343,7 +1324,6 @@ namespace TacoWin2 {
                                 }
                             } else { // 後方
                                 ret = chkRectMove(ref ban, turn, bPos, aOpos, -0x10 - 0x01);
-                                //Debug.WriteLine("JOSEKI HITb:({0})\n", ret);
                                 if (ret >= 0) {
                                     int rdy = pturn.dy(turn, bPos, (byte)ret);
                                     if (ban.getOnBoardPturn(ret) != turn) { // 敵の駒がある-> 駒を取る
@@ -1367,7 +1347,6 @@ namespace TacoWin2 {
                                                // [不成&成り]敵を取って直進
                             if (dx < 0) { // 左
                                 ret = chkRectMove(ref ban, turn, bPos, aOpos, 0x10 - 0x01);
-                                //Debug.WriteLine("JOSEKI HITc:({0})\n", ret);
                                 if (ret >= 0) {
                                     int rdx = pturn.dx(turn, bPos, (byte)ret);
                                     if (ban.getOnBoardPturn(ret) != turn) { // 敵の駒がある-> 駒を取る
@@ -1387,7 +1366,6 @@ namespace TacoWin2 {
                                 }
                             } else { // 右
                                 ret = chkRectMove(ref ban, turn, bPos, aOpos, -0x10 + 0x01);
-                                //Debug.WriteLine("JOSEKI HITd:({0})\n", ret);
                                 if (ret >= 0) {
                                     int rdx = pturn.dx(turn, bPos, (byte)ret);
                                     if (ban.getOnBoardPturn(ret) != turn) { // 敵の駒がある-> 駒を取る
@@ -1414,7 +1392,7 @@ namespace TacoWin2 {
                                                         // y + kx - ky = (ox + oy + kx - ky)/2
                             byte mPos = (byte)((((aOpos >> 4) + (aOpos & 0x0F) + (bPos >> 4) - (bPos & 0x0F)) << 3) + (((aOpos >> 4) + (aOpos & 0x0F) - (bPos >> 4) + (bPos & 0x0F)) >> 1));
                             //右斜め(／)移動
-                            if ((mPos < 90) && ((mPos & 0x0F) < 9)) {
+                            if ((mPos < 0x90) && ((mPos & 0x0F) < 9)) {
                                 if (pturn.dx(turn, bPos, mPos) < 0) { //左
                                     if (chkRectMove(ref ban, turn, bPos, mPos, 0x10 + 0x01) == -1) {
                                         int rdy = pturn.dy(turn, bPos, mPos);
@@ -1454,7 +1432,7 @@ namespace TacoWin2 {
                             // y = (-ox + oy + kx + ky)/2
                             //kx - ky < ox - oy
                             mPos = (byte)((((aOpos >> 4) - (aOpos & 0x0F) + (bPos >> 4) + (bPos & 0x0F)) << 3) + ((-(aOpos >> 4) + (aOpos & 0x0F) + (bPos >> 4) + (bPos & 0x0F)) >> 1));
-                            if ((mPos < 90) && ((mPos & 0x0F) < 9)) {
+                            if ((mPos < 0x90) && ((mPos & 0x0F) < 9)) {
                                 if (pturn.dx(turn, bPos, mPos) < 0) { // 下
                                     if (chkRectMove(ref ban, turn, bPos, mPos, 0x10 - 0x01) == -1) {
                                         int rdy = pturn.dy(turn, bPos, mPos);
@@ -1492,9 +1470,7 @@ namespace TacoWin2 {
                             // ×××〇×××
                             // ③◎×××◎④
                             // ◎①×××③◎
-                            // TODO: 要実装
                             if (dx - dy == 1) {
-                                //DebugForm.instance.addMsg("111:" + dx + "," + dy);
                                 if (dx < 0) { // 左
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuma) {
                                         // 竜馬を一つ移動
@@ -1547,7 +1523,6 @@ namespace TacoWin2 {
                                     }
                                 }
                             } else if (dx - dy == -1) {
-                                //DebugForm.instance.addMsg("333:" + dx + "," + dy);
                                 if (dx < 0) { // 左
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuma) {
                                         // 竜馬を一つ移動
@@ -1600,7 +1575,6 @@ namespace TacoWin2 {
                                     }
                                 }
                             } else if (dx + dy == 1) {
-                                //DebugForm.instance.addMsg("555:" + dx + "," + dy);
                                 if (dx < 0) { // 左
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuma) {
                                         // 竜馬を一つ移動
@@ -1657,7 +1631,7 @@ namespace TacoWin2 {
                                 if (dx < 0) { // 左
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuma) {
                                         // 竜馬を一つ移動
-                                        if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, 0x01 + 0x00), aOpos, 0x10 - 0x01) == -1) {
+                                        if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, 0x10 + 0x00), aOpos, 0x10 - 0x01) == -1) {
                                             addCheckMovePos(ref ban, bPos, 0x10 + 0x00, turn, mType.NoNari, kmv, ref kCnt);
                                             if (ban.getOnBoardKtype(pturn.mv(turn, bPos, 0x10 + 0x00)) == ktype.None) {
                                                 addCheckMovePos(ref ban, bPos, 0x00 + 0x01, turn, mType.NoNari, kmv, ref kCnt);
@@ -1808,7 +1782,7 @@ namespace TacoWin2 {
                     }
                     ret = 0;
                     for (int i = 1; ret == 0; i++) {
-                        ret = addCheckPutPos(ref ban, ktype.Hisya, aOpos, i << 4 + 0x00, turn, kmv, ref kCnt);
+                        ret = addCheckPutPos(ref ban, ktype.Hisya, aOpos, (i << 4) + 0x00, turn, kmv, ref kCnt);
                     }
                 }
 
@@ -1854,13 +1828,12 @@ namespace TacoWin2 {
         /// <param name="kmv"></param>
         /// <param name="cPos"></param>
         /// <returns></returns>
-        int getAllDefList(ref ban ban, Pturn turn, kmove[] kmv, byte cPos) {
+        public int getAllDefList(ref ban ban, Pturn turn, kmove[] kmv, byte cPos) {
             int kCnt = 0;
             unsafe {
-                if (ban.data[ban.data[((int)turn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(turn) << 2)) == 1) {
-                        //DebugForm.instance.addMsg("cPos = " + cPos + " " + ban.getOnBoardKtype(cPos));
-                        // 駒を取る
-                        getPosMoveList(ref kCnt, ref ban, turn, cPos, kmv);
+                if (((ban.data[ban.data[((int)turn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(turn) << 2))) & 0x0F) == 1) {
+                    // 駒を取る
+                    getPosMoveList(ref kCnt, ref ban, turn, cPos, kmv);
 
                     // 合い駒
                     int dx = pturn.dx(turn, cPos, (byte)(ban.data[((int)turn << 6) + ban.setOu] & 0xFF));
@@ -1873,7 +1846,7 @@ namespace TacoWin2 {
                                     getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を打つ
                                 }
                             } else if (dy < -1) {
-                                for (int i = 1; i > dy; i++) {
+                                for (int i = 1; i < -dy; i++) {
                                     getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を移動
                                     getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を打つ
                                 }
@@ -1889,7 +1862,7 @@ namespace TacoWin2 {
                                         getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を打つ
                                     }
                                 } else if (dy < -1) {
-                                    for (int i = 1; i > dy; i++) {
+                                    for (int i = 1; i < -dy; i++) {
                                         getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を移動
                                         getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を打つ
                                     }
@@ -1901,7 +1874,7 @@ namespace TacoWin2 {
                                         getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4)), kmv);//合い駒を打つ
                                     }
                                 } else if (dx < -1) {
-                                    for (int i = 1; i > dx; i++) {
+                                    for (int i = 1; i < -dx; i++) {
                                         getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4)), kmv);//合い駒を移動
                                         getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4)), kmv);//合い駒を打つ
                                     }
@@ -1911,7 +1884,6 @@ namespace TacoWin2 {
 
                         case ktype.Ryuuma:
                         case ktype.Kakugyou:
-                            //DebugForm.instance.addMsg("pturn.mvXY = " + (dx + 1) + "," + (dy + 1));
                             // 敵基準で判定
                             if (dx == dy) { // 右斜め(／)
                                 if (dx > 1) {
@@ -1920,7 +1892,7 @@ namespace TacoWin2 {
                                         getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) - i), kmv);//合い駒を打つ
                                     }
                                 } else if (dx < -1) {
-                                    for (int i = 1; i > dx; i++) {
+                                    for (int i = 1; i < -dx; i++) {
                                         getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) + i), kmv);//合い駒を移動
                                         getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) + i), kmv);//合い駒を打つ
                                     }
@@ -1932,9 +1904,9 @@ namespace TacoWin2 {
                                         getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) + i), kmv);//合い駒を打つ
                                     }
                                 } else if (dx < -1) {
-                                    for (int i = 1; i > dx; i++) {
-                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) - i), kmv);//合い駒を移動
-                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) - i), kmv);//合い駒を打つ
+                                    for (int i = 1; i < -dx; i++) {
+                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) - i), kmv);//合い駒を移動
+                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) - i), kmv);//合い駒を打つ
                                     }
                                 }
                             }
@@ -1971,18 +1943,17 @@ namespace TacoWin2 {
             unsafe {
 
                 byte dPos;  // 守り駒の位置
-                int cPosX = cPos / 9; //移動対象のX位置
-                int cPosY = cPos % 9; //移動対象のY位置
+                byte cpPos = pturn.ps(turn, cPos); //移動対象の自分中心位置
 
                 //01 02 03
                 //04 ● 05
                 //06 07 08
                 //09 × 10
 
-                if (pturn.psY(turn, (byte)(cPos & 0x0F)) < 8) {
+                if ((cpPos & 0x0F) < 8) {
                     // 01
                     dPos = pturn.mv(turn, cPos, -0x10 + 0x01);
-                    if ((pturn.psX(turn, cPosX) > 0) && (ban.getOnBoardKtype(dPos) == ktype.Ginsyou) && (ban.getOnBoardPturn(dPos) == turn)) {//銀将のみ
+                    if (((cpPos >> 4) > 0) && (ban.getOnBoardKtype(dPos) == ktype.Ginsyou) && (ban.getOnBoardPturn(dPos) == turn)) {//銀将のみ
                         addCheckMovePos(ref ban, dPos, 0x10 - 0x01, turn, mType.Both, kmv, ref kCnt);
                     }
 
@@ -2004,14 +1975,14 @@ namespace TacoWin2 {
 
                     // 03
                     dPos = pturn.mv(turn, cPos, 0x10 + 0x01);
-                    if ((pturn.psX(turn, cPosX) < 8) && (ban.getOnBoardKtype(dPos) == ktype.Ginsyou) && (ban.getOnBoardPturn(dPos) == turn)) {//銀将のみ
+                    if (((cpPos >> 4) < 8) && (ban.getOnBoardKtype(dPos) == ktype.Ginsyou) && (ban.getOnBoardPturn(dPos) == turn)) {//銀将のみ
                         addCheckMovePos(ref ban, dPos, -0x10 - 0x01, turn, mType.Both, kmv, ref kCnt);
                     }
                 }
 
                 // 04
                 dPos = pturn.mv(turn, cPos, -0x10 + 0x00);
-                if ((pturn.psX(turn, cPosX) > 0) && (ban.getOnBoardPturn(dPos) == turn)) {
+                if (((cpPos >> 4) > 0) && (ban.getOnBoardPturn(dPos) == turn)) {
                     switch (ban.getOnBoardKtype(dPos)) {
                         case (ktype.Kinsyou):  //金将
                         case (ktype.Tokin):    //と金
@@ -2027,7 +1998,7 @@ namespace TacoWin2 {
 
                 // 05
                 dPos = pturn.mv(turn, cPos, 0x10 + 0x00);
-                if ((pturn.psX(turn, cPosX) < 8) && (ban.getOnBoardPturn(dPos) == turn)) {
+                if (((cpPos >> 4) < 8) && (ban.getOnBoardPturn(dPos) == turn)) {
                     switch (ban.getOnBoardKtype(dPos)) {
                         case (ktype.Kinsyou):  //金将
                         case (ktype.Tokin):    //と金
@@ -2041,10 +2012,10 @@ namespace TacoWin2 {
                     }
                 }
 
-                if (pturn.psY(turn, (byte)(cPos & 0x0F)) > 0) {
+                if ((cpPos & 0x0F) > 0) {
                     // 06
                     dPos = pturn.mv(turn, cPos, -0x10 - 0x01);
-                    if ((pturn.psX(turn, cPosX) > 0) && (ban.getOnBoardPturn(dPos) == turn)) {
+                    if (((cpPos >> 4) > 0) && (ban.getOnBoardPturn(dPos) == turn)) {
                         switch (ban.getOnBoardKtype(dPos)) {
                             case (ktype.Ginsyou): //銀将
                                 addCheckMovePos(ref ban, dPos, 0x10 + 0x01, turn, mType.Both, kmv, ref kCnt);
@@ -2082,7 +2053,7 @@ namespace TacoWin2 {
                     }
                     // 08
                     dPos = pturn.mv(turn, cPos, 0x10 - 0x01);
-                    if ((pturn.psX(turn, cPosX) < 8) && (ban.getOnBoardPturn(dPos) == turn)) {
+                    if (((cpPos >> 4) < 8) && (ban.getOnBoardPturn(dPos) == turn)) {
                         switch (ban.getOnBoardKtype(dPos)) {
                             case (ktype.Ginsyou): //銀将
                                 addCheckMovePos(ref ban, dPos, -0x10 + 0x01, turn, mType.Both, kmv, ref kCnt);
@@ -2100,16 +2071,16 @@ namespace TacoWin2 {
                     }
                 }
 
-                if (pturn.psY(turn, cPosY) > 1) {
+                if ((cpPos & 0x0F) > 1) {
                     // 09
                     dPos = pturn.mv(turn, cPos, -0x10 - 0x02);
-                    if ((pturn.psX(turn, cPosX) > 0) && (ban.getOnBoardKtype(dPos) == ktype.Keima) && (ban.getOnBoardPturn(dPos) == turn)) { //桂馬のみ
+                    if (((cpPos >> 4) > 0) && (ban.getOnBoardKtype(dPos) == ktype.Keima) && (ban.getOnBoardPturn(dPos) == turn)) { //桂馬のみ
                         addCheckMovePos(ref ban, dPos, 0x10 + 0x02, turn, mType.Both, kmv, ref kCnt);
                     }
 
                     // 10
                     dPos = pturn.mv(turn, cPos, 0x10 - 0x02);
-                    if ((pturn.psX(turn, cPosX) < 8) && (ban.getOnBoardKtype(dPos) == ktype.Keima) && (ban.getOnBoardPturn(dPos) == turn)) { //桂馬のみ
+                    if (((cpPos >> 4) < 8) && (ban.getOnBoardKtype(dPos) == ktype.Keima) && (ban.getOnBoardPturn(dPos) == turn)) { //桂馬のみ
                         addCheckMovePos(ref ban, dPos, -0x10 + 0x02, turn, mType.Both, kmv, ref kCnt);
                     }
                 }
@@ -2132,11 +2103,11 @@ namespace TacoWin2 {
                             }
                         } else if (dy == 0) {
                             if (dx < 0) { // 右
-                                if (chkRectMove(ref ban, turn, dPos, cPos, 0x01 + 0x00) == -1) {
+                                if (chkRectMove(ref ban, turn, dPos, cPos, 0x10 + 0x00) == -1) {
                                     addCheckMovePos(ref ban, dPos, -(dx << 4) + 0x00, turn, mType.Both, kmv, ref kCnt);
                                 }
                             } else { // (dx > 0) 左
-                                if (chkRectMove(ref ban, turn, dPos, cPos, -0x01 + 0x00) == -1) {
+                                if (chkRectMove(ref ban, turn, dPos, cPos, -0x10 + 0x00) == -1) {
                                     addCheckMovePos(ref ban, dPos, -(dx << 4) + 0x00, turn, mType.Both, kmv, ref kCnt);
                                 }
                             }
@@ -2222,46 +2193,47 @@ namespace TacoWin2 {
         /// <param name="kCnt">駒移動候補カウンタ</param>
         /// <param name="ban">盤情報</param>
         /// <param name="turn">ターン</param>
-        /// <param name="cPos">駒を置く位置(x*9+y)</param>
+        /// <param name="cPos">駒を置く位置(0xXY)</param>
         /// <param name="kmv">駒移動候補リスト</param>
         void getPosPutList(ref int kCnt, ref ban ban, Pturn turn, byte cPos, kmove[] kmv) {
             unsafe {
                 // 歩打ち
-                if (((ban.data[((int)turn << 6) + ban.hand + (int)ktype.Fuhyou] > 0) && (pturn.psY(turn, (byte)(cPos & 0x0F)) < 8))) {
+                if (((ban.data[((int)turn << 6) + ban.hand + (int)ktype.Fuhyou] > 0) && ((pturn.ps(turn, cPos) & 0x0F) < 8))) {
                     // 二歩チェック
-                    if ((ban.data[((int)turn << 6) + ban.setFu + (cPos >> 2)] >> ((cPos & 3) << 3) & 0xFF) != 0xFF) {
+                    if (((ban.data[((int)turn << 6) + ban.setFu + (cPos >> 6)] >> (((cPos >> 4) & 3) << 3)) & 0xFF) == 0xFF) {
+
                         kmv[kCnt++].set(0x90 + (byte)ktype.Fuhyou, cPos, 0, 0, false, turn);
                     }
                 }
 
                 // 香打ち
-                if ((ban.data[((int)turn << 6) + ban.hand + (int)ktype.Kyousha] > 0) && (pturn.psY(turn, (byte)(cPos & 0x0F)) < 8)) {
-                    kmv[kCnt++].set(0x90 + (byte)ktype.Fuhyou, cPos, 0, 0, false, turn);
+                if ((ban.data[((int)turn << 6) + ban.hand + (int)ktype.Kyousha] > 0) && ((pturn.ps(turn, cPos) & 0x0F) < 8)) {
+                    kmv[kCnt++].set(0x90 + (byte)ktype.Kyousha, cPos, 0, 0, false, turn);
                 }
 
                 // 桂打ち
-                if ((ban.data[((int)turn << 6) + ban.hand + (int)ktype.Keima] > 0) && (pturn.psY(turn, (byte)(cPos & 0x0F)) < 7)) {
-                    kmv[kCnt++].set(0x90 + (byte)ktype.Fuhyou, cPos, 0, 0, false, turn);
+                if ((ban.data[((int)turn << 6) + ban.hand + (int)ktype.Keima] > 0) && ((pturn.ps(turn, cPos) & 0x0F) < 7)) {
+                    kmv[kCnt++].set(0x90 + (byte)ktype.Keima, cPos, 0, 0, false, turn);
                 }
 
                 // 銀打ち
                 if (ban.data[((int)turn << 6) + ban.hand + (int)ktype.Ginsyou] > 0) {
-                    kmv[kCnt++].set(0x90 + (byte)ktype.Fuhyou, cPos, 0, 0, false, turn);
+                    kmv[kCnt++].set(0x90 + (byte)ktype.Ginsyou, cPos, 0, 0, false, turn);
                 }
 
                 // 飛打ち
                 if (ban.data[((int)turn << 6) + ban.hand + (int)ktype.Hisya] > 0) {
-                    kmv[kCnt++].set(0x90 + (byte)ktype.Fuhyou, cPos, 0, 0, false, turn);
+                    kmv[kCnt++].set(0x90 + (byte)ktype.Hisya, cPos, 0, 0, false, turn);
                 }
 
                 // 角打ち
                 if (ban.data[((int)turn << 6) + ban.hand + (int)ktype.Kakugyou] > 0) {
-                    kmv[kCnt++].set(0x90 + (byte)ktype.Fuhyou, cPos, 0, 0, false, turn);
+                    kmv[kCnt++].set(0x90 + (byte)ktype.Kakugyou, cPos, 0, 0, false, turn);
                 }
 
                 // 金打ち
                 if (ban.data[((int)turn << 6) + ban.hand + (int)ktype.Kinsyou] > 0) {
-                    kmv[kCnt++].set(0x90 + (byte)ktype.Fuhyou, cPos, 0, 0, false, turn);
+                    kmv[kCnt++].set(0x90 + (byte)ktype.Kinsyou, cPos, 0, 0, false, turn);
                 }
 
             }
@@ -2281,21 +2253,21 @@ namespace TacoWin2 {
         public int addCheckMovePos(ref ban ban, byte oPos, int mPos, Pturn turn, mType nari, kmove[] kmv, ref int kCnt) {
             byte nPos = (byte)pturn.mv(turn, oPos, mPos);
             unsafe {
-                if ((nPos > 0x88) || ((nPos & 0xF) > 0x08)) return 3;
+                if ((oPos > 0x88) || ((oPos & 0xF) > 0x08) || (nPos > 0x88) || ((nPos & 0xF) > 0x08)) return 3; // 範囲外
                 if ((ban.getOnBoardKtype(nPos) > ktype.None) && (ban.getOnBoardPturn(nPos) == turn)) return 2; // 味方の駒
 
                 //成り
                 if (nari >= mType.Both) {
                     //成れない場所・成れない駒は不可(飛角香のためコンティニュー可能にする)
-                    if ((ban.getOnBoardKtype(oPos) < ktype.Kinsyou) && ((pturn.psY(turn, (byte)(oPos & 0x0F)) > 5) || (pturn.psY(turn, (byte)(nPos & 0x0F)) > 5))) {
+                    if ((ban.getOnBoardKtype(oPos) < ktype.Kinsyou) && ((pturn.ps(turn, oPos) & 0x0F) > 5) || ((pturn.ps(turn, nPos) & 0x0F) > 5)) {
                         kmv[kCnt++].set((byte)oPos, nPos, nPos, 0, true, turn);
                     }
                 }
 
                 //不成
                 if (nari <= mType.Both) {
-                    if (((pturn.psY(turn, (byte)(nPos & 0x0F)) == 8) && ((ban.getOnBoardKtype(oPos) == ktype.Kyousha) || (ban.getOnBoardKtype(oPos) == ktype.Fuhyou))) ||
-                        ((pturn.psY(turn, (byte)(nPos & 0x0F)) > 6) && (ban.getOnBoardKtype(oPos) == ktype.Keima))) return 3; //不成NG
+                    if ((((pturn.ps(turn, nPos) & 0x0F) == 8) && ((ban.getOnBoardKtype(oPos) == ktype.Kyousha) || (ban.getOnBoardKtype(oPos) == ktype.Fuhyou))) ||
+                        (((pturn.ps(turn, nPos) & 0x0F) > 6) && (ban.getOnBoardKtype(oPos) == ktype.Keima))) return 3; //不成NG
                     kmv[kCnt++].set((byte)oPos, nPos, nPos, 0, false, turn);
                 }
 
@@ -2333,14 +2305,13 @@ namespace TacoWin2 {
         // 指定先まで駒が存在するかチェック(指定先含めず)
         // 0～80:指定位置(X*9+Y)に駒あり -1 :駒無し -2 :駒2個以上あり -3 :opにたどり着かない
         int chkRectMove(ref ban ban, Pturn turn, byte oPos, byte tPos, int mv) {
-            //DebugForm.instance.addMsg("chkRectMove = " + ((op / 9) + 1) + "," + ((op % 9) + 1) + "/" + ((np / 9) + 1) + "," + ((np % 9) + 1) + " mv=" + mx + "," + my);
             unsafe {
                 int ret = -1;
+                byte mPos = oPos;
                 for (int i = 0; ; i++) {
-                    int mPos = pturn.mv(turn, oPos, mv);
+                    mPos = pturn.mv(turn, mPos, mv);
                     if (mPos == tPos) return ret;
                     if ((mPos > 0x88) || ((mPos & 0xF) > 0x08)) return -3;
-                    //DebugForm.instance.addMsg("pturn.mvXY = " + (nx + 1) + "," + (ny + 1));
                     if (ban.getOnBoardKtype(mPos) > ktype.None) {
                         if (ret == -1) {
                             ret = mPos;
