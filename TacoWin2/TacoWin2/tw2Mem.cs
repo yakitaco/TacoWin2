@@ -5,7 +5,7 @@ namespace TacoWin2 {
     static class mList {
         public static int aListCnt = 0;
         public static int rListCnt = 0;
-        const int aListMax = 1000;
+        const int aListMax = 10000;
         const int aListElMax = 600;
         const int rListMax = 100;
         const int rListElMax = 10;

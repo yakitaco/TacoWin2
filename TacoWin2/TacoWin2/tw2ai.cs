@@ -159,12 +159,12 @@ namespace TacoWin2 {
             kmove[] bestmove = null;
 
             /* 詰み */
-            //if (mateDepth > 0) {
-            //    int ret;
-            //    DebugForm.instance.addMsg("thinkMateMove" + mateDepth);
-            //    (bestmove, ret) = thinkMateMove(turn, ban, 9);
-            //    if (ret < 999) return (bestmove, 99999);
-            //}
+            if (mateDepth > 0) {
+                int ret;
+                DebugForm.instance.addMsg("thinkMateMove" + mateDepth);
+                (bestmove, ret) = thinkMateMove(turn, ban, 9);
+                if (ret < 999) return (bestmove, 99999);
+            }
 
             int teCnt = 0; //手の進捗
             depMax = depth;
@@ -188,7 +188,7 @@ namespace TacoWin2 {
                     ban tmp_ban = ban;
                     if (ban.getOnBoardKtype(nPos) > ktype.None) {
                         val += kVal[(int)ban.getOnBoardKtype(nPos)] + tw2stval.get(ban.getOnBoardKtype(oPos), oPos, nPos, turn);
-                    } else if (oPos > 0x90) {
+                    } else if (oPos < 0x90) {
                         val += tw2stval.get(ban.getOnBoardKtype(oPos), oPos, nPos, turn);
                     }
 
@@ -199,9 +199,11 @@ namespace TacoWin2 {
 
                     string str = "";
                     for (int i = 0; bestmove[i].op > 0 || bestmove[i].np > 0; i++) {
-                        str += "(" + (bestmove[i].op / 9 + 1) + "," + (bestmove[i].op % 9 + 1) + ")->(" + (bestmove[i].np / 9 + 1) + "," + (bestmove[i].np % 9 + 1) + ")/";
+                        str += ":" + (bestmove[i].op + 0x11).ToString("X2") + "-" + (bestmove[i].np + 0x11).ToString("X2") + "";
                     }
-                    Console.Write("JOSEKI MV[{0}]{1}\n", best, str);
+
+                    DebugForm.instance.addMsg("JOSEKI MV["+ best +"]" + str);
+
                     resetHash();
                     return (bestmove, best);
                 }
@@ -310,10 +312,16 @@ namespace TacoWin2 {
 
                     //★★if (ban.onBoard[nx * 9 + ny] > 0) {
                     //★★    val += kVal[(int)ban.getOnBoardKtype(nx * 9 + ny)] + tw2stval.get(ban.getOnBoardKtype(ox * 9 + oy), nx, ny, ox, oy, (int)turn);
-                    //★★} else if (ox < 9) {
+                    //★★} else if (oPos < 0x90) {
                     //★★    val += tw2stval.get(ban.getOnBoardKtype(ox * 9 + oy), nx, ny, ox, oy, (int)turn);
                     //★★}
-                    //★★ban.moveKoma(ox, oy, nx, ny, turn, nari, false, false);
+                    if (ban.getOnBoardKtype(nPos) > ktype.None) {
+                        val += kVal[(int)ban.getOnBoardKtype(nPos)] + tw2stval.get(ban.getOnBoardKtype(oPos), oPos, nPos, turn);
+                    } else if (oPos < 0x90) {
+                        val += tw2stval.get(ban.getOnBoardKtype(oPos), oPos, nPos, turn);
+                    }
+
+                    ban.moveKoma(oPos, nPos, turn, nari, true);
                     if (depth < 20) {
                         best = -think(pturn.aturn(turn), ref ban, out retList, -999999, 999999, val, depth + 1, depth);
                         bestMoveList = retList;
@@ -322,7 +330,7 @@ namespace TacoWin2 {
                         best = val;
                     }
 
-                    //★★bestMoveList[depth].set(ox * 9 + oy, nx * 9 + ny, best, 0, nari, turn);
+                    bestMoveList[depth].set(oPos, nPos, best, 0, nari, turn);
                     return best;
                 }
 
@@ -679,7 +687,7 @@ namespace TacoWin2 {
             unsafe {
                 for (int i = 1; i < 9; ++i) {
                     byte nPos = pturn.mv(turn, oPos, 0x00 + i);
-                    if ((nPos > 90) || ((nPos & 0x0F) > 8)) return;
+                    if ((nPos > 0x90) || ((nPos & 0x0F) > 8)) return;
                     if ((ban.getOnBoardKtype(nPos) > ktype.None) || (pturn.psY(turn, nPos & 0x0F) > 5)) {
                         getEachMovePos(ref ban, oPos, i, turn, eVal, kmv, ref kCnt, ref startPoint);
                     }
@@ -876,10 +884,10 @@ namespace TacoWin2 {
                 if (ban.getOnBoardKtype(nPos) > ktype.None) { //駒が存在
                     if (ban.getOnBoardPturn(nPos) != turn) {
                         val = kVal[(int)ban.getOnBoardKtype(nPos)] + sval;
-                        if (((pturn.psY(turn, (byte)(oPos & 0x0F)) > 5) || (pturn.psY(turn, (byte)(nPos & 0x0FB)) > 5)) && ((int)ban.getOnBoardKtype((byte)oPos) < 7)) {
+                        if ((((pturn.ps(turn, oPos) & 0x0F) > 5) || ((pturn.ps(turn, nPos) & 0x0F) > 5)) && ((int)ban.getOnBoardKtype(oPos) < 7)) {
 
-                            // 不成
-                            if ((ban.getOnBoardKtype((byte)oPos) == ktype.Ginsyou) || ((ban.getOnBoardKtype((byte)oPos) == ktype.Kyousha) && (pturn.psY(turn, (byte)(nPos & 0x0F)) < 8)) || ((ban.getOnBoardKtype((byte)oPos) == ktype.Kyousha) && (pturn.psY(turn, (byte)(nPos & 0x0F)) < 7))) {
+                            // 不成(歩は対象外)
+                            if ((ban.getOnBoardKtype((byte)oPos) == ktype.Ginsyou) || ((ban.getOnBoardKtype((byte)oPos) == ktype.Kyousha) && ((pturn.ps(turn, nPos) & 0x0F) < 8)) || ((ban.getOnBoardKtype((byte)oPos) == ktype.Keima) && ((pturn.ps(turn, nPos) & 0x0F) < 7))) {
                                 if (val - eVal >= kmv[startPoint].val - kmv[startPoint].aval) {
                                     kmv[--startPoint].set(oPos, nPos, val, eVal, false, turn);
                                     kCnt++;
@@ -913,8 +921,10 @@ namespace TacoWin2 {
                     }
 
                 } else { //駒がない
-                    if (((pturn.psY(turn, (byte)(oPos & 0x0F)) > 5) || (pturn.psY(turn, (byte)(oPos & 0x0F)) > 5)) && ((int)ban.getOnBoardKtype(oPos) < 7)) {
-                        if ((ban.getOnBoardKtype(oPos) == ktype.Ginsyou) || ((ban.getOnBoardKtype(oPos) == ktype.Kyousha) && (pturn.psY(turn, (byte)(oPos & 0x0F)) < 8)) || ((ban.getOnBoardKtype(oPos) == ktype.Kyousha) && (pturn.psY(turn, (byte)(oPos & 0x0F)) < 7))) {
+                    if ((((pturn.ps(turn, oPos) & 0x0F) > 5) || ((pturn.ps(turn, nPos) & 0x0F) > 5)) && ((int)ban.getOnBoardKtype(oPos) < 7)) {
+
+                        // 不成(歩は対象外)
+                        if ((ban.getOnBoardKtype(oPos) == ktype.Ginsyou) || ((ban.getOnBoardKtype((byte)oPos) == ktype.Kyousha) && ((pturn.ps(turn, nPos) & 0x0F) < 8)) || ((ban.getOnBoardKtype(oPos) == ktype.Keima) && ((pturn.ps(turn, nPos) & 0x0F) < 7))) {
                             kmv[startPoint + kCnt++].set(oPos, nPos, sval, eVal, false, turn);
                         }
                         // 自分の効きが敵より多い

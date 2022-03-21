@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace TacoWin2_BanInfo {
@@ -18,6 +19,8 @@ namespace TacoWin2_BanInfo {
         /// <param name="t">自分のターン</param>
         /// <param name="x">絶対X位置</param>
         /// <returns>自分中心X位置(0 左側/8 右側)</returns>
+        [Obsolete("このメソッドの使用は非推奨です")]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int psX(Pturn t, int x) {
             if (t == Pturn.Sente) {
                 return 8 - x;
@@ -32,6 +35,7 @@ namespace TacoWin2_BanInfo {
         /// <param name="t">自分のターン</param>
         /// <param name="y">絶対X位置</param>
         /// <returns>自分中心Y位置(0 下側/8 上側)</returns>
+        [Obsolete("このメソッドの使用は非推奨です")]
         public static int psY(Pturn t, int y) {
             if (t == Pturn.Sente) {
                 return 8 - y;
@@ -122,6 +126,8 @@ namespace TacoWin2_BanInfo {
             }
         }
 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int dx(Pturn turn, byte sPos, byte dPos) {
             if (turn == Pturn.Sente) {
                 return (dPos >> 4) - (sPos >> 4);
@@ -129,7 +135,9 @@ namespace TacoWin2_BanInfo {
                 return (sPos >> 4) - (dPos >> 4);
             }
         }
-        
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int dy(Pturn turn, byte sPos, byte dPos) {
             if (turn == Pturn.Sente) {
                 return (dPos & 0xF) - (sPos & 0xF);
@@ -145,6 +153,7 @@ namespace TacoWin2_BanInfo {
         /// <param name="pos"></param>
         /// <param name="move"></param>
         /// <returns>移動先の絶対位置</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte mv(Pturn turn, byte pos, int move) {
             if (turn == Pturn.Sente) {
                 return (byte)(pos - move);
@@ -153,11 +162,21 @@ namespace TacoWin2_BanInfo {
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte ps(Pturn turn, byte pos) {
+            if (turn == Pturn.Sente) {
+                return (byte)(0x88 - pos);
+            } else {
+                return (byte)(pos);
+            }
+        }
+
         /// <summary>
         /// 相手のターンを取得
         /// </summary>
         /// <param name="turn">自分のターン</param>
         /// <returns>相手のターン</returns>
+       [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int aturn(int turn) {
             return 1 - turn;
         }
@@ -167,6 +186,7 @@ namespace TacoWin2_BanInfo {
         /// </summary>
         /// <param name="turn">自分のターン</param>
         /// <returns>相手のターン</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Pturn aturn(Pturn turn) {
             return 1 - turn;
         }

@@ -462,19 +462,16 @@ namespace TacoWin2_BanInfo {
         // chk : 移動整合性チェック(false チェック無 true チェック有)
         // 戻り値 0 OK / -1 NG(chk=true時のみ)
         public int moveKoma(byte oPos, byte nPos, Pturn turn, bool nari, bool renewMoveable) {
-            //Console.WriteLine("getOnBoardPturn = " + getOnBoardKtype(nPos) + " " + nPos.ToString("X2"));
             // 駒打ち
             if (oPos > 0x90) {
-
+                if (nPos > 0xF0) Debug.WriteLine("move " + debugShow());
                 // 持ち駒情報からデクリメント
                 data[((int)turn << 6) + hand + (oPos & 0x0F)]--;
 
                 // hash更新
-                hash ^= tw2bi_hash.mochiSeed[(int)turn * 7 + (oPos & 0x0F) - 1, data[((int)turn << 6) + hand + (oPos & 0x0F)]];
+                if (oPos == 245) Debug.WriteLine("move " +  debugShow());
+                    hash ^= tw2bi_hash.mochiSeed[(int)turn * 7 + (oPos & 0x0F) - 1, data[((int)turn << 6) + hand + (oPos & 0x0F)]];
                 hash ^= tw2bi_hash.okiSeed[(int)turn * 14 + (int)(oPos & 0x0F) - 1, (nPos >> 4) * 9 + (nPos & 0x0F)];
-
-                // 更新
-                //onBoard[nx + ny * 9] = (byte)(((int)turn << 4) + oy);
 
                 //置き駒情報・盤上情報を更新
                 putKoma(nPos, turn, (data[nPos] >> 8) & 0xFF, (ktype)(oPos & 0x0F));
@@ -487,18 +484,12 @@ namespace TacoWin2_BanInfo {
                 // 駒移動
             } else {
                 turn = getOnBoardPturn(oPos);// 移動する駒の持ち手
-                //Console.WriteLine("getOnBoardPturn = " + getOnBoardKtype(nPos) + " " + nPos.ToString("X2"));
                 // 移動先に既にある
                 if (getOnBoardKtype(nPos) > ktype.None) {
                     if (renewMoveable == true) chgMoveable((byte)nPos, getOnBoardPturn(nPos), -1);
 
                     // hash更新
                     hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(nPos) * 14 + (int)getOnBoardKtype(nPos) - 1, (nPos >> 4) * 9 + (nPos & 0x0F)];
-                    //int aaa = (int)getOnBoardKtype(nPos);
-                    //int aasa = ((int)turn << 6) + hand + (int)kNoNari(getOnBoardKtype(nPos));
-                    //int bbb = (int)data[((int)turn << 6) + hand + (int)kNoNari(getOnBoardKtype(nPos))];
-                    //if (nPos == 104) { Debug.WriteLine("move " + aaa + "  " + aasa + "  " + bbb.ToString("X8") + " " + oPos.ToString("X2") + "->" + nPos.ToString("X2") + " \n" + debugShow()); }
-
                     hash ^= tw2bi_hash.mochiSeed[(int)turn * 7 + (int)kNoNari(getOnBoardKtype(nPos)) - 1, data[((int)turn << 6) + hand + (int)kNoNari(getOnBoardKtype(nPos))]];
 
                     removeKoma(nPos);
@@ -583,7 +574,6 @@ namespace TacoWin2_BanInfo {
                 }
 
                 data[oPos] &= ~0xFFU; //移動元駒情報クリア
-                //Debug.WriteLine("move " + oPos.ToString("X2") + "  " + data[oPos].ToString("X8"));
 
                 if (renewMoveable == true) {
                     if (getOnBoardKtype(nPos) == ktype.None) {
@@ -591,10 +581,6 @@ namespace TacoWin2_BanInfo {
                     }
                     changeMoveableDir(oPos, 1);
                 }
-
-                //Debug.WriteLine("DDDv\n" + debugShow());
-
-                //data[nPos] = mk;
                 data[nPos] = setOnBoardData((int)mk >> 16 & 0xFF, (int)(mk >> 24), turn, (data[nPos] >> 8) & 0xFF, (ktype)(mk & 0x0F));
 
                 if (renewMoveable == true) chgMoveable(nPos, turn, 1);
