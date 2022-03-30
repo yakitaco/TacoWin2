@@ -1007,19 +1007,19 @@ namespace TacoWin2 {
                                         }
                                         // 竜王を王の隣に移動
                                         if (chkRectMove(ref ban, turn, bPos, pturn.mv(turn, aOpos, -0x10 - 0x01), 0x00 + 0x01) == -1) {
-                                            addCheckMovePos(ref ban, bPos, 0x00 - dy + 1, turn, mType.NoNari, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, bPos, 0x00 - dy - 1, turn, mType.NoNari, kmv, ref kCnt);
                                             if ((ban.getOnBoardKtype(pturn.mv(turn, aOpos, -0x10 - 0x01)) == ktype.None) &&
                                                     (ban.getOnBoardKtype(pturn.mv(turn, aOpos, -0x10 + 0x00)) == ktype.None)) {
-                                                addCheckMovePos(ref ban, bPos, 0x00 - dy - 1, turn, mType.NoNari, kmv, ref kCnt);
+                                                addCheckMovePos(ref ban, bPos, 0x00 - dy + 1, turn, mType.NoNari, kmv, ref kCnt);
                                             }
                                         }
                                     } else {
                                         // 飛車を王の隣に移動
                                         if (chkRectMove(ref ban, turn, bPos, pturn.mv(turn, aOpos, -0x10 - 0x01), 0x00 + 0x01) == -1) {
-                                            addCheckMovePos(ref ban, bPos, 0x00 - dy + 1, turn, mType.Nari, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, bPos, 0x00 - dy - 1, turn, mType.Nari, kmv, ref kCnt);
                                             if ((ban.getOnBoardKtype(pturn.mv(turn, aOpos, -0x10 - 0x01)) == ktype.None) &&
                                                     (ban.getOnBoardKtype(pturn.mv(turn, aOpos, -0x10 + 0x00)) == ktype.None)) {
-                                                addCheckMovePos(ref ban, bPos, 0x00 - dy - 1, turn, mType.Nari, kmv, ref kCnt);
+                                                addCheckMovePos(ref ban, bPos, 0x00 - dy + 1, turn, mType.Nari, kmv, ref kCnt);
                                             }
                                         }
                                     }
@@ -1053,7 +1053,7 @@ namespace TacoWin2 {
                                             }
                                         }
                                     }
-                                } else {
+                                } else {  // 4
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, -0x10 + 0x01), aOpos, 0x00 + 0x01) == -1) {
@@ -1083,7 +1083,7 @@ namespace TacoWin2 {
                                     }
                                 }
                             } else if (dy == -1) {
-                                if (dx > 0) {
+                                if (dx > 0) {  // 5
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, -0x10 + 0x01), aOpos, -0x10 + 0x00) == -1) {
@@ -1111,7 +1111,8 @@ namespace TacoWin2 {
                                             }
                                         }
                                     }
-                                } else {
+                                } else {  // 6
+                                    //DebugForm.instance.addMsg("666");
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, 0x10 + 0x01), aOpos, 0x10 + 0x00) == -1) {
@@ -1141,11 +1142,12 @@ namespace TacoWin2 {
                                     }
                                 }
                             } else if (dy == 1) {
-                                if (dx > 0) {
+                                //DebugForm.instance.addMsg("777");
+                                if (dx > 0) {  // 7
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, -0x10 - 0x01), aOpos, -0x10 + 0x00) == -1) {
-                                            addCheckMovePos(ref ban, bPos, -0x10 + 0x01, turn, mType.NoNari, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, bPos, -0x10 - 0x01, turn, mType.NoNari, kmv, ref kCnt);
                                             if ((ban.getOnBoardKtype(pturn.mv(turn, bPos, -0x10 - 0x01)) == ktype.None) &&
                                                     (ban.getOnBoardKtype(pturn.mv(turn, bPos, 0x00 - 0x01)) == ktype.None)) {
                                                 addCheckMovePos(ref ban, bPos, 0x10 - 0x01, turn, mType.NoNari, kmv, ref kCnt);
@@ -1169,11 +1171,12 @@ namespace TacoWin2 {
                                             }
                                         }
                                     }
-                                } else {
+                                } else {  // 8
+                                    //DebugForm.instance.addMsg("888");
                                     if (ban.getOnBoardKtype(bPos) == ktype.Ryuuou) {
                                         // 竜王を一つ移動
                                         if (chkRectMove(ref ban, turn, pturn.mv(turn, bPos, 0x10 - 0x01), aOpos, 0x10 + 0x00) == -1) {
-                                            addCheckMovePos(ref ban, bPos, 0x10 + 0x01, turn, mType.NoNari, kmv, ref kCnt);
+                                            addCheckMovePos(ref ban, bPos, 0x10 - 0x01, turn, mType.NoNari, kmv, ref kCnt);
                                             if ((ban.getOnBoardKtype(pturn.mv(turn, bPos, 0x10 - 0x01)) == ktype.None) &&
                                                     (ban.getOnBoardKtype(pturn.mv(turn, bPos, 0x00 - 0x01)) == ktype.None)) {
                                                 addCheckMovePos(ref ban, bPos, -0x10 - 0x01, turn, mType.NoNari, kmv, ref kCnt);
@@ -1738,7 +1741,7 @@ namespace TacoWin2 {
                 // 歩打ち
                 if (ban.data[((int)turn << 6) + ban.hand + (int)ktype.Fuhyou] > 0) {
                     // 二歩チェック
-                    if ((ban.data[((int)turn << 6) + ban.setFu + ((aOpos & 0x0F) >> 2)] >> (((aOpos & 0x0F) & 3) << 3) & 0xFF) == 0xFF) {
+                    if ((ban.data[((int)turn << 6) + ban.setFu + ((aOpos >> 4) >> 2)] >> (((aOpos >> 4) & 3) << 3) & 0xFF) == 0xFF) {
                         addCheckPutPos(ref ban, ktype.Fuhyou, aOpos, 0x00 - 0x01, turn, kmv, ref kCnt);
                     }
                 }
@@ -1841,14 +1844,26 @@ namespace TacoWin2 {
                     switch (ban.getOnBoardKtype(cPos)) {
                         case ktype.Kyousha:
                             if (dy > 1) {
-                                for (int i = 1; i < dy; i++) {
-                                    getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を移動
-                                    getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を打つ
+                                if (turn == Pturn.Sente) {
+                                    for (int i = 1; i < dy; i++) {
+                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を移動
+                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を打つ
+                                    }
+                                } else {
+                                    for (int i = 1; i < dy; i++) {
+                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を移動
+                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を打つ
+                                    }
                                 }
                             } else if (dy < -1) {
                                 for (int i = 1; i < -dy; i++) {
-                                    getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を移動
-                                    getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を打つ
+                                    if (turn == Pturn.Sente) {
+                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を移動
+                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を打つ
+                                    } else {
+                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を移動
+                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を打つ
+                                    }
                                 }
                             }
                             break;
@@ -1858,25 +1873,46 @@ namespace TacoWin2 {
                             if (dx == 0) {
                                 if (dy > 1) {
                                     for (int i = 1; i < dy; i++) {
-                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を移動
-                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を打つ
+                                        if (turn == Pturn.Sente) {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を打つ
+                                        } else {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を打つ
+                                        }
                                     }
                                 } else if (dy < -1) {
                                     for (int i = 1; i < -dy; i++) {
-                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を移動
-                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を打つ
+                                        if (turn == Pturn.Sente) {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - i), kmv);//合い駒を打つ
+                                        } else {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + i), kmv);//合い駒を打つ
+                                        }
                                     }
                                 }
                             } else if (dy == 0) {
                                 if (dx > 1) {
                                     for (int i = 1; i < dx; i++) {
-                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4)), kmv);//合い駒を移動
-                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4)), kmv);//合い駒を打つ
+                                        if (turn == Pturn.Sente) {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4)), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4)), kmv);//合い駒を打つ
+                                        } else {
+
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4)), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4)), kmv);//合い駒を打つ
+                                        }
                                     }
                                 } else if (dx < -1) {
                                     for (int i = 1; i < -dx; i++) {
-                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4)), kmv);//合い駒を移動
-                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4)), kmv);//合い駒を打つ
+                                        if (turn == Pturn.Sente) {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4)), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4)), kmv);//合い駒を打つ
+                                        } else {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4)), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4)), kmv);//合い駒を打つ
+                                        }
                                     }
                                 }
                             }
@@ -1888,25 +1924,45 @@ namespace TacoWin2 {
                             if (dx == dy) { // 右斜め(／)
                                 if (dx > 1) {
                                     for (int i = 1; i < dx; i++) {
-                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) - i), kmv);//合い駒を移動
-                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) - i), kmv);//合い駒を打つ
+                                        if (turn == Pturn.Sente) {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) + i), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) + i), kmv);//合い駒を打つ
+                                        } else {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) - i), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) - i), kmv);//合い駒を打つ
+                                        }
                                     }
                                 } else if (dx < -1) {
                                     for (int i = 1; i < -dx; i++) {
-                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) + i), kmv);//合い駒を移動
-                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) + i), kmv);//合い駒を打つ
+                                        if (turn == Pturn.Sente) {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) - i), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) - i), kmv);//合い駒を打つ
+                                        } else {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) + i), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) + i), kmv);//合い駒を打つ
+                                        }
                                     }
                                 }
                             } else if (dx == -dy) { // 左斜め(／)
                                 if (dx > 1) {
                                     for (int i = 1; i < dx; i++) {
-                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) + i), kmv);//合い駒を移動
-                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) + i), kmv);//合い駒を打つ
+                                        if (turn == Pturn.Sente) {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) - i), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) - i), kmv);//合い駒を打つ
+                                        } else {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) + i), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) + i), kmv);//合い駒を打つ
+                                        }
                                     }
                                 } else if (dx < -1) {
                                     for (int i = 1; i < -dx; i++) {
-                                        getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) - i), kmv);//合い駒を移動
-                                        getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) - i), kmv);//合い駒を打つ
+                                        if (turn == Pturn.Sente) {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) + i), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos - (i << 4) + i), kmv);//合い駒を打つ
+                                        } else {
+                                            getPosMoveList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) - i), kmv);//合い駒を移動
+                                            getPosPutList(ref kCnt, ref ban, turn, (byte)(cPos + (i << 4) - i), kmv);//合い駒を打つ
+                                        }
                                     }
                                 }
                             }
@@ -2085,6 +2141,22 @@ namespace TacoWin2 {
                     }
                 }
 
+                // 香車
+                for (int i = 0; i < 4; i++) {
+                    if ((ban.data[((int)turn << 6) + ban.setKyo] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        dPos = (byte)(ban.data[((int)turn << 6) + ban.setKyo] >> ((i & 3) << 3) & 0xFF);
+                        int dx = pturn.dx(turn, dPos, cPos);
+                        int dy = pturn.dy(turn, dPos, cPos);
+                        if (dx == 0) {
+                            if (dy < 0) { // 上
+                                if (chkRectMove(ref ban, turn, dPos, cPos, 0x00 + 0x01) == -1) {
+                                    addCheckMovePos(ref ban, dPos, 0x00 - dy, turn, mType.Both, kmv, ref kCnt);
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // 飛車
                 for (int i = 0; i < 2; i++) {
                     if ((ban.data[((int)turn << 6) + ban.setHi] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
@@ -2259,7 +2331,7 @@ namespace TacoWin2 {
                 //成り
                 if (nari >= mType.Both) {
                     //成れない場所・成れない駒は不可(飛角香のためコンティニュー可能にする)
-                    if ((ban.getOnBoardKtype(oPos) < ktype.Kinsyou) && ((pturn.ps(turn, oPos) & 0x0F) > 5) || ((pturn.ps(turn, nPos) & 0x0F) > 5)) {
+                    if ((ban.getOnBoardKtype(oPos) < ktype.Kinsyou) && (((pturn.ps(turn, oPos) & 0x0F) > 5) || ((pturn.ps(turn, nPos) & 0x0F) > 5))) {
                         kmv[kCnt++].set((byte)oPos, nPos, nPos, 0, true, turn);
                     }
                 }

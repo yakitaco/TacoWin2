@@ -771,6 +771,10 @@ namespace TacoWin2_BanInfo {
             }
         }
 
+        /// <summary>
+        /// ban情報のデバッグ表示
+        /// </summary>
+        /// <returns></returns>
         public string debugShow() {
             string str = "";
             for (int i = 0; i < 137; i++) {
@@ -782,200 +786,182 @@ namespace TacoWin2_BanInfo {
             return str;
         }
 
-        //// ban情報のデバッグ表示
-        //public string old_debugShow() {
-        //    string str = "";
-        //    for (int i = 0; i < 81; i++) {
-        //        if (onBoard[(i / 9) + (8 - i % 9) * 9] != 0) {
-        //            // 先手
-        //            if (getOnBoardPturn(8 - i % 9, (i / 9)) == Pturn.Sente) {
-        //                switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
-        //                    case ktype.Fuhyou:
-        //                        str += "P_|";
-        //                        break;
-        //                    case ktype.Kyousha:
-        //                        str += "L_|";
-        //                        break;
-        //                    case ktype.Keima:
-        //                        str += "N_|";
-        //                        break;
-        //                    case ktype.Ginsyou:
-        //                        str += "S_|";
-        //                        break;
-        //                    case ktype.Hisya:
-        //                        str += "R_|";
-        //                        break;
-        //                    case ktype.Kakugyou:
-        //                        str += "B_|";
-        //                        break;
-        //                    case ktype.Kinsyou:
-        //                        str += "G_|";
-        //                        break;
-        //                    case ktype.Ousyou:
-        //                        str += "K_|";
-        //                        break;
-        //                    case ktype.Tokin:
-        //                        str += "+P|";
-        //                        break;
-        //                    case ktype.Narikyou:
-        //                        str += "+L|";
-        //                        break;
-        //                    case ktype.Narikei:
-        //                        str += "+N|";
-        //                        break;
-        //                    case ktype.Narigin:
-        //                        str += "+G|";
-        //                        break;
-        //                    case ktype.Ryuuou:
-        //                        str += "+R|";
-        //                        break;
-        //                    case ktype.Ryuuma:
-        //                        str += "+B|";
-        //                        break;
-        //                    default:
-        //                        str += "!_|";
-        //                        break;
-        //                }
-        //            } else if (getOnBoardPturn(8 - i % 9, (i / 9)) == Pturn.Gote) {
-        //                switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
-        //                    case ktype.Fuhyou:
-        //                        str += "p_|";
-        //                        break;
-        //                    case ktype.Kyousha:
-        //                        str += "l_|";
-        //                        break;
-        //                    case ktype.Keima:
-        //                        str += "n_|";
-        //                        break;
-        //                    case ktype.Ginsyou:
-        //                        str += "s_|";
-        //                        break;
-        //                    case ktype.Hisya:
-        //                        str += "r_|";
-        //                        break;
-        //                    case ktype.Kakugyou:
-        //                        str += "b_|";
-        //                        break;
-        //                    case ktype.Kinsyou:
-        //                        str += "g_|";
-        //                        break;
-        //                    case ktype.Ousyou:
-        //                        str += "k_|";
-        //                        break;
-        //                    case ktype.Tokin:
-        //                        str += "+p|";
-        //                        break;
-        //                    case ktype.Narikyou:
-        //                        str += "+l|";
-        //                        break;
-        //                    case ktype.Narikei:
-        //                        str += "+n|";
-        //                        break;
-        //                    case ktype.Narigin:
-        //                        str += "+g|";
-        //                        break;
-        //                    case ktype.Ryuuou:
-        //                        str += "+r|";
-        //                        break;
-        //                    case ktype.Ryuuma:
-        //                        str += "+b|";
-        //                        break;
-        //                    default:
-        //                        str += "!_|";
-        //                        break;
-        //                }
-        //            } else {
-        //                switch (getOnBoardKtype(8 - i % 9, (i / 9))) {
-        //                    case ktype.Fuhyou:
-        //                        str += "p!|";
-        //                        break;
-        //                    case ktype.Kyousha:
-        //                        str += "l!|";
-        //                        break;
-        //                    case ktype.Keima:
-        //                        str += "n!|";
-        //                        break;
-        //                    case ktype.Ginsyou:
-        //                        str += "s!|";
-        //                        break;
-        //                    case ktype.Hisya:
-        //                        str += "r!|";
-        //                        break;
-        //                    case ktype.Kakugyou:
-        //                        str += "b!|";
-        //                        break;
-        //                    case ktype.Kinsyou:
-        //                        str += "g!|";
-        //                        break;
-        //                    case ktype.Ousyou:
-        //                        str += "k!|";
-        //                        break;
-        //                    case ktype.Tokin:
-        //                        str += "!p|";
-        //                        break;
-        //                    case ktype.Narikyou:
-        //                        str += "!l|";
-        //                        break;
-        //                    case ktype.Narikei:
-        //                        str += "!n|";
-        //                        break;
-        //                    case ktype.Narigin:
-        //                        str += "!g|";
-        //                        break;
-        //                    case ktype.Ryuuou:
-        //                        str += "!r|";
-        //                        break;
-        //                    case ktype.Ryuuma:
-        //                        str += "!b|";
-        //                        break;
-        //                    default:
-        //                        str += "!!|";
-        //                        break;
-        //                }
-        //            }
-        //
-        //        } else {
-        //            str += "__|";
-        //        }
-        //        if ((i + 1) % 9 == 0) {
-        //            str += "    ";
-        //            // 移動可能リスト
-        //            for (int j = 8; j >= 0; j--) {
-        //                str +=  /* "("+ j + ","+ ((i + 1)/9-1) + ")" + */ moveable[j * 9 + ((i + 1) / 9 - 1)] + "," + moveable[81 + j * 9 + ((i + 1) / 9 - 1)] + "|";
-        //
-        //            }
-        //
-        //            // 改行
-        //            str += Environment.NewLine;
-        //
-        //        }
-        //    }
-        //
-        //    // 持ち駒情報
-        //    str += "FU:" + captPiece[0] + "/KY:" + captPiece[1] + "/KE:" + captPiece[2] + "/GI:" + captPiece[3] + "/HI:" + captPiece[4] + "/KA:" + captPiece[5] + "/KI:" + captPiece[6] + Environment.NewLine;
-        //    str += "FU:" + captPiece[7] + "/KY:" + captPiece[8] + "/KE:" + captPiece[9] + "/GI:" + captPiece[10] + "/HI:" + captPiece[11] + "/KA:" + captPiece[12] + "/KI:" + captPiece[13] + Environment.NewLine;
-        //
-        //    for (int i = 0; i < 9; i++) {
-        //        str += putFuhyou[i] + " ";
-        //
-        //    }
-        //
-        //    for (int i = 0; i < 4; i++) {
-        //        str += putHisya[i] + " ";
-        //
-        //    }
-        //
-        //    str += Environment.NewLine;
-        //    for (int i = 0; i < 9; i++) {
-        //        str += putFuhyou[9 + i] + " ";
-        //
-        //    }
-        //    str += Environment.NewLine;
-        //    str += "[HASH]" + hash.ToString("X16");
-        //
-        //    str += Environment.NewLine;
-        //    return str;
-        //}
+        // ban情報表示
+        public string banShow() {
+            string str = "";
+            for (int i = 0; i < 81; i++) {
+                if (getOnBoardKtype(((8 - i % 9) << 4) + (i / 9)) > ktype.None) {
+                    // 先手
+                    if (getOnBoardPturn(((8 - i % 9) << 4) + (i / 9)) == Pturn.Sente) {
+                        switch (getOnBoardKtype(((8 - i % 9) << 4) + (i / 9))) {
+                            case ktype.Fuhyou:
+                                str += "▲歩|";
+                                break;
+                            case ktype.Kyousha:
+                                str += "▲香|";
+                                break;
+                            case ktype.Keima:
+                                str += "▲桂|";
+                                break;
+                            case ktype.Ginsyou:
+                                str += "▲銀|";
+                                break;
+                            case ktype.Hisya:
+                                str += "▲飛|";
+                                break;
+                            case ktype.Kakugyou:
+                                str += "▲角|";
+                                break;
+                            case ktype.Kinsyou:
+                                str += "▲金|";
+                                break;
+                            case ktype.Ousyou:
+                                str += "▲王|";
+                                break;
+                            case ktype.Tokin:
+                                str += "▲と|";
+                                break;
+                            case ktype.Narikyou:
+                                str += "▲杏|";
+                                break;
+                            case ktype.Narikei:
+                                str += "▲圭|";
+                                break;
+                            case ktype.Narigin:
+                                str += "▲全|";
+                                break;
+                            case ktype.Ryuuou:
+                                str += "▲竜|";
+                                break;
+                            case ktype.Ryuuma:
+                                str += "▲馬|";
+                                break;
+                            default:
+                                str += "▲??|";
+                                break;
+                        }
+                    } else if (getOnBoardPturn(((8 - i % 9) << 4) + (i / 9)) == Pturn.Gote) {
+                        switch (getOnBoardKtype(((8 - i % 9) << 4) + (i / 9))) {
+                            case ktype.Fuhyou:
+                                str += "▽歩|";
+                                break;
+                            case ktype.Kyousha:
+                                str += "▽香|";
+                                break;
+                            case ktype.Keima:
+                                str += "▽桂|";
+                                break;
+                            case ktype.Ginsyou:
+                                str += "▽銀|";
+                                break;
+                            case ktype.Hisya:
+                                str += "▽飛|";
+                                break;
+                            case ktype.Kakugyou:
+                                str += "▽角|";
+                                break;
+                            case ktype.Kinsyou:
+                                str += "▽金|";
+                                break;
+                            case ktype.Ousyou:
+                                str += "▽王|";
+                                break;
+                            case ktype.Tokin:
+                                str += "▽と|";
+                                break;
+                            case ktype.Narikyou:
+                                str += "▽杏|";
+                                break;
+                            case ktype.Narikei:
+                                str += "▽圭|";
+                                break;
+                            case ktype.Narigin:
+                                str += "▽全|";
+                                break;
+                            case ktype.Ryuuou:
+                                str += "▽竜|";
+                                break;
+                            case ktype.Ryuuma:
+                                str += "▽馬|";
+                                break;
+                            default:
+                                str += "▽??|";
+                                break;
+                        }
+                    } else {
+                        switch (getOnBoardKtype(((8 - i % 9) << 4) + (i / 9))) {
+                            case ktype.Fuhyou:
+                                str += "??歩|";
+                                break;
+                            case ktype.Kyousha:
+                                str += "??香|";
+                                break;
+                            case ktype.Keima:
+                                str += "??桂|";
+                                break;
+                            case ktype.Ginsyou:
+                                str += "??銀|";
+                                break;
+                            case ktype.Hisya:
+                                str += "??飛|";
+                                break;
+                            case ktype.Kakugyou:
+                                str += "??角|";
+                                break;
+                            case ktype.Kinsyou:
+                                str += "??金|";
+                                break;
+                            case ktype.Ousyou:
+                                str += "??王|";
+                                break;
+                            case ktype.Tokin:
+                                str += "??と|";
+                                break;
+                            case ktype.Narikyou:
+                                str += "??杏|";
+                                break;
+                            case ktype.Narikei:
+                                str += "??圭|";
+                                break;
+                            case ktype.Narigin:
+                                str += "??全|";
+                                break;
+                            case ktype.Ryuuou:
+                                str += "??竜|";
+                                break;
+                            case ktype.Ryuuma:
+                                str += "??馬|";
+                                break;
+                            default:
+                                str += "????|";
+                                break;
+                        }
+                    }
+        
+                } else {
+                    str += " ___|";
+                }
+                if ((i + 1) % 9 == 0) {
+                    str += "    ";
+                    // 移動可能リスト
+                    for (int j = 0; j < 9; j++) {
+                        str += (data[((8 - j % 9) << 4) + (i / 9)] >> (8 + ((int)Pturn.Sente << 2)) & 0x0F) + "," + (data[((8 - j % 9) << 4) + (i / 9)] >> (8 + ((int)Pturn.Gote << 2)) & 0x0F) + "|";
+                    
+                    }
+                
+                    // 改行
+                    str += Environment.NewLine;
+                
+                }
+            }
+
+            // 持ち駒情報
+            str += "先手持駒/歩:" + data[hand + (int)ktype.Fuhyou] + "/香:" + data[hand + (int)ktype.Kyousha] + "/桂:" + data[hand + (int)ktype.Keima] + "/銀:" + data[hand + (int)ktype.Ginsyou] + "/飛:" + data[hand + (int)ktype.Hisya] + "/角:" + data[hand + (int)ktype.Kakugyou] + "/金:" + data[hand + (int)ktype.Kinsyou] + Environment.NewLine;
+            str += "後手持駒/歩:" + data[GoOffset + hand + (int)ktype.Fuhyou] + "/香:" + data[GoOffset + hand + (int)ktype.Kyousha] + "/桂:" + data[GoOffset + hand + (int)ktype.Keima] + "/銀:" + data[GoOffset + hand + (int)ktype.Ginsyou] + "/飛:" + data[GoOffset + hand + (int)ktype.Hisya] + "/角:" + data[GoOffset + hand + (int)ktype.Kakugyou] + "/金:" + data[GoOffset + hand + (int)ktype.Kinsyou] + Environment.NewLine;
+
+            str += Environment.NewLine;
+            return str;
+        }
 
 
     }

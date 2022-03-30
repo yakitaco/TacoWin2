@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -10,6 +11,8 @@ using TacoWin2_SMV;
 
 namespace TacoWin2 {
     class tw2Main {
+        public static List<kmove> kifu;
+
         static void Main(string[] args) {
             int tesuu = 0;
             Pturn turn = Pturn.Sente;
@@ -97,6 +100,7 @@ namespace TacoWin2 {
 
                     // position 盤面情報
                 } else if ((str.Length > 7) && (str.Substring(0, 8) == "position")) {
+                    kifu = new List<kmove>();
                     string[] arr = str.Split(' ');
                     int startStrPos = 0;
                     turn = Pturn.Sente;
@@ -134,14 +138,20 @@ namespace TacoWin2 {
 
                         //Console.Write("MV({0},{1})->({2},{3})\n", ox + 1, oy + 1, nx + 1, ny + 1);
                         ban.moveKoma(oPos, nPos, turn, nari, false);
-                        turn = (Pturn)pturn.aturn((int)turn);
 
+                        kmove tmp = new kmove();
+                        tmp.set(oPos, nPos, 0, 0, nari, turn);
+                        kifu.Add(tmp);
+                        turn = (Pturn)pturn.aturn((int)turn);
                     }
                     ban.renewMoveable();
 
                     DebugForm.instance.addMsg(ban.debugShow());
+                    DebugForm.instance.addMsg(ban.banShow());
 
                 } else if ((str.Length > 1) && (str.Substring(0, 2) == "go")) {
+                    Console.WriteLine("info string Yoroshiku Onegai Shimasu...");
+
                     string[] arr = str.Split(' ');
 
                     //通常読み
@@ -156,13 +166,13 @@ namespace TacoWin2 {
                             if (nokori < 120000) {
                                 return ai.thinkMove(turn, ban, 2, 0);
                             } else if ((tesuu < 50) || (nokori < 180000)) {
-                                return ai.thinkMove(turn, ban, 6, 0);
+                                return ai.thinkMove(turn, ban, 4, 0);
                             } else if ((tesuu < 50) || (nokori < 300000)) {
-                                return ai.thinkMove(turn, ban, 6, 7);
+                                return ai.thinkMove(turn, ban, 5, 7);
                             } else if ((tesuu < 50) || (nokori < 600000)) {
-                                return ai.thinkMove(turn, ban, 6, 11);
+                                return ai.thinkMove(turn, ban, 5, 11);
                             } else {
-                                return ai.thinkMove(turn, ban, 7, 11);
+                                return ai.thinkMove(turn, ban, 5, 11);
                             }
                         });
 
@@ -242,15 +252,15 @@ namespace TacoWin2 {
                             // 詰みが見えてない場合のみ先読み実施
                             aiTaskMain = Task.Run(() => {
                                 if (nokori < 120000) {
-                                    return ai.thinkMove(turn, ban, 4, 0);
+                                    return ai.thinkMove(turn, ban, 3, 0);
                                 } else if ((tesuu < 50) || (nokori < 180000)) {
-                                    return ai.thinkMove(turn, ban, 5, 0);
+                                    return ai.thinkMove(turn, ban, 4, 0);
                                 } else if ((tesuu < 50) || (nokori < 300000)) {
-                                    return ai.thinkMove(turn, ban, 6, 7);
+                                    return ai.thinkMove(turn, ban, 5, 7);
                                 } else if ((tesuu < 50) || (nokori < 600000)) {
-                                    return ai.thinkMove(turn, ban, 6, 11);
+                                    return ai.thinkMove(turn, ban, 5, 11);
                                 } else {
-                                    return ai.thinkMove(turn, ban, 7, 11);
+                                    return ai.thinkMove(turn, ban, 5, 11);
                                 }
                             });
                         }
