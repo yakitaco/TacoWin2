@@ -202,7 +202,7 @@ namespace TacoWin2 {
                         str += ":" + (bestmove[i].op + 0x11).ToString("X2") + "-" + (bestmove[i].np + 0x11).ToString("X2") + "";
                     }
 
-                    DebugForm.instance.addMsg("JOSEKI MV["+ best +"]" + str);
+                    DebugForm.instance.addMsg("JOSEKI MV[" + best + "]" + str);
 
                     resetHash();
                     return (bestmove, best);
@@ -237,6 +237,13 @@ namespace TacoWin2 {
 
                         //駒を動かす
                         tmp_ban.moveKoma(moveList[cnt_local].op, moveList[cnt_local].np, turn, moveList[cnt_local].nari, true);
+
+                        //同じ手は点数低く
+                        for (int i = tw2Main.kifu.Count - 2; i >= 0 && i > tw2Main.kifu.Count - 6; i -= 2) {
+                            if ((moveList[cnt_local].op == tw2Main.kifu[i].op) && (moveList[cnt_local].np == tw2Main.kifu[i].np)) {
+                                moveList[cnt_local].val -= 500;
+                            }
+                        }
 
                         // 王手はスキップ
                         if (((byte)tmp_ban.data[((int)turn << 6) + ban.setOu] != 0xFF) &&
@@ -310,11 +317,6 @@ namespace TacoWin2 {
                     bool nari;
                     tw2usiIO.usi2pos(strs.Substring(1), out oPos, out nPos, out nari);
 
-                    //★★if (ban.onBoard[nx * 9 + ny] > 0) {
-                    //★★    val += kVal[(int)ban.getOnBoardKtype(nx * 9 + ny)] + tw2stval.get(ban.getOnBoardKtype(ox * 9 + oy), nx, ny, ox, oy, (int)turn);
-                    //★★} else if (oPos < 0x90) {
-                    //★★    val += tw2stval.get(ban.getOnBoardKtype(ox * 9 + oy), nx, ny, ox, oy, (int)turn);
-                    //★★}
                     if (ban.getOnBoardKtype(nPos) > ktype.None) {
                         val += kVal[(int)ban.getOnBoardKtype(nPos)] + tw2stval.get(ban.getOnBoardKtype(oPos), oPos, nPos, turn);
                     } else if (oPos < 0x90) {
@@ -381,6 +383,13 @@ namespace TacoWin2 {
                         }
 
                         int retVal = -think(pturn.aturn(turn), ref tmp_ban, out retList, -beta, -alpha, moveList[cnt].val - pVal, depth + 1, depMax);
+
+                        /* 打ち歩詰めチェック */
+                        if ((retVal > 5000) && (moveList[cnt].op == 0x91) && ((retList[depth + 2].op == 0) || (retList[depth + 2].np == 0))) { /* 9*9+(int)ktype.Fuhyou */
+                            continue;
+                        };
+
+
                         if (retVal > best) {
                             best = retVal;
                             bestMoveList = retList;
@@ -761,10 +770,10 @@ namespace TacoWin2 {
 
                             // リストに追加
                             if (-emv.val[0] > kmv[startPoint].val) {
-                                kmv[--startPoint].set((byte)oPos, (byte)((i << 4) + j), 0, emv.val[0], false, turn);
+                                kmv[--startPoint].set((byte)oPos, (byte)((i << 4) + j), -10, emv.val[0], false, turn);
                                 kCnt++;
                             } else {
-                                kmv[startPoint + kCnt++].set((byte)oPos, (byte)((i << 4) + j), 0, emv.val[0], false, turn);
+                                kmv[startPoint + kCnt++].set((byte)oPos, (byte)((i << 4) + j), -10, emv.val[0], false, turn);
                             }
                         }
                     }
@@ -878,7 +887,7 @@ namespace TacoWin2 {
                 if ((nPos > 0x88) || ((nPos & 0xF) > 0x08)) return 3; // 範囲外(移動できない)
                 int sval = tw2stval.get(ban.getOnBoardKtype((byte)oPos), (byte)oPos, nPos, turn);
                 //現在の敵の取得候補より価値が高い場合、自分が取得候補となる
-                if (((ban.data[nPos] & (pturn.aturn((int)turn) << 4) + 8) > 0) && (kVal[(int)ban.getOnBoardKtype((byte)oPos)] > eVal)) {
+                if (((ban.data[nPos] >> ((pturn.aturn((int)turn) << 2) + 8) & 0x0F) > 0) && (kVal[(int)ban.getOnBoardKtype((byte)oPos)] > eVal)) {
                     eVal = tw2ai.kVal[(int)ban.getOnBoardKtype((byte)oPos)];
                 }
                 if (ban.getOnBoardKtype(nPos) > ktype.None) { //駒が存在
