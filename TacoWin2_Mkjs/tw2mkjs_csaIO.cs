@@ -56,7 +56,7 @@ namespace TacoWin2_Mkjs {
 
 
                     //前と駒タイプが異なる->駒が成った
-                    if ((ox > 0) && (oy > 0) && (ban.getOnBoardKtype(ox - 1, oy - 1) != a)) nari = true;
+                    if ((ox > 0) && (oy > 0) && (ban.getOnBoardKtype(((ox - 1) <<4) + oy - 1) != a)) nari = true;
 
                     outStr[0].Add(oki + " " + mochi);
                     if (nari == true) {
@@ -69,9 +69,9 @@ namespace TacoWin2_Mkjs {
                     hash.Add(ban.hash);
 
                     if (ox == 0) {
-                        ban.moveKoma(9, csa2num(line.Substring(5, 2)), nx - 1, ny - 1, turn, nari, false, false);
+                        ban.moveKoma((byte)(0x90 + csa2num(line.Substring(5, 2))), (byte)(((nx - 1) << 4) + ny - 1), turn, nari, false);
                     } else {
-                        ban.moveKoma(ox - 1, oy - 1, nx - 1, ny - 1, turn, nari, false, false);
+                        ban.moveKoma((byte)(((ox - 1) << 4) + oy - 1), (byte)(((nx - 1) << 4) + ny - 1), turn, nari, false);
                     }
 
                     if ((num > 0) && (count > num)) break;

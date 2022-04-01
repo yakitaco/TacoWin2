@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using TacoWin2_BanInfo;
 
 namespace TacoWin2_Mkjs {
@@ -8,22 +6,17 @@ namespace TacoWin2_Mkjs {
         // USIプロトコルのインタフェース
 
         //USI座標→内部座標変換
-        public static int usi2pos(string usi, out int ox, out int oy, out int nx, out int ny, out bool nari) {
+        public static int usi2pos(string usi, out byte oPos, out byte nPos, out bool nari) {
+
+            nPos = (byte)(((Convert.ToInt32(usi.Substring(2, 1)) - 1) << 4) + dafb2int(usi.Substring(3, 1)));
 
             //駒打ち
-            if (usi.Substring(1, 1) == "*") {
-                ox = 9;
-                oy = (int)kafb2ktype(usi.Substring(0, 1));
-                nx = Convert.ToInt32(usi.Substring(2, 1)) - 1;
-                ny = dafb2int(usi.Substring(3, 1));
+            if (usi[1] == '*') {
+                oPos = (byte)(0x90 + kafb2ktype(usi.Substring(0, 1)));
                 nari = false;
-
-            //駒移動
+                //駒移動
             } else {
-                ox = Convert.ToInt32(usi.Substring(0, 1)) - 1;
-                oy = dafb2int(usi.Substring(1, 1));
-                nx = Convert.ToInt32(usi.Substring(2, 1)) - 1;
-                ny = dafb2int(usi.Substring(3, 1));
+                oPos = (byte)(((Convert.ToInt32(usi.Substring(0, 1)) - 1) << 4) + dafb2int(usi.Substring(1, 1)));
                 if ((usi.Length == 5) && (usi.Substring(4, 1) == "+"))  //駒成り
                 {
                     nari = true;
@@ -35,15 +28,15 @@ namespace TacoWin2_Mkjs {
         }
 
         //内部座標→USI座標変換
-        public static string pos2usi(int ox, int oy, int nx, int ny, bool nari) {
+        public static string pos2usi(byte oPos, byte nPos, bool nari) {
             string usiStr = "";
-            if (ox == 9) {
-                usiStr = ktype2Kafb((ktype)oy) + "*" + (nx + 1).ToString() + int2Dafb(ny);
+            if (oPos > 0x90) {
+                usiStr = ktype2Kafb((ktype)(oPos & 0x0F)) + "*" + ((nPos >> 4) + 1).ToString() + int2Dafb(nPos & 0x0F);
             } else {
                 if (nari == true) {
-                    usiStr = (ox + 1).ToString() + int2Dafb(oy) + (nx + 1).ToString() + int2Dafb(ny) + "+"; //成有り
+                    usiStr = ((oPos >> 4) + 1).ToString() + int2Dafb(oPos & 0x0F) + ((nPos >> 4) + 1).ToString() + int2Dafb(nPos & 0x0F) + "+"; //成有り
                 } else {
-                    usiStr = (ox + 1).ToString() + int2Dafb(oy) + (nx + 1).ToString() + int2Dafb(ny);
+                    usiStr = ((oPos >> 4) + 1).ToString() + int2Dafb(oPos & 0x0F) + ((nPos >> 4) + 1).ToString() + int2Dafb(nPos & 0x0F);
                 }
             }
             return usiStr;
