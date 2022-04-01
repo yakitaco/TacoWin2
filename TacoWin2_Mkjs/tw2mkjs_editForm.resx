@@ -120,6 +120,9 @@
   <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
+  <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
   <data name="DebugTxt.Text" xml:space="preserve">
     <value>l_|n_|s_|g_|k_|g_|s_|n_|l_|    0,0|0,1|0,1|0,1|0,2|0,1|0,2|0,0|0,1|
 __|r_|__|__|__|__|__|b_|__|    0,2|0,1|0,3|0,4|0,4|0,4|0,3|0,2|0,1|

@@ -26,7 +26,7 @@ namespace TacoWin2_Mkjs {
             string mochi = "";
             sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
             JmpIpt.Text = oki + " " + mochi;
-            DebugTxt.Text = ban.debugShow();
+            DebugTxt.Text = ban.banShow();
             showList(ban.hash);
             history.Clear();
             history.Add(ban.hash);
@@ -51,7 +51,7 @@ namespace TacoWin2_Mkjs {
             }
             history.Clear();
             history.Add(ban.hash);
-            DebugTxt.Text = ban.debugShow();
+            DebugTxt.Text = ban.banShow();
             BackBtn.Enabled = false;
             showList(ban.hash);
         }
@@ -82,7 +82,7 @@ namespace TacoWin2_Mkjs {
             sfenIO.sfen2ban(ref ban, arr[0], arr[1]);
             showList(ban.hash);
             history.Add(ban.hash);
-            DebugTxt.Text = ban.debugShow();
+            DebugTxt.Text = ban.banShow();
             BackBtn.Enabled = true;
         }
 
@@ -98,7 +98,7 @@ namespace TacoWin2_Mkjs {
                 string[] arr = arr2[0].Split(' ');
                 sfenIO.sfen2ban(ref ban, arr[0], arr[1]);
 
-                DebugTxt.Text = ban.debugShow();
+                DebugTxt.Text = ban.banShow();
             }
             if (history.Count == 1) {
                 BackBtn.Enabled = false;
@@ -110,32 +110,30 @@ namespace TacoWin2_Mkjs {
             if ((NextLst.SelectedIndex > -1) && (NextLst.SelectedIndex < NextLst.Items.Count)) {
                 Pturn turn = Pturn.Sente;
                 string[] arr = NextLst.Items[NextLst.SelectedIndex].ToString().Split('/');
-                int ox;
-                int oy;
-                int nx;
-                int ny;
+                byte oPos;
+                byte nPos;
                 bool nari;
-                tw2usiIO.usi2pos(arr[0].Substring(1), out ox, out oy, out nx, out ny, out nari);
+                tw2usiIO.usi2pos(arr[0].Substring(1), out oPos, out nPos, out nari);
                 if (arr[0][0] == '+') {
                     turn = Pturn.Sente;
                 } else {
                     turn = Pturn.Gote;
                 }
-                ban.moveKoma(ox, oy, nx, ny, turn, nari, false, false);
+                ban.moveKoma(oPos, nPos, turn, nari, false);
                 string oki = "";
                 string mochi = "";
                 sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
                 JmpIpt.Text = oki + " " + mochi;
                 showList(ban.hash);
                 BackBtn.Enabled = true;
-                DebugTxt.Text = ban.debugShow();
+                DebugTxt.Text = ban.banShow();
                 history.Add(ban.hash);
             }
         }
 
         private void AddBtn_Click(object sender, EventArgs e) {
             Pturn tursn = TebanChk.Checked ? Pturn.Sente : Pturn.Gote;
-            int ret = ban.chkMoveable((int)OxIpt.Value - 1, (int)OyIpt.Value - 1, (int)NxIpt.Value - 1, (int)NyIpt.Value - 1, tursn, NariChk.Checked);
+            int ret = ban.chkMoveable((byte)((((int)OxIpt.Value - 1) << 4) + OyIpt.Value - 1), (byte)((((int)NxIpt.Value - 1) << 4) + NyIpt.Value - 1), tursn, NariChk.Checked);
             if (ret == 0) {
                 int ox = (int)OxIpt.Value;
                 string oy = tw2mkjs_csaIO.int2Dafb((int)OyIpt.Value - 1);
@@ -179,41 +177,47 @@ namespace TacoWin2_Mkjs {
 
         private void SetBtn_Click(object sender, EventArgs e) {
             if ((NextLst.SelectedIndex > -1) && (NextLst.SelectedIndex < NextLst.Items.Count)) {
-                int ox = (int)OxIpt.Value;
-                string oy = tw2mkjs_csaIO.int2Dafb((int)OyIpt.Value - 1);
-                int nx = (int)NxIpt.Value;
-                string ny = tw2mkjs_csaIO.int2Dafb((int)NyIpt.Value - 1);
-                string nari;
-                if (NariChk.Checked == true) {
-                    nari = "*";
-                } else {
-                    nari = "";
+
+                Pturn tursn = TebanChk.Checked ? Pturn.Sente : Pturn.Gote;
+                int ret = ban.chkMoveable((byte)((((int)OxIpt.Value - 1) << 4) + OyIpt.Value - 1), (byte)((((int)NxIpt.Value - 1) << 4) + NyIpt.Value - 1), tursn, NariChk.Checked);
+                if (ret == 0) {
+
+                    int ox = (int)OxIpt.Value;
+                    string oy = tw2mkjs_csaIO.int2Dafb((int)OyIpt.Value - 1);
+                    int nx = (int)NxIpt.Value;
+                    string ny = tw2mkjs_csaIO.int2Dafb((int)NyIpt.Value - 1);
+                    string nari;
+                    if (NariChk.Checked == true) {
+                        nari = "*";
+                    } else {
+                        nari = "";
+                    }
+                    string turn;
+                    if (TebanChk.Checked == true) {
+                        turn = "+";
+                    } else {
+                        turn = "-";
+                    }
+
+                    int val = ((int)ValIpt.Value);
+                    int weight = ((int)WeyIpt.Value);
+                    int type = ((int)TpeIpt.Value);
+
+                    NextLst.Items[NextLst.SelectedIndex] = turn + ox.ToString() + oy.ToString() + nx.ToString() + ny.ToString() + nari + "/" + val + "/" + weight + "/" + type;
+
+                    string oki = "";
+                    string mochi = "";
+                    sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
+
+                    List<string> str = new List<string>();
+                    for (int i = 0; i < NextLst.Items.Count; i++) {
+                        str.Add(NextLst.Items[i].ToString());
+                        Debug.WriteLine(str[i]);
+                    }
+                    Debug.WriteLine(oki + " " + mochi);
+
+                    sMove.updateAll(ban.hash, oki + " " + mochi, str);
                 }
-                string turn;
-                if (TebanChk.Checked == true) {
-                    turn = "+";
-                } else {
-                    turn = "-";
-                }
-
-                int val = ((int)ValIpt.Value);
-                int weight = ((int)WeyIpt.Value);
-                int type = ((int)TpeIpt.Value);
-
-                NextLst.Items[NextLst.SelectedIndex] = turn + ox.ToString() + oy.ToString() + nx.ToString() + ny.ToString() + nari + "/" + val + "/" + weight + "/" + type;
-
-                string oki = "";
-                string mochi = "";
-                sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
-
-                List<string> str = new List<string>();
-                for (int i = 0; i < NextLst.Items.Count; i++) {
-                    str.Add(NextLst.Items[i].ToString());
-                    Debug.WriteLine(str[i]);
-                }
-                Debug.WriteLine(oki + " " + mochi);
-
-                sMove.updateAll(ban.hash, oki + " " + mochi, str);
             }
         }
 
@@ -243,7 +247,7 @@ namespace TacoWin2_Mkjs {
             string mochi = "";
             sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
             JmpIpt.Text = oki + " " + mochi;
-            DebugTxt.Text = ban.debugShow();
+            DebugTxt.Text = ban.banShow();
             showList(ban.hash);
         }
 
@@ -256,20 +260,43 @@ namespace TacoWin2_Mkjs {
                 } else {
                     TebanChk.Checked = false; // 後手
                 }
-                int ox;
-                int oy;
-                int nx;
-                int ny;
+                byte oPos;
+                byte nPos;
                 bool nari;
-                tw2usiIO.usi2pos(arr[0].Substring(1), out ox, out oy, out nx, out ny, out nari);
-                OxIpt.Value = ox + 1;
-                OyIpt.Value = oy + 1;
-                NxIpt.Value = nx + 1;
-                NyIpt.Value = ny + 1;
+                tw2usiIO.usi2pos(arr[0].Substring(1), out oPos, out nPos, out nari);
+                OxIpt.Value = (oPos >> 4) + 1;
+                OyIpt.Value = (oPos & 0x0F) + 1;
+                NxIpt.Value = (nPos >> 4) + 1;
+                NyIpt.Value = (nPos & 0x0F) + 1;
                 NariChk.Checked = nari;
                 ValIpt.Value = Convert.ToInt32(arr[1]);
                 WeyIpt.Value = Convert.ToInt32(arr[2]);
                 TpeIpt.Value = Convert.ToInt32(arr[3]);
+            }
+        }
+
+        private void NextBtn_Click(object sender, EventArgs e) {
+            if ((NextLst.SelectedIndex > -1) && (NextLst.SelectedIndex < NextLst.Items.Count)) {
+                Pturn turn = Pturn.Sente;
+                string[] arr = NextLst.Items[NextLst.SelectedIndex].ToString().Split('/');
+                byte oPos;
+                byte nPos;
+                bool nari;
+                tw2usiIO.usi2pos(arr[0].Substring(1), out oPos, out nPos, out nari);
+                if (arr[0][0] == '+') {
+                    turn = Pturn.Sente;
+                } else {
+                    turn = Pturn.Gote;
+                }
+                ban.moveKoma(oPos, nPos, turn, nari, false);
+                string oki = "";
+                string mochi = "";
+                sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
+                JmpIpt.Text = oki + " " + mochi;
+                showList(ban.hash);
+                BackBtn.Enabled = true;
+                DebugTxt.Text = ban.banShow();
+                history.Add(ban.hash);
             }
         }
     }
