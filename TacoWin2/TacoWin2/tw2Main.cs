@@ -89,6 +89,7 @@ namespace TacoWin2 {
                         if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
                         DebugForm.instance.resetMsg();
                     }
+                    ai.resetHash();
                     Thread.Sleep(1000);
                     Console.WriteLine("readyok");
                     inGame = 1;
@@ -164,15 +165,16 @@ namespace TacoWin2 {
                         sw.Restart();
                         aiTaskMain = Task.Run(() => {
                             if (nokori < 120000) {
-                                return ai.thinkMove(turn, ban, 2, 0);
-                            } else if ((tesuu < 50) || (nokori < 180000)) {
-                                return ai.thinkMove(turn, ban, 4, 0);
-                            } else if ((tesuu < 50) || (nokori < 300000)) {
-                                return ai.thinkMove(turn, ban, 5, 7);
-                            } else if ((tesuu < 50) || (nokori < 600000)) {
-                                return ai.thinkMove(turn, ban, 5, 11);
+                                return ai.thinkMove(turn, ban, 4, 0, 0, 0);
+                            } else if ((tesuu < 30) || (nokori < 180000)) {
+                                return ai.thinkMove(turn, ban, 4, 0, 0, 0);
+                            } else if ((tesuu < 40) || (nokori < 300000)) {
+                                return ai.thinkMove(turn, ban, 5, 0, 0, 7);
+                            } else if ((tesuu < 50) || (nokori < 450000)) {
+                                return ai.thinkMove(turn, ban, 5, 2, 4, 11);
                             } else {
-                                return ai.thinkMove(turn, ban, 5, 11);
+                                tw2stval.setStage(1);
+                                return ai.thinkMove(turn, ban, 5, 2, 5, 11);
                             }
                         });
 
@@ -234,6 +236,7 @@ namespace TacoWin2 {
                             // 最後にメモリ初期化
                             mList.reset();
                             ai.stopFlg = false;
+                            ai.resetHash();
 
                         });
 
@@ -252,15 +255,15 @@ namespace TacoWin2 {
                             // 詰みが見えてない場合のみ先読み実施
                             aiTaskMain = Task.Run(() => {
                                 if (nokori < 120000) {
-                                    return ai.thinkMove(turn, ban, 3, 0);
-                                } else if ((tesuu < 50) || (nokori < 180000)) {
-                                    return ai.thinkMove(turn, ban, 4, 0);
-                                } else if ((tesuu < 50) || (nokori < 300000)) {
-                                    return ai.thinkMove(turn, ban, 5, 7);
-                                } else if ((tesuu < 50) || (nokori < 600000)) {
-                                    return ai.thinkMove(turn, ban, 5, 11);
+                                    return ai.thinkMove(turn, ban, 4, 0, 0, 0);
+                                } else if ((tesuu < 30) || (nokori < 180000)) {
+                                    return ai.thinkMove(turn, ban, 4, 0, 0, 0);
+                                } else if ((tesuu < 40) || (nokori < 300000)) {
+                                    return ai.thinkMove(turn, ban, 5, 0, 0, 7);
+                                } else if ((tesuu < 50) || (nokori < 450000)) {
+                                    return ai.thinkMove(turn, ban, 5, 2, 4, 11);
                                 } else {
-                                    return ai.thinkMove(turn, ban, 5, 11);
+                                    return ai.thinkMove(turn, ban, 5, 2, 5, 11);
                                 }
                             });
                         }
@@ -349,6 +352,7 @@ namespace TacoWin2 {
                             // 最後にメモリ初期化
                             mList.reset();
                             ai.stopFlg = false;
+                            ai.resetHash();
                         });
                     }
                 } else if ((str.Length > 4) && (str.Substring(0, 4) == "test")) {
@@ -368,9 +372,9 @@ namespace TacoWin2 {
                         sw.Restart();
                         if (arr.Length > 3) {
 
-                            (km, best) = ai.thinkMove(turn, ban, Convert.ToInt32(arr[2]), Convert.ToInt32(arr[3]));
+                            (km, best) = ai.thinkMove(turn, ban, Convert.ToInt32(arr[2]), 0, 0, Convert.ToInt32(arr[3]));
                         } else {
-                            (km, best) = ai.thinkMove(turn, ban, Convert.ToInt32(arr[2]), 0);
+                            (km, best) = ai.thinkMove(turn, ban, Convert.ToInt32(arr[2]), 0, 0, 0);
                         }
                         sw.Stop();
                         if ((km[1].op > 0) || (km[1].np > 0)) {
@@ -404,6 +408,7 @@ namespace TacoWin2 {
 
                     // 最後にメモリ初期化
                     mList.reset();
+                    ai.resetHash();
 
                 } else if ((str.Length > 8) && (str.Substring(0, 8) == "gameover")) {
                     if (aiTaskMain != null) ai.stopFlg = true;

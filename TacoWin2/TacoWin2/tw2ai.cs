@@ -29,7 +29,7 @@ namespace TacoWin2 {
         }
 
         List<hashTbl> aList = new List<hashTbl>();
-
+        List<banTbl>[] deepList;
 
         /// <summary>
         /// 各駒の固定価値
@@ -52,6 +52,27 @@ namespace TacoWin2 {
         1400,   //竜馬
     };
 
+        /// <summary>
+        /// 各駒の固定価値
+        /// </summary>
+        public static int[,] kpVal = {
+        { 0  , 0    },    //なし
+        { 20 , 100  },    //歩兵
+        { 30 , 100  },    //香車
+        { 30 , 100  },    //桂馬
+        { 40 , 110  },    //銀将
+        { 150, 200  },    //飛車
+        { 100, 150  },    //角行
+        { 50 , 120  },    //金将
+        {99999, 99999},   //王将
+        {99999, 99999},   //と金(成歩兵)
+        {99999, 99999}, //成香
+        {99999, 99999},  //成桂
+        {99999, 99999},  //成銀
+        {99999, 99999},   //竜王
+        {99999, 99999},   //竜馬
+    };
+
         Random rnds = new System.Random();
 
         // thread同時数
@@ -72,8 +93,15 @@ namespace TacoWin2 {
             resetHash();
         }
 
-        void resetHash() {
+        public void resetHash() {
             aList = new List<hashTbl>();
+
+            deepList = new List<banTbl>[32];
+            for (int i = 0; i < 32; i++) {
+                deepList[i] = new List<banTbl>();
+            }
+
+
         }
 
         int chkHash(ulong hash, int depth, out int val, out kmove[] kmv) {
@@ -150,8 +178,44 @@ namespace TacoWin2 {
         //    return (moveList[ln], best);
         //}
 
-        int depMax;
-        public (kmove[], int) thinkMove(Pturn turn, ban ban, int depth, int mateDepth) {
+        class banTbl : IComparable<banTbl> {
+            public int val;
+            public int tmpVal;
+            public ban ban;
+            public kmove[] kmv;
+
+            public banTbl(int _tmpVal, ban _ban) {
+                tmpVal = _tmpVal;
+                ban = _ban;
+                val = 0;
+                kmv = null;
+            }
+
+            public int CompareTo(banTbl otbl) {
+                return -val.CompareTo(otbl.val);
+            }
+
+        }
+
+        void addDeepList(List<banTbl> dList, banTbl tbl, int max) {
+            if (dList.Count == 0) {
+                /* 最初の登録 */
+                dList.Add(tbl);
+            } else {
+                int idx = dList.BinarySearch(tbl, null);
+                if (idx < 0) {
+                    /* ハッシュに存在しない */
+                    dList.Insert(~idx, tbl);
+                } else {
+                    /* ハッシュに存在 */
+                    dList.Insert(idx, tbl);
+                }
+            }
+        }
+
+
+        //int depMax;
+        public (kmove[], int) thinkMove(Pturn turn, ban ban, int depth, int deepMax, int deepWidth, int mateDepth) {
             int best = -999999;
             int beta = 999999;
             int alpha = -999999;
@@ -167,7 +231,7 @@ namespace TacoWin2 {
             }
 
             int teCnt = 0; //手の進捗
-            depMax = depth;
+            //depMax = depth;
             tw2stval.tmpChk(ban);
 
             unsafe {
@@ -204,7 +268,6 @@ namespace TacoWin2 {
 
                     DebugForm.instance.addMsg("JOSEKI MV[" + best + "]" + str);
 
-                    resetHash();
                     return (bestmove, best);
                 }
 
@@ -214,9 +277,9 @@ namespace TacoWin2 {
                 (int vla, int sp) = getAllMoveList(ref ban, turn, moveList);
 
                 //手数が多い場合
-                if ((vla > 150) && (depMax > 5)) depMax = 5;
-                if ((vla > 100) && (depMax > 6)) depMax = 6;
-                DebugForm.instance.addMsg("tenum = " + vla + "/ depMax = " + depMax + "/ workMin =" + workMin);
+                if ((vla > 150) && (depth > 5)) depth = 5;
+                if ((vla > 100) && (depth > 6)) depth = 6;
+                DebugForm.instance.addMsg("tenum = " + vla + "/ depMax = " + depth + "/ workMin =" + workMin);
 
                 Parallel.For(0, workMin, id => {
                     int cnt_local;
@@ -231,12 +294,13 @@ namespace TacoWin2 {
                         //mList.ls[cnt_local + 1][0] = mList.ls[0][sp + cnt_local];
 
                         // 駒移動
-                        ban tmp_ban = ban;
+                        banTbl tbl = new banTbl(moveList[cnt_local].val, ban);
+                        //ban tmp_ban = ban;
                         int retVal;
                         kmove[] retList = null;
 
                         //駒を動かす
-                        tmp_ban.moveKoma(moveList[cnt_local].op, moveList[cnt_local].np, turn, moveList[cnt_local].nari, true);
+                        tbl.ban.moveKoma(moveList[cnt_local].op, moveList[cnt_local].np, turn, moveList[cnt_local].nari, true);
 
                         //同じ手は点数低く
                         for (int i = tw2Main.kifu.Count - 2; i >= 0 && i > tw2Main.kifu.Count - 6; i -= 2) {
@@ -245,13 +309,32 @@ namespace TacoWin2 {
                             }
                         }
 
+                        if (moveList[cnt_local].op > 0x90) {
+                            //if ((tmp_ban.data[moveList[cnt_local].np] >> (8 + ((int)turn << 2)) & 0x0F) == 0) {
+                            //    moveList[cnt_local].val -= kpVal[moveList[cnt_local].op & 0x0F, 1];
+                            //} else {
+                            //    moveList[cnt_local].val -= kpVal[moveList[cnt_local].op & 0x0F, 0];
+                            //}
+                            if (((moveList[cnt_local].op & 0x0F) == (int)ktype.Fuhyou) && ((tbl.ban.data[moveList[cnt_local].np] >> (8 + ((int)turn << 2)) & 0x0F) >= (tbl.ban.data[moveList[cnt_local].np] >> (8 + (pturn.aturn((int)turn) << 2)) & 0x0F))) {
+                                for (int k = 0; k < 2; k++) {
+                                    if (((tbl.ban.data[(pturn.aturn((int)turn) << 6) + ban.setHi] >> ((k & 3) << 3) & 0xF0) == (moveList[cnt_local].np & 0xF0)) && (pturn.dy(turn, moveList[cnt_local].np, (byte)(tbl.ban.data[(pturn.aturn((int)turn) << 6) + ban.setHi] >> ((k & 3) << 3))) < 0)) {
+                                        moveList[cnt_local].val += 500;
+                                    }
+                                }
+                            }
+                        }
+
+
                         // 王手はスキップ
-                        if (((byte)tmp_ban.data[((int)turn << 6) + ban.setOu] != 0xFF) &&
-                        ((tmp_ban.data[tmp_ban.data[((int)turn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(turn) << 2)) & 0x0F) > 0)) {
-                            retVal = moveList[cnt_local].val - 99999;
-                            //DebugForm.instance.addMsg("NG " + (tmp_ban.data[((int)turn << 6) + ban.setOu] & 0xFF) + " 0x"  + tmp_ban.data[tmp_ban.data[((int)turn << 6) + ban.setOu] & 0xFF].ToString("X8"));
+                        if (((byte)tbl.ban.data[((int)turn << 6) + ban.setOu] != 0xFF) &&
+                        ((tbl.ban.data[tbl.ban.data[((int)turn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(turn) << 2)) & 0x0F) > 0)) {
+                            retVal = tbl.tmpVal - 99999;
+                            //DebugForm.instance.addMsg("NG " + (tbl.ban.data[((int)turn << 6) + ban.setOu] & 0xFF) + " 0x"  + tbl.ban.data[tbl.ban.data[((int)turn << 6) + ban.setOu] & 0xFF].ToString("X8"));
                         } else {
-                            retVal = -think(pturn.aturn(turn), ref tmp_ban, out retList, -beta, -alpha, moveList[cnt_local].val, 1, depth);
+                            retVal = -think(pturn.aturn(turn), ref tbl.ban, out retList, -beta, -alpha, moveList[cnt_local].val, 1, depth);
+                            if (stopFlg) {
+                                break;
+                            }
                             retList[0] = moveList[cnt_local];
 
                             /* 打ち歩詰めチェック */
@@ -265,33 +348,251 @@ namespace TacoWin2 {
                             }
 
                             DebugForm.instance.addMsg("TASK[" + Task.CurrentId + ":" + cnt_local + "]MV[" + retVal + "]" + str);
-                        }
 
-                        lock (lockObj) {
-                            if (retVal > best) {
-                                best = retVal;
-                                bestmove = retList;
-                                if (best > alpha) {
-                                    alpha = best;
+                            tbl.val = retVal; // TODO : retVal要削除
+                            tbl.kmv = retList;  // TODO : retList要削除
+
+                            lock (lockObj) {
+
+                                if (tbl.val > -5000) addDeepList(deepList[0], tbl, 16);  // Deepリスト追加
+
+                                if (retVal > best) {
+                                    best = retVal;
+                                    bestmove = retList;
+                                    if (best > alpha) {
+                                        alpha = best;
+                                    }
                                 }
                             }
                         }
 
-
                     }
                 });
 
-                //foreach (var a in aList) {
-                //    DebugForm.instance.addMsg("aList:" + a.hash.ToString("X16") + "/" + a.depth + "/" + a.val);
+                //for (int i = 0; i < deepList[0].Count; i++) {
+                //    DebugForm.instance.addMsg("DEEP[0][" + i + "]" + deepList[0][i].val + " : " + deepList[0][i].kmv[0].op.ToString("X2") + "," + deepList[0][i].kmv[0].np.ToString("X2"));
                 //}
 
                 mList.freeAlist(aid);
+
+                if ((stopFlg) || (deepMax < 1)) {
+                    return (bestmove, best);
+                }
+
+                Pturn tmpTurn = turn;
+
+                // 足切多重反復深化
+                for (int deepCnt = 0; deepCnt < deepMax; deepCnt++) {
+                    tmpTurn = pturn.aturn(tmpTurn);
+                    alpha = -999999;
+                    beta = 999999;
+
+                    //depMax++;
+
+                    //int tmpCnt;
+                    //// 次の手がすべて同じかチェック
+                    //for (tmpCnt = 1; tmpCnt < deepList[deepCnt].Count; tmpCnt++) {
+                    //    if ((deepList[deepCnt][tmpCnt].kmv[0].op != deepList[deepCnt][tmpCnt + 1].kmv[0].op) || (deepList[deepCnt][tmpCnt].kmv[0].np != deepList[deepCnt][tmpCnt + 1].kmv[0].np)) {
+                    //        break;
+                    //    }
+                    //}
+                    //if (tmpCnt == deepList[deepCnt].Count) break; // 最後まで同じなら次の手は確定
+
+                    for (int WidthCnt = 0; WidthCnt < deepWidth && WidthCnt < deepList[deepCnt].Count; WidthCnt++) {
+
+                        List<banTbl> tmpList = new List<banTbl>();
+                        aid = mList.assignAlist(out moveList);
+                        (vla, sp) = getAllMoveList(ref deepList[deepCnt][WidthCnt].ban, tmpTurn, moveList);
+
+                        teCnt = 0; //手の進捗
+
+                        Parallel.For(0, workMin, id => {
+                            int cnt_local;
+
+                            while (true) {
+
+
+                                lock (lockObj) {
+                                    if (vla <= teCnt) break;
+                                    cnt_local = teCnt + sp;
+                                    teCnt++;
+                                }
+
+                                //駒を動かす
+                                banTbl tbl = new banTbl(deepList[deepCnt][WidthCnt].tmpVal, deepList[deepCnt][WidthCnt].ban);
+                                tbl.ban.moveKoma(moveList[cnt_local].op, moveList[cnt_local].np, tmpTurn, moveList[cnt_local].nari, true);
+
+                                // 王手はスキップ(詰めチェックで分かることを期待)
+                                if (((byte)tbl.ban.data[((int)tmpTurn << 6) + ban.setOu] != 0xFF) &&
+                                    ((tbl.ban.data[tbl.ban.data[((int)tmpTurn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(tmpTurn) << 2)) & 0x0F) > 0)) {
+                                    continue;
+                                }
+
+                                tbl.val -= think(pturn.aturn(tmpTurn), ref tbl.ban, out tbl.kmv, -beta, -alpha, moveList[cnt_local].val, 2 + deepCnt, 1 + depth + deepCnt);
+                                if (stopFlg) {
+                                    break;
+                                }
+
+                                /* 打ち歩詰めチェック */
+                                if ((tbl.val > 5000) && (moveList[cnt_local].op == 0x91) && ((tbl.kmv[2 + deepCnt].op == 0) || (tbl.kmv[2 + deepCnt].np == 0))) { /* 9*9+(int)ktype.Fuhyou */
+                                    continue;
+                                };
+
+                                for (int i = 0; i < deepCnt + 1; i++) {
+                                    tbl.kmv[i] = deepList[deepCnt][WidthCnt].kmv[i];
+                                }
+                                tbl.kmv[deepCnt + 1] = moveList[cnt_local];
+
+                                // 一時リスト追加
+                                lock (lockObj) {
+                                    addDeepList(tmpList, tbl, 16);
+
+                                    if (tbl.val > alpha) {
+                                        alpha = tbl.val;
+                                    }
+
+                                }
+
+                                string str = "";
+                                for (int j = 0; tbl.kmv[j].op > 0 || tbl.kmv[j].np > 0; j++) {
+                                    str += ((tbl.kmv[j].op + 0x11).ToString("X2")) + "-" + ((tbl.kmv[j].np + 0x11).ToString("X2")) + ":" + tbl.kmv[j].val + "," + tbl.kmv[j].aval + "/";
+                                }
+                                DebugForm.instance.addMsg("TEMP[" + (deepCnt + 1) + "][" + WidthCnt + "][" + cnt_local + "]" + tbl.tmpVal + "/" + tbl.val + " : " + str);
+                                tbl.tmpVal -= moveList[cnt_local].val;
+
+
+                            }
+
+
+                        });
+                        if (stopFlg) {
+                            return (bestmove, best);
+                        }
+
+                        mList.freeAlist(aid);
+
+                        Pturn tmpTurn2 = pturn.aturn(tmpTurn);
+                        List<banTbl> resList = new List<banTbl>();
+
+                        if ((tmpList.Count > 0) && (tmpList[0].val > 5000)) continue;
+
+                        //　もう一段
+                        for (int cnt_local2 = 0; cnt_local2 < 4 && cnt_local2 < tmpList.Count; cnt_local2++) {
+                            alpha = -999999;
+                            beta = 999999;
+
+                            teCnt = 0; //手の進捗
+                            aid = mList.assignAlist(out moveList);
+                            List<banTbl> tmpList2 = new List<banTbl>();
+                            (vla, sp) = getAllMoveList(ref tmpList[cnt_local2].ban, tmpTurn2, moveList);
+
+                            Parallel.For(0, workMin, id => {
+                                int cnt_local;
+
+                                while (true) {
+
+                                    lock (lockObj) {
+                                        if (vla <= teCnt) break;
+                                        cnt_local = teCnt + sp;
+                                        teCnt++;
+                                    }
+
+                                    //駒を動かす
+                                    banTbl tbl = new banTbl(tmpList[cnt_local2].tmpVal, tmpList[cnt_local2].ban);
+                                    tbl.ban.moveKoma(moveList[cnt_local].op, moveList[cnt_local].np, tmpTurn2, moveList[cnt_local].nari, true);
+
+                                    // 王手はスキップ(詰めチェックで分かることを期待)
+                                    if (((byte)tbl.ban.data[((int)tmpTurn2 << 6) + ban.setOu] != 0xFF) &&
+                                        ((tbl.ban.data[tbl.ban.data[((int)tmpTurn2 << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(tmpTurn2) << 2)) & 0x0F) > 0)) {
+                                        continue;
+                                    }
+
+                                    tbl.val -= think(pturn.aturn(tmpTurn2), ref tbl.ban, out tbl.kmv, -beta, -alpha, moveList[cnt_local].val, 3 + deepCnt, 2 + depth + deepCnt);
+                                    if (stopFlg) {
+                                        break;
+                                    }
+
+                                    /* 打ち歩詰めチェック */
+                                    if ((tbl.val > 5000) && (moveList[cnt_local].op == 0x91) && ((tbl.kmv[3 + deepCnt].op == 0) || (tbl.kmv[3 + deepCnt].np == 0))) { /* 9*9+(int)ktype.Fuhyou */
+                                        continue;
+                                    };
+
+
+
+                                    tbl.kmv[0] = tmpList[cnt_local2].kmv[0];
+                                    tbl.kmv[1] = tmpList[cnt_local2].kmv[1];
+                                    tbl.kmv[deepCnt + 2] = moveList[cnt_local];
+
+                                    // 一時リスト追加
+                                    lock (lockObj) {
+                                        addDeepList(tmpList2, tbl, 16);
+                                        if (tbl.val > alpha) {
+                                            alpha = tbl.val;
+                                        }
+                                    }
+
+                                }
+
+
+                            });
+                            if (stopFlg) {
+                                return (bestmove, best);
+                            }
+
+
+
+                            for (int i = 0; i < 4 && i < tmpList2.Count; i++) {
+                                string str2 = "";
+                                for (int j = 0; tmpList2[i].kmv[j].op > 0 || tmpList2[i].kmv[j].np > 0; j++) {
+                                    str2 += ((tmpList2[i].kmv[j].op + 0x11).ToString("X2")) + "-" + ((tmpList2[i].kmv[j].np + 0x11).ToString("X2")) + ":" + tmpList2[i].kmv[j].val + "," + tmpList2[i].kmv[j].aval + "/";
+                                }
+                                DebugForm.instance.addMsg("TEMP[" + (deepCnt + 2) + "][" + WidthCnt + "][" + i + "]" + tmpList2[i].tmpVal + "/" + tmpList2[i].val + " : " + str2);
+
+                                tmpList2[i].val = tmpList2[i].tmpVal + tmpList2[i].val; // 消さない！！
+                                //addDeepList(deepList[deepCnt + 1], tmpList2[i], 16);
+                            }
+
+
+                            // 各リストの一番高い手を登録
+                            if ((tmpList2.Count > 0) && (tmpList2[0].val < 5000)) {
+                                lock (lockObj) {
+                                    addDeepList(resList, tmpList2[0], 16);
+                                }
+                            }
+                            mList.freeAlist(aid);
+
+                        }
+
+                        if (resList.Count > 0) {
+                            //もう一段の一番低い手を登録
+                            addDeepList(deepList[deepCnt + 1], resList[resList.Count - 1], 16);
+                        }
+                        mList.freeAlist(aid);
+
+                    }
+                    for (int i = 0; i < deepList[deepCnt + 1].Count; i++) {
+                        string str = "";
+                        for (int j = 0; deepList[deepCnt + 1][i].kmv[j].op > 0 || deepList[deepCnt + 1][i].kmv[j].np > 0; j++) {
+                            str += ((deepList[deepCnt + 1][i].kmv[j].op + 0x11).ToString("X2")) + "-" + ((deepList[deepCnt + 1][i].kmv[j].np + 0x11).ToString("X2")) + ":" + deepList[deepCnt + 1][i].kmv[j].val + "," + deepList[deepCnt + 1][i].kmv[j].aval + "/";
+                        }
+                        DebugForm.instance.addMsg("DEEP[" + (deepCnt + 1) + "][" + i + "]" + deepList[deepCnt + 1][i].val + " : " + str);
+                    }
+
+                    if (deepList[deepCnt + 1].Count > 0) {
+                        best = deepList[deepCnt + 1][0].val;
+                        bestmove = deepList[deepCnt + 1][0].kmv;
+                    }
+
+                    break;
+
+                }
+
+
             }
-            resetHash();
             return (bestmove, best);
         }
 
-        public int think(Pturn turn, ref ban ban, out kmove[] bestMoveList, int alpha, int beta, int pVal, int depth, int depMammmx) {
+        public int think(Pturn turn, ref ban ban, out kmove[] bestMoveList, int alpha, int beta, int pVal, int depth, int depMax) {
             int val = -pVal;
             bestMoveList = null;
             int best = -999999;
@@ -423,9 +724,9 @@ namespace TacoWin2 {
                     (int vla, int sp) = getBestMove(ref ban, turn, moveList);
 
                     //best = val - moveList[sp + vla - 1].val;
-                    moveList[sp].val -= moveList[sp].aval;
-                    best = val + moveList[sp].val;
-                    //moveList[sp].val = best;
+                    moveList[sp].val = moveList[sp].val >> 1;
+                    moveList[sp].aval = moveList[sp].aval >> 1;
+                    best = val + moveList[sp].val - moveList[sp].aval;
                     bestMoveList = new kmove[30];
                     //bestMoveList = mList.assignRlist();
 
@@ -504,6 +805,14 @@ namespace TacoWin2 {
                 for (int i = 0; i < 4; i++) {
                     if ((ban.data[((int)turn << 6) + ban.setKin] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
                         getEachMoveList(ref ban, (byte)(ban.data[((int)turn << 6) + ban.setKin] >> ((i & 3) << 3)), turn, emv, kmv, ref kCnt, ref startPoint);
+                    }
+                }
+
+                // 成駒
+                for (int i = 0, j = 0; j < ban.data[((int)turn << 6) + ban.setNaNum] && i < 28; i++) {
+                    if ((ban.data[((int)turn << 6) + ban.setNa + (i >> 2)] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        getEachMoveList(ref ban, (byte)(ban.data[((int)turn << 6) + ban.setNa + (i >> 2)] >> ((i & 3) << 3)), turn, emv, kmv, ref kCnt, ref startPoint);
+                        j++;
                     }
                 }
 
@@ -731,9 +1040,9 @@ namespace TacoWin2 {
                             }
 
                             //敵の効きのみある所には打たない
-                            if (((oPos & 0x0F) != (int)ktype.Fuhyou) && ((ban.data[(i << 4) + j] & (pturn.aturn((int)turn) << 4) + 8) > 0) && ((ban.data[(i << 4) + j] & ((int)turn << 4) + 8) == 0)) {
-                                continue;
-                            }
+                            //if (((oPos & 0x0F) != (int)ktype.Fuhyou) && ((ban.data[(i << 4) + j] & (pturn.aturn((int)turn) << 4) + 8) > 0) && ((ban.data[(i << 4) + j] & ((int)turn << 4) + 8) == 0)) {
+                            //    continue;
+                            //}
 
                             // 歩飛角以外の駒で、移動先に敵味方の駒がない場合、無駄なため置かない
                             switch (oPos & 0x0F) {
@@ -767,14 +1076,47 @@ namespace TacoWin2 {
                                 default:
                                     break;
                             }
+                            int val = tw2acval.ptGet(ref ban, (ktype)(oPos & 0x0F), (byte)((i << 4) + j), turn);
+
+                            if ((ban.data[(i << 4) + j] >> (8 + ((int)turn << 2)) & 0x0F) == 0) {
+                                val -= kpVal[oPos & 0x0F, 1];
+                            } else {
+                                val -= kpVal[oPos & 0x0F, 0];
+                            }
+
+                            if ((pturn.psX(turn, j) < 7) && ((ban.data[(i << 4) + j] >> (8 + ((int)turn << 2)) & 0x0F) >= (ban.data[(i << 4) + j] >> (8 + (pturn.aturn((int)turn) << 2)) & 0x0F))
+                                && (ban.getOnBoardPturn(pturn.mv(turn, (byte)((i << 4) + j), 0x01)) == pturn.aturn(turn))) {
+                                if ((ban.getOnBoardKtype(pturn.mv(turn, (byte)((i << 4) + j), 0x01)) == ktype.Kakugyou) || (ban.getOnBoardKtype(pturn.mv(turn, (byte)((i << 4) + j), 0x01)) == ktype.Keima)) {
+                                    val += 200;
+                                }
+                            }
 
                             // リストに追加
-                            if (-emv.val[0] > kmv[startPoint].val) {
-                                kmv[--startPoint].set((byte)oPos, (byte)((i << 4) + j), -10, emv.val[0], false, turn);
+                            if (-emv.val[0] + val > kmv[startPoint].val) {
+                                kmv[--startPoint].set((byte)oPos, (byte)((i << 4) + j), val, emv.val[0], false, turn);
                                 kCnt++;
                             } else {
-                                kmv[startPoint + kCnt++].set((byte)oPos, (byte)((i << 4) + j), -10, emv.val[0], false, turn);
+                                kmv[startPoint + kCnt++].set((byte)oPos, (byte)((i << 4) + j), val, emv.val[0], false, turn);
                             }
+
+                            //if (((ban.data[(i << 4) + j] & ((int)turn << 4) + 8) == 0)) {
+                            //    // リストに追加
+                            //    if (-emv.val[0] - 100 > kmv[startPoint].val) {
+                            //        kmv[--startPoint].set((byte)oPos, (byte)((i << 4) + j), -100, emv.val[0], false, turn);
+                            //        kCnt++;
+                            //    } else {
+                            //        kmv[startPoint + kCnt++].set((byte)oPos, (byte)((i << 4) + j), -100, emv.val[0], false, turn);
+                            //    }
+                            //} else {
+                            //    // リストに追加
+                            //    if (-emv.val[0] - 20 > kmv[startPoint].val) {
+                            //        kmv[--startPoint].set((byte)oPos, (byte)((i << 4) + j), -20, emv.val[0], false, turn);
+                            //        kCnt++;
+                            //    } else {
+                            //        kmv[startPoint + kCnt++].set((byte)oPos, (byte)((i << 4) + j), -20, emv.val[0], false, turn);
+                            //    }
+                            //}
+
                         }
                     }
                 } else {  // 駒移動
@@ -885,10 +1227,10 @@ namespace TacoWin2 {
                 int val;
                 byte nPos = (byte)pturn.mv(turn, oPos, mPos);
                 if ((nPos > 0x88) || ((nPos & 0xF) > 0x08)) return 3; // 範囲外(移動できない)
-                int sval = tw2stval.get(ban.getOnBoardKtype((byte)oPos), (byte)oPos, nPos, turn);
+                int sval = tw2stval.get(ban.getOnBoardKtype(oPos), oPos, nPos, turn) + tw2acval.mvGet(ref ban, ban.getOnBoardKtype(oPos), oPos, nPos, turn) + ((int)ban.data[nPos] >> (((int)turn << 2) + 8) & 0x0F) - ((int)ban.data[nPos] >> ((pturn.aturn((int)turn) << 2) + 8) & 0x0F);
                 //現在の敵の取得候補より価値が高い場合、自分が取得候補となる
-                if (((ban.data[nPos] >> ((pturn.aturn((int)turn) << 2) + 8) & 0x0F) > 0) && (kVal[(int)ban.getOnBoardKtype((byte)oPos)] > eVal)) {
-                    eVal = tw2ai.kVal[(int)ban.getOnBoardKtype((byte)oPos)];
+                if (((ban.data[nPos] >> ((pturn.aturn((int)turn) << 2) + 8) & 0x0F) > 0) && (kVal[(int)ban.getOnBoardKtype(oPos)] > eVal)) {
+                    eVal = tw2ai.kVal[(int)ban.getOnBoardKtype(oPos)];
                 }
                 if (ban.getOnBoardKtype(nPos) > ktype.None) { //駒が存在
                     if (ban.getOnBoardPturn(nPos) != turn) {
