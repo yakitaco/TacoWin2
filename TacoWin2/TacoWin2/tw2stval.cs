@@ -13,6 +13,7 @@ namespace TacoWin2 {
         IBISYA_KOSIKAKE = 121, //腰掛け銀
         IBISYA_HAYAKURI = 122, //早繰り銀
         IBISYA_YOKOFUDORI = 130, //横歩取り
+        IBISYA_TAIFURI = 150,   //対振り飛車
 
         FURIBISYA = 200,   //振り飛車
 
@@ -128,7 +129,12 @@ namespace TacoWin2 {
                             case 1:    // 2筋 (居飛車？)
                                 if (((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (1 >> 2)] >> ((1 & 3) << 3) & 0xFF) == 0xFF) ||
                                     ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (1 >> 2)] >> ((1 & 3) << 3) & 0xFF) < 0x60)) {
-                                    setType(OPLIST.IBISYA, (int)Pturn.Sente, 0);
+                                    if (mV[senTeNum].type != OPLIST.IBISYA_KAKUGAWARI) {
+                                        setType(OPLIST.IBISYA, (int)Pturn.Sente, 0);
+                                    }
+                                    if ((ban.data[((int)Pturn.Sente << 6) + ban.hand + (int)ktype.Kakugyou] > 0)&& (ban.data[((int)Pturn.Gote << 6) + ban.hand + (int)ktype.Kakugyou] > 0)) {
+                                        setType(OPLIST.IBISYA_KAKUGAWARI, (int)Pturn.Sente, 0);
+                                    }
                                 }
                                 break;
                             case 2:    // 3筋 (袖飛車？)
@@ -182,7 +188,12 @@ namespace TacoWin2 {
                             case 7:    // 2筋 (居飛車？)
                                 if (((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (7 >> 2)] >> ((7 & 3) << 3) & 0xFF) == 0xFF) ||
                                     ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (7 >> 2)] >> ((7 & 3) << 3) & 0xFF) > 0x20)) {
-                                    setType(OPLIST.IBISYA, (int)Pturn.Gote, 0);
+                                    if (mV[goTeNum].type != OPLIST.IBISYA_KAKUGAWARI) {
+                                        setType(OPLIST.IBISYA, (int)Pturn.Gote, 0);
+                                    }
+                                    if ((ban.data[((int)Pturn.Sente << 6) + ban.hand + (int)ktype.Kakugyou] > 0) && (ban.data[((int)Pturn.Gote << 6) + ban.hand + (int)ktype.Kakugyou] > 0)) {
+                                        setType(OPLIST.IBISYA_KAKUGAWARI, (int)Pturn.Gote, 0);
+                                    }
                                 }
                                 break;
                             case 6:    // 3筋 (袖飛車？)
@@ -226,6 +237,19 @@ namespace TacoWin2 {
                                 break;
                         }
                     }
+
+                    if (mV[senTeNum].type == OPLIST.IBISYA) {
+                        if (mV[goTeNum].type > OPLIST.FURIBISYA) {
+                            setType(OPLIST.IBISYA_TAIFURI, (int)Pturn.Sente, 0);
+                        }
+                    }
+
+                    if (mV[goTeNum].type == OPLIST.IBISYA) {
+                        if (mV[senTeNum].type > OPLIST.FURIBISYA) {
+                            setType(OPLIST.IBISYA_TAIFURI, (int)Pturn.Gote, 0);
+                        }
+                    }
+
                     DebugForm.instance.addMsg("SENKEI[" + senTeNum + ":" + mV[senTeNum].type + "]-[" + goTeNum + ":" + mV[goTeNum].type + "]");
                 }
             }
