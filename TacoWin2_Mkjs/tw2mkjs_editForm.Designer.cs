@@ -433,6 +433,7 @@
             // 
             // FleIpt
             // 
+            this.FleIpt.AllowDrop = true;
             this.FleIpt.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.FleIpt.Font = new System.Drawing.Font("MS UI Gothic", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
@@ -441,6 +442,8 @@
             this.FleIpt.Size = new System.Drawing.Size(435, 26);
             this.FleIpt.TabIndex = 25;
             this.FleIpt.Text = "C:\\Works\\vs\\ytj\\default_orig.ytj";
+            this.FleIpt.DragDrop += new System.Windows.Forms.DragEventHandler(this.FleIpt_DragDrop);
+            this.FleIpt.DragEnter += new System.Windows.Forms.DragEventHandler(this.FleIpt_DragEnter);
             // 
             // TebanChk
             // 
