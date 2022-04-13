@@ -299,5 +299,17 @@ namespace TacoWin2_Mkjs {
                 history.Add(ban.hash);
             }
         }
+
+        private void FleIpt_DragEnter(object sender, DragEventArgs e) {
+            e.Effect = DragDropEffects.All;
+        }
+
+        private void FleIpt_DragDrop(object sender, DragEventArgs e) {
+            if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
+
+            // 渡されたファイルに対して処理を行う
+            string[] dragFilePathArr = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+            FleIpt.Text = dragFilePathArr[0];
+        }
     }
 }
