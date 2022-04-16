@@ -22,16 +22,28 @@ namespace TacoWin2 {
                     case ktype.Keima:
                         break;
                     case ktype.Ginsyou:
-                        val = (Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos)) - Math.Abs(pturn.dx(turn, aOuPos, oPos)) - Math.Abs(pturn.dy(turn, aOuPos, oPos)));
+                        val = (Math.Abs(pturn.dx(turn, aOuPos, oPos)) + Math.Abs(pturn.dy(turn, aOuPos, oPos)) - Math.Abs(pturn.dx(turn, aOuPos, nPos)) - Math.Abs(pturn.dy(turn, aOuPos, nPos)));
                         break;
                     case ktype.Hisya:
-                        val = (Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos)) - Math.Abs(pturn.dx(turn, aOuPos, oPos)) - Math.Abs(pturn.dy(turn, aOuPos, oPos)));
+                        int odx = pturn.dx(turn, aOuPos, oPos);
+                        int ody = pturn.dy(turn, aOuPos, oPos);
+                        int ndx = pturn.dx(turn, aOuPos, nPos);
+                        int ndy = pturn.dy(turn, aOuPos, nPos);
+                        val = (Math.Abs(odx) + Math.Abs(ody) - Math.Abs(ndx) - Math.Abs(ndy));
+                        if ((odx == 0) || (ody == 0)) val -= 20;
+                        if ((ndx == 0) || (ndy == 0)) val += 20;
                         break;
                     case ktype.Kakugyou:
-                        val = (Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos)) - Math.Abs(pturn.dx(turn, aOuPos, oPos)) - Math.Abs(pturn.dy(turn, aOuPos, oPos)));
+                        int odx = pturn.dx(turn, aOuPos, oPos);
+                        int ody = pturn.dy(turn, aOuPos, oPos);
+                        int ndx = pturn.dx(turn, aOuPos, nPos);
+                        int ndy = pturn.dy(turn, aOuPos, nPos);
+                        val = (Math.Abs(odx) + Math.Abs(ody) - Math.Abs(ndx) - Math.Abs(ndy));
+                        if ((odx == ody) || (odx == -ody)) val -= 20;
+                        if ((ndx == ndy) || (ndx == -ndy)) val += 20;
                         break;
                     case ktype.Kinsyou:
-                        val = (Math.Abs(pturn.dx(turn, sOuPos, nPos)) + Math.Abs(pturn.dy(turn, sOuPos, nPos)) - Math.Abs(pturn.dx(turn, sOuPos, oPos)) - Math.Abs(pturn.dy(turn, sOuPos, oPos)));
+                        val = (Math.Abs(pturn.dx(turn, sOuPos, oPos)) + Math.Abs(pturn.dy(turn, sOuPos, oPos)) - Math.Abs(pturn.dx(turn, sOuPos, nPos)) - Math.Abs(pturn.dy(turn, sOuPos, nPos)));
                         break;
                     case ktype.Ousyou:
                         break;
@@ -42,7 +54,7 @@ namespace TacoWin2 {
                     case ktype.Ryuuou:
                     case ktype.Ryuuma:
                         /* 相手の玉に近いほうが評価値が高い */
-                        val = (Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos)) - Math.Abs(pturn.dx(turn, aOuPos, oPos)) - Math.Abs(pturn.dy(turn, aOuPos, oPos))) << 3;
+                        val = (Math.Abs(pturn.dx(turn, aOuPos, oPos)) + Math.Abs(pturn.dy(turn, aOuPos, oPos)) - Math.Abs(pturn.dx(turn, aOuPos, nPos)) - Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3;
                         break;
                     default:
                         /* 何もしない */
