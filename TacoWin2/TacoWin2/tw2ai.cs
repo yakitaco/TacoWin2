@@ -29,7 +29,7 @@ namespace TacoWin2 {
         }
 
         List<hashTbl> aList = new List<hashTbl>();
-        List<banTbl>[] deepList;
+        List<diagTbl>[] deepList;
 
         /// <summary>
         /// 各駒の固定価値
@@ -73,6 +73,18 @@ namespace TacoWin2 {
         {99999, 99999},   //竜馬
     };
 
+        /* 持ち駒の評価 {1個め,2個目以降} */
+        public static int[,] mScore = {
+        { 0    , 0      }, //なし
+        { 150  , 10     }, //歩兵
+        { 700  , 100    }, //香車
+        { 800  , 150    }, //桂馬
+        { 1000  , 500   }, //銀将
+        { 2000  , 2500  }, //飛車
+        { 1500  , 2000  }, //角行
+        { 1200  , 1000  },  //金将
+    };
+
         Random rnds = new System.Random();
 
         // thread同時数
@@ -96,9 +108,9 @@ namespace TacoWin2 {
         public void resetHash() {
             aList = new List<hashTbl>();
 
-            deepList = new List<banTbl>[32];
+            deepList = new List<diagTbl>[32];
             for (int i = 0; i < 32; i++) {
-                deepList[i] = new List<banTbl>();
+                deepList[i] = new List<diagTbl>();
             }
 
 
@@ -178,26 +190,8 @@ namespace TacoWin2 {
         //    return (moveList[ln], best);
         //}
 
-        class banTbl : IComparable<banTbl> {
-            public int val;
-            public int tmpVal;
-            public ban ban;
-            public kmove[] kmv;
 
-            public banTbl(int _tmpVal, ban _ban) {
-                tmpVal = _tmpVal;
-                ban = _ban;
-                val = 0;
-                kmv = null;
-            }
-
-            public int CompareTo(banTbl otbl) {
-                return -val.CompareTo(otbl.val);
-            }
-
-        }
-
-        void addDeepList(List<banTbl> dList, banTbl tbl, int max) {
+        void addDeepList(List<diagTbl> dList, diagTbl tbl, int max) {
             if (dList.Count == 0) {
                 /* 最初の登録 */
                 dList.Add(tbl);
@@ -215,19 +209,27 @@ namespace TacoWin2 {
 
 
         //int depMax;
-        public (kmove[], int) thinkMove(Pturn turn, ban ban, int depth, int deepMax, int deepWidth, int mateDepth) {
+        public (List<diagTbl>, int) thinkMove(Pturn turn, ban ban, int depth, int deepMax, int deepWidth, int mateDepth, int retMax) {
             int best = -999999;
             int beta = 999999;
             int alpha = -999999;
 
             kmove[] bestmove = null;
+            List<diagTbl> retMove = new List<diagTbl>();
 
             /* 詰み */
             if (mateDepth > 0) {
                 int ret;
                 DebugForm.instance.addMsg("thinkMateMove" + mateDepth);
-                (bestmove, ret) = thinkMateMove(turn, ban, 9);
-                if (ret < 999) return (bestmove, 99999);
+                (bestmove, ret) = thinkMateMove(turn, ban, mateDepth);
+
+                if (ret < 999) {
+                    diagTbl retTbl = new diagTbl(ret, ban);
+                    retTbl.kmv = bestmove;
+                    retMove.Add(retTbl);
+                    return (retMove, 99999);
+                }
+
             }
 
             int teCnt = 0; //手の進捗
@@ -268,7 +270,11 @@ namespace TacoWin2 {
 
                     DebugForm.instance.addMsg("JOSEKI MV[" + best + "]" + str);
 
-                    return (bestmove, best);
+                    diagTbl retTbl = new diagTbl(best, ban);
+                    retTbl.kmv = bestmove;
+                    retMove.Add(retTbl);
+
+                    return (retMove, best);
                 }
 
                 //kmove[] moveList = new kmove[500];
@@ -294,7 +300,7 @@ namespace TacoWin2 {
                         //mList.ls[cnt_local + 1][0] = mList.ls[0][sp + cnt_local];
 
                         // 駒移動
-                        banTbl tbl = new banTbl(moveList[cnt_local].val, ban);
+                        diagTbl tbl = new diagTbl(moveList[cnt_local].val, ban);
                         //ban tmp_ban = ban;
                         int retVal;
                         kmove[] retList = null;
@@ -375,12 +381,13 @@ namespace TacoWin2 {
 
                 mList.freeAlist(aid);
 
-                if ((stopFlg) || (deepMax < 1)) {
-                    return (bestmove, best);
+                if ((stopFlg) || (deepMax < 1) || (deepList[0].Count <= retMax) || (best < -5000) || (best > 5000)) {
+                    if (deepList[0].Count > retMax) deepList[0].RemoveRange(retMax, deepList[0].Count - retMax);
+                    return (deepList[0], best);
                 }
 
                 Pturn tmpTurn = turn;
-
+                List<diagTbl> resList = new List<diagTbl>();
                 // 足切多重反復深化
                 for (int deepCnt = 0; deepCnt < deepMax; deepCnt++) {
                     tmpTurn = pturn.aturn(tmpTurn);
@@ -400,7 +407,7 @@ namespace TacoWin2 {
 
                     for (int WidthCnt = 0; WidthCnt < deepWidth && WidthCnt < deepList[deepCnt].Count; WidthCnt++) {
 
-                        List<banTbl> tmpList = new List<banTbl>();
+                        List<diagTbl> tmpList = new List<diagTbl>();
                         aid = mList.assignAlist(out moveList);
                         (vla, sp) = getAllMoveList(ref deepList[deepCnt][WidthCnt].ban, tmpTurn, moveList);
 
@@ -419,7 +426,7 @@ namespace TacoWin2 {
                                 }
 
                                 //駒を動かす
-                                banTbl tbl = new banTbl(deepList[deepCnt][WidthCnt].tmpVal, deepList[deepCnt][WidthCnt].ban);
+                                diagTbl tbl = new diagTbl(deepList[deepCnt][WidthCnt].tmpVal, deepList[deepCnt][WidthCnt].ban);
                                 tbl.ban.moveKoma(moveList[cnt_local].op, moveList[cnt_local].np, tmpTurn, moveList[cnt_local].nari, true);
 
                                 // 王手はスキップ(詰めチェックで分かることを期待)
@@ -453,12 +460,12 @@ namespace TacoWin2 {
 
                                 }
 
-                                string str = "";
-                                for (int j = 0; tbl.kmv[j].op > 0 || tbl.kmv[j].np > 0; j++) {
-                                    str += ((tbl.kmv[j].op + 0x11).ToString("X2")) + "-" + ((tbl.kmv[j].np + 0x11).ToString("X2")) + ":" + tbl.kmv[j].val + "," + tbl.kmv[j].aval + "/";
-                                }
-                                DebugForm.instance.addMsg("TEMP[" + (deepCnt + 1) + "][" + WidthCnt + "][" + cnt_local + "]" + tbl.tmpVal + "/" + tbl.val + " : " + str);
-                                tbl.tmpVal -= moveList[cnt_local].val;
+                                //string str = "";
+                                //for (int j = 0; tbl.kmv[j].op > 0 || tbl.kmv[j].np > 0; j++) {
+                                //    str += ((tbl.kmv[j].op + 0x11).ToString("X2")) + "-" + ((tbl.kmv[j].np + 0x11).ToString("X2")) + ":" + tbl.kmv[j].val + "," + tbl.kmv[j].aval + "/";
+                                //}
+                                //DebugForm.instance.addMsg("TEMP[" + (deepCnt + 1) + "][" + WidthCnt + "][" + cnt_local + "]" + tbl.tmpVal + "/" + tbl.val + " : " + str);
+                                if (deepMax > 1) tbl.tmpVal -= moveList[cnt_local].val;
 
 
                             }
@@ -466,13 +473,18 @@ namespace TacoWin2 {
 
                         });
                         if (stopFlg) {
-                            return (bestmove, best);
+                            return (deepList[0], best);
                         }
 
                         mList.freeAlist(aid);
 
                         Pturn tmpTurn2 = pturn.aturn(tmpTurn);
-                        List<banTbl> resList = new List<banTbl>();
+
+                        if (deepMax == 1) {
+                            tmpList[0].val = tmpList[0].tmpVal - tmpList[0].val;
+                            addDeepList(resList, tmpList[0], 16);
+                            continue;
+                        }
 
                         if ((tmpList.Count > 0) && (tmpList[0].val > 5000)) continue;
 
@@ -483,7 +495,7 @@ namespace TacoWin2 {
 
                             teCnt = 0; //手の進捗
                             aid = mList.assignAlist(out moveList);
-                            List<banTbl> tmpList2 = new List<banTbl>();
+                            List<diagTbl> tmpList2 = new List<diagTbl>();
                             (vla, sp) = getAllMoveList(ref tmpList[cnt_local2].ban, tmpTurn2, moveList);
 
                             Parallel.For(0, workMin, id => {
@@ -498,7 +510,7 @@ namespace TacoWin2 {
                                     }
 
                                     //駒を動かす
-                                    banTbl tbl = new banTbl(tmpList[cnt_local2].tmpVal, tmpList[cnt_local2].ban);
+                                    diagTbl tbl = new diagTbl(tmpList[cnt_local2].tmpVal, tmpList[cnt_local2].ban);
                                     tbl.ban.moveKoma(moveList[cnt_local].op, moveList[cnt_local].np, tmpTurn2, moveList[cnt_local].nari, true);
 
                                     // 王手はスキップ(詰めチェックで分かることを期待)
@@ -536,17 +548,17 @@ namespace TacoWin2 {
 
                             });
                             if (stopFlg) {
-                                return (bestmove, best);
+                                return (deepList[0], best);
                             }
 
 
 
                             for (int i = 0; i < 4 && i < tmpList2.Count; i++) {
-                                string str2 = "";
-                                for (int j = 0; tmpList2[i].kmv[j].op > 0 || tmpList2[i].kmv[j].np > 0; j++) {
-                                    str2 += ((tmpList2[i].kmv[j].op + 0x11).ToString("X2")) + "-" + ((tmpList2[i].kmv[j].np + 0x11).ToString("X2")) + ":" + tmpList2[i].kmv[j].val + "," + tmpList2[i].kmv[j].aval + "/";
-                                }
-                                DebugForm.instance.addMsg("TEMP[" + (deepCnt + 2) + "][" + WidthCnt + "][" + i + "]" + tmpList2[i].tmpVal + "/" + tmpList2[i].val + " : " + str2);
+                                //string str2 = "";
+                                //for (int j = 0; tmpList2[i].kmv[j].op > 0 || tmpList2[i].kmv[j].np > 0; j++) {
+                                //    str2 += ((tmpList2[i].kmv[j].op + 0x11).ToString("X2")) + "-" + ((tmpList2[i].kmv[j].np + 0x11).ToString("X2")) + ":" + tmpList2[i].kmv[j].val + "," + tmpList2[i].kmv[j].aval + "/";
+                                //}
+                                //DebugForm.instance.addMsg("TEMP[" + (deepCnt + 2) + "][" + WidthCnt + "][" + i + "]" + tmpList2[i].tmpVal + "/" + tmpList2[i].val + " : " + str2);
 
                                 tmpList2[i].val = tmpList2[i].tmpVal + tmpList2[i].val; // 消さない！！
                                 //addDeepList(deepList[deepCnt + 1], tmpList2[i], 16);
@@ -563,24 +575,37 @@ namespace TacoWin2 {
 
                         }
 
+
                         if (resList.Count > 0) {
                             //もう一段の一番低い手を登録
-                            addDeepList(deepList[deepCnt + 1], resList[resList.Count - 1], 16);
+                            addDeepList(retMove, resList[resList.Count - 1], 16);
                         }
                         mList.freeAlist(aid);
 
                     }
-                    for (int i = 0; i < deepList[deepCnt + 1].Count; i++) {
-                        string str = "";
-                        for (int j = 0; deepList[deepCnt + 1][i].kmv[j].op > 0 || deepList[deepCnt + 1][i].kmv[j].np > 0; j++) {
-                            str += ((deepList[deepCnt + 1][i].kmv[j].op + 0x11).ToString("X2")) + "-" + ((deepList[deepCnt + 1][i].kmv[j].np + 0x11).ToString("X2")) + ":" + deepList[deepCnt + 1][i].kmv[j].val + "," + deepList[deepCnt + 1][i].kmv[j].aval + "/";
+
+                    if (deepMax == 1) {
+                        for (int i = 0; i < resList.Count; i++) {
+                            string str = "";
+                            for (int j = 0; resList[i].kmv[j].op > 0 || resList[i].kmv[j].np > 0; j++) {
+                                str += ((resList[i].kmv[j].op + 0x11).ToString("X2")) + "-" + ((resList[i].kmv[j].np + 0x11).ToString("X2")) + ":" + resList[i].kmv[j].val + "," + resList[i].kmv[j].aval + "/";
+                            }
+                            DebugForm.instance.addMsg("RETLIST[" + i + "]" + resList[i].val + " : " + str);
                         }
-                        DebugForm.instance.addMsg("DEEP[" + (deepCnt + 1) + "][" + i + "]" + deepList[deepCnt + 1][i].val + " : " + str);
+                        if (resList.Count > retMax) resList.RemoveRange(retMax, resList.Count - retMax);
+                        return (resList, resList[0].val);
                     }
 
-                    if (deepList[deepCnt + 1].Count > 0) {
-                        best = deepList[deepCnt + 1][0].val;
-                        bestmove = deepList[deepCnt + 1][0].kmv;
+                    for (int i = 0; i < retMove.Count; i++) {
+                        string str = "";
+                        for (int j = 0; retMove[i].kmv[j].op > 0 || retMove[i].kmv[j].np > 0; j++) {
+                            str += ((retMove[i].kmv[j].op + 0x11).ToString("X2")) + "-" + ((retMove[i].kmv[j].np + 0x11).ToString("X2")) + ":" + retMove[i].kmv[j].val + "," + retMove[i].kmv[j].aval + "/";
+                        }
+                        DebugForm.instance.addMsg("DEEP[" + (deepCnt + 1) + "][" + i + "]" + retMove[i].val + " : " + str);
+                    }
+
+                    if (retMove.Count > 0) {
+                        best = retMove[0].val;
                     }
 
                     break;
@@ -589,7 +614,7 @@ namespace TacoWin2 {
 
 
             }
-            return (bestmove, best);
+            return (retMove, best);
         }
 
         public int think(Pturn turn, ref ban ban, out kmove[] bestMoveList, int alpha, int beta, int pVal, int depth, int depMax) {
@@ -643,7 +668,9 @@ namespace TacoWin2 {
                     aid = mList.assignAlist(out moveList);
                 }
 
-                if (depth < depMax) {
+                // 王手一手延長
+                if ((depth < depMax) || (((byte)ban.data[((int)turn << 6) + ban.setOu] != 0xFF) &&
+                            ((ban.data[ban.data[((int)turn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(turn) << 2)) & 0x0F) > 0) && (depth < depMax + 1))) {
                     (int vla, int sp) = getAllMoveList(ref ban, turn, moveList);
                     for (int cnt = sp; cnt < vla + sp; cnt++) {
 
@@ -1044,7 +1071,9 @@ namespace TacoWin2 {
                             //    continue;
                             //}
 
-                            // 歩飛角以外の駒で、移動先に敵味方の駒がない場合、無駄なため置かない
+                            int val = tw2acval.ptGet(ref ban, (ktype)(oPos & 0x0F), (byte)((i << 4) + j), turn);
+
+                            // 歩飛角以外の駒で、移動先に敵味方の駒がない場合、価値を低くする
                             switch (oPos & 0x0F) {
                                 case (int)ktype.Kyousha:
                                     int kret = 0;
@@ -1056,27 +1085,26 @@ namespace TacoWin2 {
                                             break;
                                         }
                                     }
-                                    if (kret == 0) continue;
+                                    if (kret == 0) val-=500;
                                     break;
-
+                            
                                 case (int)ktype.Keima:
-                                    if ((chkMoveable(ref ban, (byte)((i << 4) + j), 0x12, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 + 0x02, turn) < 1)) continue;
+                                    if ((chkMoveable(ref ban, (byte)((i << 4) + j), 0x12, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 + 0x02, turn) < 1)) val -= 500;
                                     break;
-
+                            
                                 case (int)ktype.Ginsyou:
                                     if ((chkMoveable(ref ban, (byte)((i << 4) + j), 0x10 + 0x01, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), 0x00 + 0x01, turn) < 1) &&
-                                        (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 + 0x01, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), 0x10 - 0x01, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 - 0x01, turn) < 1)) continue;
+                                        (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 + 0x01, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), 0x10 - 0x01, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 - 0x01, turn) < 1)) val -= 500;
                                     break;
-
+                            
                                 case (int)ktype.Kinsyou:
                                     if ((chkMoveable(ref ban, (byte)((i << 4) + j), 0x10 + 0x01, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), 0x00 + 0x01, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 + 0x01, turn) < 1) &&
-                                         (chkMoveable(ref ban, (byte)((i << 4) + j), 0x10 + 0x00, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 + 0x00, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), 0x00 - 0x10, turn) < 1)) continue;
+                                         (chkMoveable(ref ban, (byte)((i << 4) + j), 0x10 + 0x00, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 + 0x00, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), 0x00 - 0x10, turn) < 1)) val -= 500;
                                     break;
-
+                            
                                 default:
                                     break;
                             }
-                            int val = tw2acval.ptGet(ref ban, (ktype)(oPos & 0x0F), (byte)((i << 4) + j), turn);
 
                             if ((ban.data[(i << 4) + j] >> (8 + ((int)turn << 2)) & 0x0F) == 0) {
                                 val -= kpVal[oPos & 0x0F, 1];
@@ -1320,5 +1348,163 @@ namespace TacoWin2 {
             return 0; // 駒がない(移動可能)
         }
 
+        public int chkScore(ref ban ban, Pturn turn) {
+            unsafe {
+                int score = 0;
+
+                /* 先手 盤上駒 */
+                byte aOuPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setOu] & 0xFF);
+                byte nPos;
+
+                // 歩兵
+                for (int i = 0; i < 9; i++) {
+                    if ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (i >> 2)] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        score += kVal[(int)ktype.Fuhyou] + (int)(ban.data[((int)Pturn.Sente << 6) + ban.setFu + (i >> 2)] >> ((i & 3) << 3) & 0x0F);
+                    }
+                }
+
+                // 香車
+                for (int i = 0; i < 4; i++) {
+                    if ((ban.data[((int)Pturn.Sente << 6) + ban.setKyo] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        nPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setKyo] >> ((i & 3) << 3) & 0xFF);
+                        score += kVal[(int)ktype.Kyousha] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
+                    }
+                }
+
+                // 桂馬
+                for (int i = 0; i < 4; i++) {
+                    if ((ban.data[((int)Pturn.Sente << 6) + ban.setKei] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        nPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setKei] >> ((i & 3) << 3) & 0xFF);
+                        score += kVal[(int)ktype.Keima] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
+                    }
+                }
+
+                // 銀将
+                for (int i = 0; i < 4; i++) {
+                    if ((ban.data[((int)Pturn.Sente << 6) + ban.setGin] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        nPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setGin] >> ((i & 3) << 3) & 0xFF);
+                        score += kVal[(int)ktype.Ginsyou] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
+                    }
+                }
+
+                // 飛車
+                for (int i = 0; i < 2; i++) {
+                    if ((ban.data[((int)Pturn.Sente << 6) + ban.setHi] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        nPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setHi] >> ((i & 3) << 3) & 0xFF);
+                        score += kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
+                    }
+                }
+
+                // 角行
+                for (int i = 0; i < 2; i++) {
+                    if ((ban.data[((int)Pturn.Sente << 6) + ban.setKa] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        nPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setKa] >> ((i & 3) << 3) & 0xFF);
+                        score += kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
+                    }
+                }
+
+                // 金将
+                for (int i = 0; i < 4; i++) {
+                    if ((ban.data[((int)Pturn.Sente << 6) + ban.setKin] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        score += kVal[(int)ktype.Kinsyou];
+                    }
+                }
+
+                // 成駒
+                for (int i = 0, j = 0; j < ban.data[((int)turn << 6) + ban.setNaNum] && i < 28; i++) {
+                    if ((ban.data[((int)Pturn.Sente << 6) + ban.setNa + (i >> 2)] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        nPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setNa] >> ((i & 3) << 3) & 0xFF);
+                        score += kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
+                        j++;
+                    }
+                }
+
+                /* 先手 持ち駒 */
+                for (int i = 1; i < 8; i++) {
+                    if (ban.data[((int)Pturn.Sente << 6) + ban.hand + i] > 0) {
+                        score += mScore[i, 0] + (int)(ban.data[((int)Pturn.Sente << 6) + ban.hand + i] - 1) * mScore[i, 1];
+                    }
+                }
+
+                /* 後手 盤上駒 */
+                aOuPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setOu] & 0xFF);
+
+                // 歩兵
+                for (int i = 0; i < 9; i++) {
+                    if ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (i >> 2)] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        score -= kVal[(int)ktype.Fuhyou];
+                    }
+                }
+
+                // 香車
+                for (int i = 0; i < 4; i++) {
+                    if ((ban.data[((int)Pturn.Gote << 6) + ban.setKyo] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        nPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setKyo] >> ((i & 3) << 3) & 0xFF);
+                        score -= kVal[(int)ktype.Kyousha] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
+                    }
+                }
+
+                // 桂馬
+                for (int i = 0; i < 4; i++) {
+                    if ((ban.data[((int)Pturn.Gote << 6) + ban.setKei] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        nPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setKei] >> ((i & 3) << 3) & 0xFF);
+                        score -= kVal[(int)ktype.Keima] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
+                    }
+                }
+
+                // 銀将
+                for (int i = 0; i < 4; i++) {
+                    if ((ban.data[((int)Pturn.Gote << 6) + ban.setGin] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        nPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setGin] >> ((i & 3) << 3) & 0xFF);
+                        score -= kVal[(int)ktype.Ginsyou] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
+                    }
+                }
+
+                // 飛車
+                for (int i = 0; i < 2; i++) {
+                    if ((ban.data[((int)Pturn.Gote << 6) + ban.setHi] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        nPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setHi] >> ((i & 3) << 3) & 0xFF);
+                        score -= kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
+                    }
+                }
+
+                // 角行
+                for (int i = 0; i < 2; i++) {
+                    if ((ban.data[((int)Pturn.Gote << 6) + ban.setKa] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        nPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setKa] >> ((i & 3) << 3) & 0xFF);
+                        score -= kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
+                    }
+                }
+
+                // 金将
+                for (int i = 0; i < 4; i++) {
+                    if ((ban.data[((int)Pturn.Gote << 6) + ban.setKin] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        score -= kVal[(int)ktype.Kinsyou];
+                    }
+                }
+
+                // 成駒
+                for (int i = 0, j = 0; j < ban.data[((int)turn << 6) + ban.setNaNum] && i < 28; i++) {
+                    if ((ban.data[((int)Pturn.Gote << 6) + ban.setNa + (i >> 2)] >> ((i & 3) << 3) & 0xFF) != 0xFF) {
+                        nPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setNa] >> ((i & 3) << 3) & 0xFF);
+                        score -= kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
+                        j++;
+                    }
+                }
+
+                /* 後手 持ち駒 */
+                for (int i = 1; i < 8; i++) {
+                    if (ban.data[((int)Pturn.Gote << 6) + ban.hand + i] > 0) {
+                        score -= mScore[i, 0] + (int)(ban.data[((int)Pturn.Gote << 6) + ban.hand + i] - 1) * mScore[i, 1];
+                    }
+                }
+
+                if (turn == Pturn.Sente) {
+                    return score >> 1;
+                } else {
+                    return -score >> 1;
+                }
+            }
+        }
     }
 }
