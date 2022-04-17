@@ -23,7 +23,7 @@ namespace TacoWin2 {
         MUKAIBISYA = 240,//向かい飛車
         MIGISIKENBISYA = 250,//右四間飛車
         SODEBISYA = 260,//袖飛車
-
+        HINERIHISYA = 270, //ひねり飛車
 
         KISYU = 300,          //奇襲・不明
         ONIGOROSHI = 310,     //鬼殺し
@@ -128,7 +128,7 @@ namespace TacoWin2 {
                                 break;
                             case 1:    // 2筋 (居飛車？)
                                 if (((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (1 >> 2)] >> ((1 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (1 >> 2)] >> ((1 & 3) << 3) & 0xFF) < 0x60)) {
+                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (1 >> 2)] >> ((1 & 3) << 3) & 0x0F) < 0x06)) {
                                     if (mV[senTeNum].type != OPLIST.IBISYA_KAKUGAWARI) {
                                         setType(OPLIST.IBISYA, (int)Pturn.Sente, 0);
                                     }
@@ -139,37 +139,41 @@ namespace TacoWin2 {
                                 break;
                             case 2:    // 3筋 (袖飛車？)
                                 if (((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (2 >> 2)] >> ((2 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (2 >> 2)] >> ((2 & 3) << 3) & 0xFF) < 0x60)) {
+                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (2 >> 2)] >> ((2 & 3) << 3) & 0x0F) < 0x06)) {
                                     setType(OPLIST.SODEBISYA, (int)Pturn.Sente, 0);
                                 }
                                 break;
                             case 3:    // 4筋 (右四間飛車？)
                                 if (((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (3 >> 2)] >> ((3 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (3 >> 2)] >> ((3 & 3) << 3) & 0xFF) < 0x60)) {
+                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (3 >> 2)] >> ((3 & 3) << 3) & 0x0F) < 0x06)) {
                                     setType(OPLIST.MIGISIKENBISYA, (int)Pturn.Sente, 0);
                                 }
                                 break;
                             case 4:    // 5筋 (中飛車？)
                                 if (((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (4 >> 2)] >> ((4 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (4 >> 2)] >> ((4 & 3) << 3) & 0xFF) < 0x60)) {
+                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (4 >> 2)] >> ((4 & 3) << 3) & 0x0F) < 0x06)) {
                                     setType(OPLIST.NAKBISYA, (int)Pturn.Sente, 0);
                                 }
                                 break;
                             case 5:    // 6筋 (四間飛車？)
                                 if (((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (5 >> 2)] >> ((5 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (5 >> 2)] >> ((5 & 3) << 3) & 0xFF) < 0x60)) {
+                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (5 >> 2)] >> ((5 & 3) << 3) & 0x0F) < 0x06)) {
                                     setType(OPLIST.SIKENBISYA, (int)Pturn.Sente, 0);
                                 }
                                 break;
                             case 6:    // 7筋 (三間飛車？)
                                 if (((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (6 >> 2)] >> ((6 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (6 >> 2)] >> ((6 & 3) << 3) & 0xFF) < 0x60)) {
+                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (6 >> 2)] >> ((6 & 3) << 3) & 0x0F) < 0x06)) {
+                                    setType(OPLIST.SANKENBISYA, (int)Pturn.Sente, 0);
+                                }
+                                if (((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (6 >> 2)] >> ((6 & 3) << 3) & 0xFF) == 0xFF) ||
+                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (6 >> 2)] >> ((6 & 3) << 3) & 0x0F) < 0x06)) {
                                     setType(OPLIST.SANKENBISYA, (int)Pturn.Sente, 0);
                                 }
                                 break;
                             case 7:    // 8筋 (向かい飛車？)
                                 if (((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (7 >> 2)] >> ((7 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (7 >> 2)] >> ((7 & 3) << 3) & 0xFF) < 0x60)) {
+                                    ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (7 >> 2)] >> ((7 & 3) << 3) & 0x0F) < 0x06)) {
                                     setType(OPLIST.MUKAIBISYA, (int)Pturn.Sente, 0);
                                 }
                                 break;
@@ -187,48 +191,45 @@ namespace TacoWin2 {
                                 break;
                             case 7:    // 2筋 (居飛車？)
                                 if (((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (7 >> 2)] >> ((7 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (7 >> 2)] >> ((7 & 3) << 3) & 0xFF) > 0x20)) {
+                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (7 >> 2)] >> ((7 & 3) << 3) & 0x0F) > 0x02)) {
                                     if (mV[goTeNum].type != OPLIST.IBISYA_KAKUGAWARI) {
                                         setType(OPLIST.IBISYA, (int)Pturn.Gote, 0);
-                                    }
-                                    if ((ban.data[((int)Pturn.Sente << 6) + ban.hand + (int)ktype.Kakugyou] > 0) && (ban.data[((int)Pturn.Gote << 6) + ban.hand + (int)ktype.Kakugyou] > 0)) {
-                                        setType(OPLIST.IBISYA_KAKUGAWARI, (int)Pturn.Gote, 0);
                                     }
                                 }
                                 break;
                             case 6:    // 3筋 (袖飛車？)
                                 if (((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (6 >> 2)] >> ((6 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (6 >> 2)] >> ((6 & 3) << 3) & 0xFF) > 0x20)) {
+                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (6 >> 2)] >> ((6 & 3) << 3) & 0x0F) > 0x02)) {
                                     setType(OPLIST.SODEBISYA, (int)Pturn.Gote, 0);
                                 }
                                 break;
                             case 5:    // 4筋 (右四間飛車？)
                                 if (((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (5 >> 2)] >> ((5 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (5 >> 2)] >> ((5 & 3) << 3) & 0xFF) > 0x20)) {
+                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (5 >> 2)] >> ((5 & 3) << 3) & 0x0F) > 0x02)) {
                                     setType(OPLIST.MIGISIKENBISYA, (int)Pturn.Gote, 0);
                                 }
                                 break;
                             case 4:    // 5筋 (中飛車？)
                                 if (((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (4 >> 2)] >> ((4 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (4 >> 2)] >> ((4 & 3) << 3) & 0xFF) > 0x20)) {
+                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (4 >> 2)] >> ((4 & 3) << 3) & 0x0F) > 0x02)) {
                                     setType(OPLIST.NAKBISYA, (int)Pturn.Gote, 0);
                                 }
                                 break;
                             case 3:    // 6筋 (四間飛車？)
                                 if (((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (3 >> 2)] >> ((3 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (3 >> 2)] >> ((3 & 3) << 3) & 0xFF) > 0x20)) {
+                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (3 >> 2)] >> ((3 & 3) << 3) & 0x0F) > 0x02)) {
                                     setType(OPLIST.SIKENBISYA, (int)Pturn.Gote, 0);
                                 }
                                 break;
                             case 2:    // 7筋 (三間飛車？)
                                 if (((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (2 >> 2)] >> ((2 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (2 >> 2)] >> ((2 & 3) << 3) & 0xFF) > 0x20)) {
+                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (2 >> 2)] >> ((2 & 3) << 3) & 0x0F) > 0x02)) {
                                     setType(OPLIST.SANKENBISYA, (int)Pturn.Gote, 0);
                                 }
                                 break;
                             case 1:    // 8筋 (向かい飛車？)
                                 if (((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (1 >> 2)] >> ((1 & 3) << 3) & 0xFF) == 0xFF) ||
-                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (1 >> 2)] >> ((1 & 3) << 3) & 0xFF) > 0x20)) {
+                                    ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (1 >> 2)] >> ((1 & 3) << 3) & 0x0F) > 0x02)) {
                                     setType(OPLIST.MUKAIBISYA, (int)Pturn.Gote, 0);
                                 }
                                 break;
