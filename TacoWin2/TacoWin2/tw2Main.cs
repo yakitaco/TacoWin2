@@ -168,7 +168,7 @@ namespace TacoWin2 {
                 } else if ((str.Length > 1) && (str.Substring(0, 2) == "go")) {
                     aic.input(str);
 
-                    Console.WriteLine("info string Yoroshiku Onegai Shimasu...");
+                    //Console.WriteLine("info string Yoroshiku Onegai Shimasu...");
 
                     string[] arr = str.Split(' ');
 
