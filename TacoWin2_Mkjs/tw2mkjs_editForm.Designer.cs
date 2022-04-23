@@ -498,6 +498,7 @@
             // tw2mkjs_editForm
             // 
             this.AcceptButton = this.NextBtn;
+            this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.BackBtn;
@@ -536,6 +537,8 @@
             this.Name = "tw2mkjs_editForm";
             this.Text = "TacoWin2 Standard Move Editor 1.1";
             this.Load += new System.EventHandler(this.tw2mkjs_editForm_Load);
+            this.DragDrop += new System.Windows.Forms.DragEventHandler(this.FleIpt_DragDrop);
+            this.DragEnter += new System.Windows.Forms.DragEventHandler(this.FleIpt_DragEnter);
             ((System.ComponentModel.ISupportInitialize)(this.OxIpt)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.OyIpt)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.NxIpt)).EndInit();
