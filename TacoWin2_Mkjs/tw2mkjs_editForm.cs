@@ -141,7 +141,7 @@ namespace TacoWin2_Mkjs {
                 string ny = tw2mkjs_csaIO.int2Dafb((int)NyIpt.Value - 1);
                 string nari;
                 if (NariChk.Checked == true) {
-                    nari = "*";
+                    nari = "+";
                 } else {
                     nari = "";
                 }
@@ -155,8 +155,8 @@ namespace TacoWin2_Mkjs {
                 int val = ((int)ValIpt.Value);
                 int weight = ((int)WeyIpt.Value);
                 int type = ((int)TpeIpt.Value);
-
-                NextLst.Items.Add(turn + ox.ToString() + oy.ToString() + nx.ToString() + ny.ToString() + nari + "/" + val + "/" + weight + "/" + type);
+                string sstr = tw2usiIO.pos2usi((byte)((((int)OxIpt.Value - 1) << 4) + OyIpt.Value - 1), (byte)((((int)NxIpt.Value - 1) << 4) + NyIpt.Value - 1), NariChk.Checked);
+                NextLst.Items.Add(turn + sstr + "/" + val + "/" + weight + "/" + type);
 
                 string oki = "";
                 string mochi = "";
@@ -188,7 +188,7 @@ namespace TacoWin2_Mkjs {
                     string ny = tw2mkjs_csaIO.int2Dafb((int)NyIpt.Value - 1);
                     string nari;
                     if (NariChk.Checked == true) {
-                        nari = "*";
+                        nari = "+";
                     } else {
                         nari = "";
                     }
@@ -202,8 +202,8 @@ namespace TacoWin2_Mkjs {
                     int val = ((int)ValIpt.Value);
                     int weight = ((int)WeyIpt.Value);
                     int type = ((int)TpeIpt.Value);
-
-                    NextLst.Items[NextLst.SelectedIndex] = turn + ox.ToString() + oy.ToString() + nx.ToString() + ny.ToString() + nari + "/" + val + "/" + weight + "/" + type;
+                    string sstr = tw2usiIO.pos2usi((byte)((((int)OxIpt.Value - 1) << 4) + OyIpt.Value - 1), (byte)((((int)NxIpt.Value - 1) << 4) + NyIpt.Value - 1), NariChk.Checked);
+                    NextLst.Items[NextLst.SelectedIndex] = turn + sstr + "/" + val + "/" + weight + "/" + type;
 
                     string oki = "";
                     string mochi = "";
@@ -301,7 +301,7 @@ namespace TacoWin2_Mkjs {
         }
 
         private void FleIpt_DragEnter(object sender, DragEventArgs e) {
-            e.Effect = DragDropEffects.All;
+            e.Effect = DragDropEffects.Copy;
         }
 
         private void FleIpt_DragDrop(object sender, DragEventArgs e) {
