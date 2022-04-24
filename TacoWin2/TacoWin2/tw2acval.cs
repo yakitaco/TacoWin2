@@ -34,10 +34,10 @@ namespace TacoWin2 {
                         if ((ndx == 0) || (ndy == 0)) val += 20;
                         break;
                     case ktype.Kakugyou:
-                        int odx = pturn.dx(turn, aOuPos, oPos);
-                        int ody = pturn.dy(turn, aOuPos, oPos);
-                        int ndx = pturn.dx(turn, aOuPos, nPos);
-                        int ndy = pturn.dy(turn, aOuPos, nPos);
+                        odx = pturn.dx(turn, aOuPos, oPos);
+                        ody = pturn.dy(turn, aOuPos, oPos);
+                        ndx = pturn.dx(turn, aOuPos, nPos);
+                        ndy = pturn.dy(turn, aOuPos, nPos);
                         val = (Math.Abs(odx) + Math.Abs(ody) - Math.Abs(ndx) - Math.Abs(ndy));
                         if ((odx == ody) || (odx == -ody)) val -= 20;
                         if ((ndx == ndy) || (ndx == -ndy)) val += 20;

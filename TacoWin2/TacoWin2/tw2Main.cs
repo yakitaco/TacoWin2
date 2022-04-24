@@ -88,7 +88,7 @@ namespace TacoWin2 {
                 } else if ((str.Length == 3) && (str.Substring(0, 3) == "usi")) {
                     aic.input(str);
 
-                    Console.WriteLine("id name たこウインナー 2.2.0");
+                    Console.WriteLine("id name たこウインナー 2.3.0");
                     Console.WriteLine("id authoer YAKITACO");
                     Console.WriteLine("option name BookFile type string default default.ytj");
                     Console.WriteLine("option name UseBook type check default true");
@@ -278,15 +278,15 @@ namespace TacoWin2 {
                             // 詰みが見えてない場合のみ先読み実施
                             aiTaskMain = Task.Run(() => {
                                 if (nokori < 120000) {
-                                    return ai.thinkMove(turn, ban, 4, 0, 0, 5, 5);
+                                    return ai.thinkMove(turn, ban, 5, 1, 60, 5, 5);
                                 } else if ((tesuu < 30) || (nokori < 180000)) {
-                                    return ai.thinkMove(turn, ban, 5, 0, 0, 7, 5);
+                                    return ai.thinkMove(turn, ban, 5, 1, 60, 7, 5);
                                 } else if ((tesuu < 40) || (nokori < 300000)) {
-                                    return ai.thinkMove(turn, ban, 5, 1, 16, 9, 5);
+                                    return ai.thinkMove(turn, ban, 5, 1, 60, 9, 5);
                                 } else if ((tesuu < 50) || (nokori < 450000)) {
-                                    return ai.thinkMove(turn, ban, 5, 1, 20, 11, 5);
+                                    return ai.thinkMove(turn, ban, 5, 1, 60, 11, 5);
                                 } else {
-                                    return ai.thinkMove(turn, ban, 5, 1, 25, 11, 5);
+                                    return ai.thinkMove(turn, ban, 5, 1, 60, 11, 5);
                                 }
                             });
                         }
@@ -349,7 +349,18 @@ namespace TacoWin2 {
                         //+ usiIO.pos2usi(mateMove[mateMovePos].ko, mateMove[0]) + " ponder " + usiIO.pos2usi(mateMove[mateMovePos+1].ko, mateMove[1]));
                         mateMovePos += 2;
                     } else {
-
+                        if (nokori < 120000) {
+                            ai.deepWidth = 0;
+                        } else if ((tesuu < 30) || (nokori < 180000)) {
+                            ai.deepWidth = 0;
+                        } else if ((tesuu < 40) || (nokori < 300000)) {
+                            ai.deepWidth = 10;
+                        } else if ((tesuu < 50) || (nokori < 450000)) {
+                            ai.deepWidth = 16;
+                        } else {
+                            tw2stval.setStage(1);
+                            ai.deepWidth = 20;
+                        }
                         if (nokori > 3600000) {
                             Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
                         }
