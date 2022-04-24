@@ -295,7 +295,7 @@ namespace TacoWin2 {
                         //(kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 8);
 
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15);
+                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15, 60);
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
 
                         if (best < 999) {
