@@ -222,7 +222,7 @@ namespace TacoWin2 {
             if (mateDepth > 0) {
                 int ret;
                 DebugForm.instance.addMsg("thinkMateMove" + mateDepth);
-                (bestmove, ret) = thinkMateMove(turn, ban, mateDepth);
+                (bestmove, ret) = thinkMateMove(turn, ban, mateDepth, 30);
 
                 if (ret < 999) {
                     diagTbl retTbl = new diagTbl(ret, ban);
