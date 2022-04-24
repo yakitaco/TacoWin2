@@ -94,7 +94,7 @@ namespace TacoWin2 {
         Object lockObj = new Object();
         Object lockObj_hash = new Object();
         int mateDepMax = 0;
-
+        public int deepWidth = 0;
         static tw2ai() {
             // thread同時数取得
             ThreadPool.GetMinThreads(out workMin, out ioMin);
@@ -209,7 +209,8 @@ namespace TacoWin2 {
 
 
         //int depMax;
-        public (List<diagTbl>, int) thinkMove(Pturn turn, ban ban, int depth, int deepMax, int deepWidth, int mateDepth, int retMax) {
+        public (List<diagTbl>, int) thinkMove(Pturn turn, ban ban, int depth, int deepMax, int deepsWidth, int mateDepth, int retMax) {
+            deepWidth = deepsWidth;
             int best = -999999;
             int beta = 999999;
             int alpha = -999999;
@@ -381,7 +382,7 @@ namespace TacoWin2 {
 
                 mList.freeAlist(aid);
 
-                if ((stopFlg) || (deepMax < 1) || (deepList[0].Count <= retMax) || (best < -5000) || (best > 5000)) {
+                if ((stopFlg) || (deepMax < 1) || (deepWidth < 1) || (deepList[0].Count <= retMax) || (best < -5000) || (best > 5000)) {
                     if (deepList[0].Count > retMax) deepList[0].RemoveRange(retMax, deepList[0].Count - retMax);
                     return (deepList[0], best);
                 }
@@ -585,6 +586,12 @@ namespace TacoWin2 {
                     }
 
                     if (deepMax == 1) {
+                        if ((deepWidth < 1) || (resList.Count < retMax)) {
+                            if (deepList[0].Count > retMax) deepList[0].RemoveRange(retMax, deepList[0].Count - retMax);
+                            return (deepList[0], best);
+                        }
+
+
                         for (int i = 0; i < resList.Count; i++) {
                             string str = "";
                             for (int j = 0; resList[i].kmv[j].op > 0 || resList[i].kmv[j].np > 0; j++) {
