@@ -207,10 +207,45 @@ namespace TacoWin2 {
             }
         }
 
+        System.Timers.Timer mateTimer = null;
+        System.Timers.Timer timer = null;
+        public bool timeouted = false;
+
+        public void startTimer(int time, int mateTime) {
+            timer = new System.Timers.Timer();
+            timer.AutoReset = false;               // 1回しか呼ばない場合はfalse
+            timer.Interval = time * 1000;          // Intervalの設定単位はミリ秒
+            timer.Elapsed += timer_Elapsed;        // タイマイベント処理(時間経過後の処理)を登録
+            timer.Enabled = true;                  // <-- これを呼ばないとタイマは開始しません
+
+            mateTimer = new System.Timers.Timer();
+            mateTimer.AutoReset = false;                // 1回しか呼ばない場合はfalse
+            mateTimer.Interval = mateTime * 1000;       // Intervalの設定単位はミリ秒
+            mateTimer.Elapsed += mateTimer_Elapsed;     // タイマイベント処理(時間経過後の処理)を登録
+            mateTimer.Enabled = true;                   // <-- これを呼ばないとタイマは開始しません
+        }
+
+        private void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e) {
+            DebugForm.instance.addMsg("TIMEOUT");
+            stopFlg = true;
+            timeouted = true;
+        }
+
+        private void mateTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e) {
+            DebugForm.instance.addMsg("MATE TIMEOUT");
+            timeOutFlg = true;
+        }
+
+        public void stopTimer() {
+            timer.Stop();
+            mateTimer.Stop();
+        }
+
 
         //int depMax;
         public (List<diagTbl>, int) thinkMove(Pturn turn, ban ban, int depth, int deepMax, int deepsWidth, int mateDepth, int retMax) {
             deepWidth = deepsWidth;
+            timeouted = false;
             int best = -999999;
             int beta = 999999;
             int alpha = -999999;
@@ -221,8 +256,9 @@ namespace TacoWin2 {
             /* 詰み */
             if (mateDepth > 0) {
                 int ret;
-                DebugForm.instance.addMsg("thinkMateMove" + mateDepth);
-                (bestmove, ret) = thinkMateMove(turn, ban, mateDepth, 30);
+                DebugForm.instance.addMsg("thinkMateMove=" + mateDepth);
+                (bestmove, ret) = thinkMateMove(turn, ban, mateDepth);
+                mateTimer.Stop();
 
                 if (ret < 999) {
                     diagTbl retTbl = new diagTbl(ret, ban);
@@ -284,8 +320,11 @@ namespace TacoWin2 {
                 (int vla, int sp) = getAllMoveList(ref ban, turn, moveList);
 
                 //手数が多い場合
+                if ((vla > 200) && (deepMax > 0)) deepMax = 0;
+                if ((vla > 150) && (deepWidth > 10)) deepMax = 10;
                 if ((vla > 150) && (depth > 5)) depth = 5;
                 if ((vla > 100) && (depth > 6)) depth = 6;
+
                 DebugForm.instance.addMsg("tenum = " + vla + "/ depMax = " + depth + "/ workMin =" + workMin);
 
                 Parallel.For(0, workMin, id => {
@@ -294,7 +333,7 @@ namespace TacoWin2 {
                     while (true) {
 
                         lock (lockObj) {
-                            if (vla <= teCnt) break;
+                            if ((vla <= teCnt) || (stopFlg)) break;
                             cnt_local = teCnt + sp;
                             teCnt++;
                         }
@@ -586,11 +625,10 @@ namespace TacoWin2 {
                     }
 
                     if (deepMax == 1) {
-                        if ((deepWidth < 1) || (resList.Count < retMax)) {
+                        if (((stopFlg) || (deepWidth < 1)) && (resList.Count < retMax)) {
                             if (deepList[0].Count > retMax) deepList[0].RemoveRange(retMax, deepList[0].Count - retMax);
                             return (deepList[0], best);
                         }
-
 
                         for (int i = 0; i < resList.Count; i++) {
                             string str = "";
@@ -1092,23 +1130,23 @@ namespace TacoWin2 {
                                             break;
                                         }
                                     }
-                                    if (kret == 0) val-=500;
+                                    if (kret == 0) val -= 500;
                                     break;
-                            
+
                                 case (int)ktype.Keima:
                                     if ((chkMoveable(ref ban, (byte)((i << 4) + j), 0x12, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 + 0x02, turn) < 1)) val -= 500;
                                     break;
-                            
+
                                 case (int)ktype.Ginsyou:
                                     if ((chkMoveable(ref ban, (byte)((i << 4) + j), 0x10 + 0x01, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), 0x00 + 0x01, turn) < 1) &&
                                         (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 + 0x01, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), 0x10 - 0x01, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 - 0x01, turn) < 1)) val -= 500;
                                     break;
-                            
+
                                 case (int)ktype.Kinsyou:
                                     if ((chkMoveable(ref ban, (byte)((i << 4) + j), 0x10 + 0x01, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), 0x00 + 0x01, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 + 0x01, turn) < 1) &&
                                          (chkMoveable(ref ban, (byte)((i << 4) + j), 0x10 + 0x00, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), -0x10 + 0x00, turn) < 1) && (chkMoveable(ref ban, (byte)((i << 4) + j), 0x00 - 0x10, turn) < 1)) val -= 500;
                                     break;
-                            
+
                                 default:
                                     break;
                             }

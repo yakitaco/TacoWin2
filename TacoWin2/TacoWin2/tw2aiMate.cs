@@ -1,11 +1,10 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using TacoWin2_BanInfo;
 
 namespace TacoWin2 {
     partial class tw2ai {
 
-        static bool timeOutFlg = false;
+        bool timeOutFlg = false;
 
         public enum mType : byte {
             NoNari = 0x00, //不成・成済
@@ -31,11 +30,6 @@ namespace TacoWin2 {
             return (null, 0);
         }
 
-        private static void Timer1_Elapsed(object sender, System.Timers.ElapsedEventArgs e) {
-            DebugForm.instance.addMsg("TIMEOUT");
-            timeOutFlg = true;
-        }
-
         /// <summary>
         /// 詰将棋思考メイン
         /// </summary>
@@ -43,17 +37,8 @@ namespace TacoWin2 {
         /// <param name="ban">盤情報</param>
         /// <param name="depth">深さ</param>
         /// <returns>kmove[] 詰め手筋 int 999 手筋なし 1-詰め数</returns>
-        public (kmove[], int) thinkMateMove(Pturn turn, ban ban, int depth, int timeOut) {
+        public (kmove[], int) thinkMateMove(Pturn turn, ban ban, int depth) {
             timeOutFlg = false;
-
-            System.Timers.Timer mateTimer = new System.Timers.Timer();
-            mateTimer.AutoReset = false;               // 1回しか呼ばない場合はfalse
-            mateTimer.Interval = timeOut * 1000;       // Intervalの設定単位はミリ秒
-            mateTimer.Elapsed += Timer1_Elapsed;       // タイマイベント処理(時間経過後の処理)を登録
-            mateTimer.Enabled = true;                  // <-- これを呼ばないとタイマは開始しません
-
-
-
 
             int best = 999;
             mateDepMax = depth;
@@ -135,7 +120,6 @@ namespace TacoWin2 {
 
                 mList.freeAlist(aid);
             }
-            mateTimer.Stop();
 
             DebugForm.instance.addMsg("FIN:" + best);
 
@@ -158,7 +142,7 @@ namespace TacoWin2 {
             bestMoveList = null;
             int teNum = 0;
 
-            if ((stopFlg)||(timeOutFlg)) {
+            if ((stopFlg) || (timeOutFlg)) {
                 bestMoveList = new kmove[30];
                 return 0;
             }
