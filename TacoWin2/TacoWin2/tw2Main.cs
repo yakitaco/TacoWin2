@@ -301,7 +301,7 @@ namespace TacoWin2 {
                         //(kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 8);
 
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15);
+                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 11);
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
 
                         if (best < 999) {
@@ -378,7 +378,7 @@ namespace TacoWin2 {
                         Task.Run(() => {
                             (List<diagTbl> retMove, int best) = aiTaskMain.Result;
                             thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
-                            if (ai.stopFlg == false) {
+                            if ((ai.timeouted == true) || (ai.stopFlg == false)) {
                                 kmove[] km = null;
 
                                 if (best < -10000) {
@@ -457,8 +457,8 @@ namespace TacoWin2 {
                         DebugForm.instance.addMsg($"TIME : {ts}");
                     } else if (arr[1] == "matedef") {
                         kmove[] km = new kmove[100];
-                        int rets = ai.getAllDefList(ref ban, turn, km, (byte)Convert.ToInt32(arr[2]));
-                        for (int i = 0; i < rets; i++) {
+                        (int rets, int sp) = ai.getAllDefList(ref ban, turn, km, (byte)Convert.ToInt32(arr[2]));
+                        for (int i = sp; i < rets + sp; i++) {
                             if (km[i].nari == true) {
                                 DebugForm.instance.addMsg("MV: " + (km[i].op + 0x11).ToString("X2") + "-" + (km[i].np + 0x11).ToString("X2") + "*");
                             } else {

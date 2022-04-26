@@ -513,6 +513,7 @@ namespace TacoWin2 {
 
                         });
                         if (stopFlg) {
+                            if (deepList[0].Count > retMax) deepList[0].RemoveRange(retMax, deepList[0].Count - retMax);
                             return (deepList[0], best);
                         }
 
@@ -521,8 +522,15 @@ namespace TacoWin2 {
                         Pturn tmpTurn2 = pturn.aturn(tmpTurn);
 
                         if (deepMax == 1) {
-                            tmpList[0].val = tmpList[0].tmpVal - tmpList[0].val;
-                            addDeepList(resList, tmpList[0], 16);
+                            if (tmpList.Count > 0) {
+                                tmpList[0].val = tmpList[0].tmpVal - tmpList[0].val;
+                                string str = "";
+                                for (int j = 0; tmpList[0].kmv[j].op > 0 || tmpList[0].kmv[j].np > 0; j++) {
+                                    str += ((tmpList[0].kmv[j].op + 0x11).ToString("X2")) + "-" + ((tmpList[0].kmv[j].np + 0x11).ToString("X2")) + ":" + tmpList[0].kmv[j].val + "," + tmpList[0].kmv[j].aval + "/";
+                                }
+                                DebugForm.instance.addMsg("DEEP[0][" + WidthCnt + "]" + tmpList[0].tmpVal + "/" + tmpList[0].val + " : " + str);
+                                addDeepList(resList, tmpList[0], 16);
+                            }
                             continue;
                         }
 
@@ -588,6 +596,7 @@ namespace TacoWin2 {
 
                             });
                             if (stopFlg) {
+                                if (deepList[0].Count > retMax) deepList[0].RemoveRange(retMax, deepList[0].Count - retMax);
                                 return (deepList[0], best);
                             }
 
@@ -631,11 +640,11 @@ namespace TacoWin2 {
                         }
 
                         for (int i = 0; i < resList.Count; i++) {
-                            string str = "";
-                            for (int j = 0; resList[i].kmv[j].op > 0 || resList[i].kmv[j].np > 0; j++) {
-                                str += ((resList[i].kmv[j].op + 0x11).ToString("X2")) + "-" + ((resList[i].kmv[j].np + 0x11).ToString("X2")) + ":" + resList[i].kmv[j].val + "," + resList[i].kmv[j].aval + "/";
-                            }
-                            DebugForm.instance.addMsg("RETLIST[" + i + "]" + resList[i].val + " : " + str);
+                            //string str = "";
+                            //for (int j = 0; resList[i].kmv[j].op > 0 || resList[i].kmv[j].np > 0; j++) {
+                            //    str += ((resList[i].kmv[j].op + 0x11).ToString("X2")) + "-" + ((resList[i].kmv[j].np + 0x11).ToString("X2")) + ":" + resList[i].kmv[j].val + "," + resList[i].kmv[j].aval + "/";
+                            //}
+                            //DebugForm.instance.addMsg("RETLIST[" + i + "]" + resList[i].val + " : " + str);
                         }
                         if (resList.Count > retMax) resList.RemoveRange(retMax, resList.Count - retMax);
                         return (resList, resList[0].val);
