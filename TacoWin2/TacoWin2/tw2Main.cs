@@ -182,15 +182,20 @@ namespace TacoWin2 {
                         sw.Restart();
                         aiTaskMain = Task.Run(() => {
                             if (nokori < 120000) {
+                                ai.startTimer(20, 10);
                                 return ai.thinkMove(turn, ban, 4, 0, 0, 5, 5);
                             } else if ((tesuu < 30) || (nokori < 180000)) {
+                                ai.startTimer(20, 10);
                                 return ai.thinkMove(turn, ban, 5, 0, 0, 7, 5);
                             } else if ((tesuu < 40) || (nokori < 300000)) {
+                                ai.startTimer(20, 10);
                                 return ai.thinkMove(turn, ban, 5, 1, 10, 9, 5);
                             } else if ((tesuu < 50) || (nokori < 450000)) {
+                                ai.startTimer(30, 10);
                                 return ai.thinkMove(turn, ban, 5, 1, 16, 11, 5);
                             } else {
                                 tw2stval.setStage(1);
+                                ai.startTimer(30, 10);
                                 return ai.thinkMove(turn, ban, 5, 1, 20, 11, 5);
                             }
                         });
@@ -204,7 +209,7 @@ namespace TacoWin2 {
                             thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
                             string sendStr;
                             kmove[] km = null;
-                            if (ai.stopFlg == false) {
+                            if ((ai.timeouted == true)||(ai.stopFlg == false)) {
 
                                 if (best < -10000) {
                                     sendStr = "bestmove resign";
@@ -258,6 +263,7 @@ namespace TacoWin2 {
                             ai.stopFlg = false;
                             ai.resetHash();
                             aic.clear();
+                            ai.stopTimer();
                         });
 
                         //foreach (var a in aic.mList) {
@@ -295,7 +301,7 @@ namespace TacoWin2 {
                         //(kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 8);
 
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15, 60);
+                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15);
                         thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
 
                         if (best < 999) {
@@ -350,14 +356,19 @@ namespace TacoWin2 {
                         mateMovePos += 2;
                     } else {
                         if (nokori < 120000) {
+                            ai.startTimer(30, 30);
                             ai.deepWidth = 0;
                         } else if ((tesuu < 30) || (nokori < 180000)) {
+                            ai.startTimer(30, 20);
                             ai.deepWidth = 0;
                         } else if ((tesuu < 40) || (nokori < 300000)) {
+                            ai.startTimer(30, 20);
                             ai.deepWidth = 10;
                         } else if ((tesuu < 50) || (nokori < 450000)) {
+                            ai.startTimer(30, 10);
                             ai.deepWidth = 16;
                         } else {
+                            ai.startTimer(30, 10);
                             tw2stval.setStage(1);
                             ai.deepWidth = 20;
                         }
@@ -411,6 +422,7 @@ namespace TacoWin2 {
                             ai.stopFlg = false;
                             ai.resetHash();
                             aic.clear();
+                            ai.stopTimer();
                         });
                     }
                 } else if ((str.Length > 4) && (str.Substring(0, 4) == "test")) {
@@ -459,8 +471,22 @@ namespace TacoWin2 {
                     if (aiTaskMain != null) ai.stopFlg = true;
 
                     (List<diagTbl> retMove, int best) = aiTaskMain.Result;
+                    if (retMove.Count > 0) {
+                        string sendStr;
+                        kmove[] km = retMove[0].kmv;
 
-                    Console.WriteLine("bestmove 4a3b");  //標準出力
+                        if ((km[1].op > 0) || (km[1].np > 0)) {
+                            sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op, km[1].np, km[1].nari);
+                        } else {
+                            sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari);
+                        }
+                        Console.WriteLine(sendStr);
+                        DebugForm.instance.addMsg("[SEND]" + sendStr);
+
+                    } else {
+                        Console.WriteLine("bestmove 4a3b");  //標準出力
+                    }
+
 
                     ai.stopFlg = false;
 
@@ -468,11 +494,13 @@ namespace TacoWin2 {
                     mList.reset();
                     ai.resetHash();
                     aic.clear();
+                    ai.stopTimer();
 
                 } else if ((str.Length > 8) && (str.Substring(0, 8) == "gameover")) {
                     if (aiTaskMain != null) ai.stopFlg = true;
                     (List<diagTbl> retMove, int best) = aiTaskMain.Result;
                     ai.stopFlg = false;
+                    ai.stopTimer();
                     if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
                     inGame = 2;
 
@@ -480,6 +508,7 @@ namespace TacoWin2 {
                     if (aiTaskMain != null) ai.stopFlg = true;
                     (List<diagTbl> retMove, int best) = aiTaskMain.Result;
                     ai.stopFlg = false;
+                    ai.stopTimer();
                     if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
 
                 } else {
@@ -493,13 +522,13 @@ namespace TacoWin2 {
 
         private static kmove[] compBestMove(List<diagTbl> dlist, tw2aiChild aic) {
             kmove[] ret = null;
-            int best = - 99999;
+            int best = -99999;
 
             if ((dlist.Count == 1) || (aic.mList.Count < 1)) return dlist[0].kmv;
             foreach (var dCnt in dlist) {
                 int i;
-                for (i = 0; i< aic.mList.Count ; i++) {
-                    if ((dCnt.kmv[0].op == aic.mList[i].op)&&(dCnt.kmv[0].np == aic.mList[i].np) && (dCnt.kmv[0].nari == aic.mList[i].nari)) {
+                for (i = 0; i < aic.mList.Count; i++) {
+                    if ((dCnt.kmv[0].op == aic.mList[i].op) && (dCnt.kmv[0].np == aic.mList[i].np) && (dCnt.kmv[0].nari == aic.mList[i].nari)) {
                         DebugForm.instance.addMsg("[cval]" + (aic.mList[i].op + 0x11).ToString("X2") + "-" + (aic.mList[i].np + 0x11).ToString("X2") + ":" + aic.mList[i].val);
                         break;
                     }
