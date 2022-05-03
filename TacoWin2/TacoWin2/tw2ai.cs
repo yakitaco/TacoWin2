@@ -56,19 +56,19 @@ namespace TacoWin2 {
         /// 各駒の固定価値
         /// </summary>
         public static int[,] kpVal = {
-        { 0  , 0    },    //なし
-        { 20 , 100  },    //歩兵
-        { 30 , 100  },    //香車
-        { 30 , 100  },    //桂馬
-        { 40 , 110  },    //銀将
-        { 150, 200  },    //飛車
-        { 100, 150  },    //角行
-        { 50 , 120  },    //金将
+        { 0   , 0    },   //なし
+        { 50  , 100  },   //歩兵
+        { 120 , 170  },   //香車
+        { 150 , 200  },   //桂馬
+        { 200 , 300  },   //銀将
+        { 350 , 500  },   //飛車
+        { 300 , 400  },   //角行
+        { 250 , 350  },   //金将
         {99999, 99999},   //王将
         {99999, 99999},   //と金(成歩兵)
-        {99999, 99999}, //成香
-        {99999, 99999},  //成桂
-        {99999, 99999},  //成銀
+        {99999, 99999},   //成香
+        {99999, 99999},   //成桂
+        {99999, 99999},   //成銀
         {99999, 99999},   //竜王
         {99999, 99999},   //竜馬
     };
@@ -321,7 +321,7 @@ namespace TacoWin2 {
 
                 //手数が多い場合
                 if ((vla > 200) && (deepMax > 0)) deepMax = 0;
-                if ((vla > 150) && (deepWidth > 10)) deepMax = 10;
+                //if ((vla > 150) && (deepWidth > 16)) deepWidth = 16;
                 if ((vla > 150) && (depth > 5)) depth = 5;
                 if ((vla > 100) && (depth > 6)) depth = 6;
 
@@ -393,7 +393,7 @@ namespace TacoWin2 {
                                 str += ((retList[i].op + 0x11).ToString("X2")) + "-" + ((retList[i].np + 0x11).ToString("X2")) + ":" + retList[i].val + "," + retList[i].aval + "/";
                             }
 
-                            DebugForm.instance.addMsg("TASK[" + Task.CurrentId + ":" + cnt_local + "]MV[" + retVal + "]" + str);
+                            DebugForm.instance.addMsg("think[" + Task.CurrentId + ":" + cnt_local + "]MV[" + retVal + "]" + str);
 
                             tbl.val = retVal; // TODO : retVal要削除
                             tbl.kmv = retList;  // TODO : retList要削除
@@ -445,13 +445,34 @@ namespace TacoWin2 {
                     //}
                     //if (tmpCnt == deepList[deepCnt].Count) break; // 最後まで同じなら次の手は確定
 
-                    for (int WidthCnt = 0; WidthCnt < deepWidth && WidthCnt < deepList[deepCnt].Count; WidthCnt++) {
-
+                    for (int WidthCnt = 0; (WidthCnt < deepList[deepCnt].Count) && ((WidthCnt < deepWidth) || ((resList.Count > 0) && (resList[0].val < -5000))); WidthCnt++) {
+                        alpha = -999999;
+                        beta = 999999;
                         List<diagTbl> tmpList = new List<diagTbl>();
                         aid = mList.assignAlist(out moveList);
                         (vla, sp) = getAllMoveList(ref deepList[deepCnt][WidthCnt].ban, tmpTurn, moveList);
 
-                        teCnt = 0; //手の進捗
+                        bool sameflag = false;
+                        for (int tmptmpCnt = 0; tmptmpCnt < WidthCnt; tmptmpCnt++) {
+                            sameflag = true;
+                            for (int tmptmp2Cnt = 1; deepList[deepCnt][WidthCnt].kmv[tmptmp2Cnt].op != 0 && deepList[deepCnt][WidthCnt].kmv[tmptmp2Cnt].np != 0; tmptmp2Cnt++) {
+                                if (deepList[deepCnt][WidthCnt].kmv[tmptmp2Cnt].op != deepList[deepCnt][tmptmpCnt].kmv[tmptmp2Cnt].op) {
+                                    sameflag = false;
+                                    break;
+                                }
+                                if (deepList[deepCnt][WidthCnt].kmv[tmptmp2Cnt].np != deepList[deepCnt][tmptmpCnt].kmv[tmptmp2Cnt].np) {
+                                    sameflag = false;
+                                    break;
+                                }
+                            }
+                            if (sameflag == true) break;
+                        }
+                        if (sameflag == true) {
+                            deepWidth++;
+                            continue;
+                        }
+
+                            teCnt = 0; //手の進捗
 
                         Parallel.For(0, workMin, id => {
                             int cnt_local;
@@ -528,7 +549,7 @@ namespace TacoWin2 {
                                 for (int j = 0; tmpList[0].kmv[j].op > 0 || tmpList[0].kmv[j].np > 0; j++) {
                                     str += ((tmpList[0].kmv[j].op + 0x11).ToString("X2")) + "-" + ((tmpList[0].kmv[j].np + 0x11).ToString("X2")) + ":" + tmpList[0].kmv[j].val + "," + tmpList[0].kmv[j].aval + "/";
                                 }
-                                DebugForm.instance.addMsg("DEEP[0][" + WidthCnt + "]" + tmpList[0].tmpVal + "/" + tmpList[0].val + " : " + str);
+                                DebugForm.instance.addMsg("think-deep[0][" + WidthCnt + "]" + tmpList[0].tmpVal + "/" + tmpList[0].val + " : " + str);
                                 addDeepList(resList, tmpList[0], 16);
                             }
                             continue;
@@ -610,7 +631,7 @@ namespace TacoWin2 {
                                 //DebugForm.instance.addMsg("TEMP[" + (deepCnt + 2) + "][" + WidthCnt + "][" + i + "]" + tmpList2[i].tmpVal + "/" + tmpList2[i].val + " : " + str2);
 
                                 tmpList2[i].val = tmpList2[i].tmpVal + tmpList2[i].val; // 消さない！！
-                                //addDeepList(deepList[deepCnt + 1], tmpList2[i], 16);
+                                                                                        //addDeepList(deepList[deepCnt + 1], tmpList2[i], 16);
                             }
 
 
@@ -1120,11 +1141,6 @@ namespace TacoWin2 {
                                 continue;
                             }
 
-                            //敵の効きのみある所には打たない
-                            //if (((oPos & 0x0F) != (int)ktype.Fuhyou) && ((ban.data[(i << 4) + j] & (pturn.aturn((int)turn) << 4) + 8) > 0) && ((ban.data[(i << 4) + j] & ((int)turn << 4) + 8) == 0)) {
-                            //    continue;
-                            //}
-
                             int val = tw2acval.ptGet(ref ban, (ktype)(oPos & 0x0F), (byte)((i << 4) + j), turn);
 
                             // 歩飛角以外の駒で、移動先に敵味方の駒がない場合、価値を低くする
@@ -1161,6 +1177,10 @@ namespace TacoWin2 {
                             }
 
                             if ((ban.data[(i << 4) + j] >> (8 + ((int)turn << 2)) & 0x0F) == 0) {
+                                //敵の効きのみある所には打たない
+                                if (((oPos & 0x0F) != (int)ktype.Fuhyou) && ((ban.data[(i << 4) + j] >> (8 + ((int)pturn.aturn(turn) << 2)) & 0x0F) > 0)) {
+                                    val -= 200;
+                                }
                                 val -= kpVal[oPos & 0x0F, 1];
                             } else {
                                 val -= kpVal[oPos & 0x0F, 0];
