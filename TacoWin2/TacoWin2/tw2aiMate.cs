@@ -143,7 +143,7 @@ namespace TacoWin2 {
 
             if ((stopFlg) || (timeOutFlg)) {
                 bestMoveList = new kmove[30];
-                return 0;
+                return 999;
             }
 
             unsafe {
@@ -215,7 +215,7 @@ namespace TacoWin2 {
 
             if ((stopFlg) || (timeOutFlg)) {
                 bestMoveList = new kmove[30];
-                return 0;
+                return 999;
             }
 
             unsafe {

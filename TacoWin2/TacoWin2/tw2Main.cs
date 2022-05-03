@@ -181,22 +181,22 @@ namespace TacoWin2 {
                         thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
                         sw.Restart();
                         aiTaskMain = Task.Run(() => {
-                            if (nokori < 120000) {
+                            if (nokori < 120000) { //0 - 2 min
                                 ai.startTimer(20, 10);
                                 return ai.thinkMove(turn, ban, 4, 0, 0, 5, 5);
-                            } else if ((tesuu < 30) || (nokori < 180000)) {
-                                ai.startTimer(20, 10);
+                            } else if ((tesuu < 30) || (nokori < 180000)) { // 2 - 3min
+                                ai.startTimer(30, 10);
                                 return ai.thinkMove(turn, ban, 5, 0, 0, 7, 5);
-                            } else if ((tesuu < 40) || (nokori < 300000)) {
-                                ai.startTimer(20, 10);
+                            } else if ((tesuu < 40) || (nokori < 300000)) { // 3 - 5min
+                                ai.startTimer(60, 20);
                                 return ai.thinkMove(turn, ban, 5, 1, 10, 9, 5);
-                            } else if ((tesuu < 50) || (nokori < 450000)) {
-                                ai.startTimer(30, 10);
-                                return ai.thinkMove(turn, ban, 5, 1, 16, 11, 5);
-                            } else {
+                            } else if ((tesuu < 50) || (nokori < 450000)) { // 5 - 7.5min
+                                ai.startTimer(120, 40);
+                                return ai.thinkMove(turn, ban, 5, 1, 12, 11, 5);
+                            } else {                                        // 7.5min -
                                 tw2stval.setStage(1);
-                                ai.startTimer(30, 10);
-                                return ai.thinkMove(turn, ban, 5, 1, 20, 11, 5);
+                                ai.startTimer(180, 50);
+                                return ai.thinkMove(turn, ban, 5, 1, 16, 11, 5);
                             }
                         });
 
@@ -356,21 +356,21 @@ namespace TacoWin2 {
                         mateMovePos += 2;
                     } else {
                         if (nokori < 120000) {
-                            ai.startTimer(30, 30);
+                            ai.startTimer(20, 10);
                             ai.deepWidth = 0;
                         } else if ((tesuu < 30) || (nokori < 180000)) {
-                            ai.startTimer(30, 20);
+                            ai.startTimer(30, 10);
                             ai.deepWidth = 0;
                         } else if ((tesuu < 40) || (nokori < 300000)) {
-                            ai.startTimer(30, 20);
+                            ai.startTimer(60, 20);
                             ai.deepWidth = 10;
                         } else if ((tesuu < 50) || (nokori < 450000)) {
-                            ai.startTimer(30, 10);
-                            ai.deepWidth = 16;
+                            ai.startTimer(100, 40);
+                            ai.deepWidth = 12;
                         } else {
-                            ai.startTimer(30, 10);
+                            ai.startTimer(120, 50);
                             tw2stval.setStage(1);
-                            ai.deepWidth = 20;
+                            ai.deepWidth = 16;
                         }
                         if (nokori > 3600000) {
                             Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
