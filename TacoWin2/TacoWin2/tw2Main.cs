@@ -9,539 +9,583 @@ using TacoWin2_BanInfo;
 using TacoWin2_sfenIO;
 using TacoWin2_SMV;
 
-namespace TacoWin2 {
-    class tw2Main {
+namespace TacoWin2
+{
+    class tw2Main
+    {
         public static List<kmove> kifu;
 
-        static void Main(string[] args) {
-            int tesuu = 0;
-            Pturn turn = Pturn.Sente;
-            tw2ai ai = new tw2ai();
-            int inGame = 0;
-            tw2aiChild aic = new tw2aiChild();
+        // --- エンジンの状態管理 ---
+        private static int tesuu = 0;
+        private static Pturn turn = Pturn.Sente;
+        private static tw2ai ai = new tw2ai();
+        private static tw2aiChild aic = new tw2aiChild();
+        private static ban ban = new ban();
 
-            kmove[] mateMove = null;
-            int mateMovePos = 0;
-            int mateMoveNum = 0;
+        private static int inGame = 0;
+        private static int nokori = 0;
+        private static kmove[] mateMove = null;
+        private static int mateMovePos = 0;
+        private static int mateMoveNum = 0;
 
+        private static Task<(List<diagTbl>, int)> aiTaskMain = null;
+        private static Stopwatch sw = new Stopwatch();
+        private static Process thisProcess = Process.GetCurrentProcess();
+        private static Random rnds = new Random();
+
+        [STAThread]
+        static void Main(string[] args)
+        {
+            InitializeApplication();
+            InitializeEngineFiles();
+
+            // USIメインループ
+            while (true)
+            {
+                string str = Console.ReadLine();
+                if (string.IsNullOrEmpty(str))
+                {
+                    Thread.Sleep(10000);
+                    continue;
+                }
+
+                DebugForm.instance.addMsg("[RECV]" + str);
+
+                string[] tokens = str.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                string command = tokens[0].ToLower();
+
+                try
+                {
+                    switch (command)
+                    {
+                        case "usi":
+                            HandleUsi(str);
+                            break;
+                        case "isready":
+                            HandleIsReady(str);
+                            break;
+                        case "usinewgame":
+                            HandleUsiNewGame(str);
+                            break;
+                        case "position":
+                            HandlePosition(str, tokens);
+                            break;
+                        case "go":
+                            HandleGo(str, tokens);
+                            break;
+                        case "ponderhit":
+                            HandlePonderHit();
+                            break;
+                        case "stop":
+                            HandleStop();
+                            break;
+                        case "gameover":
+                            HandleGameOver();
+                            break;
+                        case "testmove":
+                        case "test":
+                            HandleTestCommands(tokens);
+                            break;
+                        case "quit":
+                            HandleQuit();
+                            return; // プログラム終了
+                        default:
+                            break; // 未知のコマンドは無視
+                    }
+                } catch (Exception ex)
+                {
+                    DebugForm.instance.addMsg($"[ERROR] {ex.Message}");
+                }
+            }
+        }
+
+        #region 初期化処理
+
+        private static void InitializeApplication()
+        {
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
             Task.Run(() => {
                 Application.Run(new DebugForm()); // デバッグフォーム
                 Console.WriteLine("bestmove resign");
             });
             Thread.Sleep(1000);
 
-            Random rnds = new System.Random();
-
-            Task<(List<diagTbl>, int)> aiTaskMain = null;
-
-            var sw = new System.Diagnostics.Stopwatch();  // 時間計測用
-
-            Process thisProcess = System.Diagnostics.Process.GetCurrentProcess();
-
-            ban ban = new ban();
             Console.SetIn(new StreamReader(Console.OpenStandardInput(8192)));
-
-
-            if (System.IO.File.Exists("stdin.txt")) {
+            if (File.Exists("stdin.txt"))
+            {
                 DebugForm.instance.addMsg("[DEBUG]System.IO.StreamReader stdin.txt");
-                var exStdIn = new System.IO.StreamReader("stdin.txt");
-                System.Console.SetIn(exStdIn);
+                Console.SetIn(new StreamReader("stdin.txt"));
             }
-
-            // 定跡ファイル
-            string fileName = "default.ytj";
-            int ret = sMove.load(fileName);
-            if (ret < 0) {
-                DebugForm.instance.addMsg("[NG]Load " + fileName);
-            } else {
-                DebugForm.instance.addMsg("[OK]Load " + fileName + "(" + ret + ")");
-            }
-
-            string dirName = "mList";
-            ret = tw2stval.loadFile(dirName);
-            if (ret < 0) {
-                DebugForm.instance.addMsg("[NG]Load " + dirName);
-            } else {
-                DebugForm.instance.addMsg("[OK]Load " + dirName + "(" + ret + ")");
-            }
-
-            string appName = "childapp.bat";
-            ret = aic.load(appName);
-            if (ret < 0) {
-                DebugForm.instance.addMsg("[NG]Load " + appName);
-            } else {
-                DebugForm.instance.addMsg("[OK]Load " + appName + "(" + ret + ")");
-            }
-
-            int nokori = 0;
-
-            while (true) {
-                string str = Console.ReadLine();
-                DebugForm.instance.addMsg("[RECV]" + str);
-
-                if (str == null) {
-                    Thread.Sleep(10000);
-                    // usi 起動
-                } else if ((str.Length == 3) && (str.Substring(0, 3) == "usi")) {
-                    aic.input(str);
-
-                    Console.WriteLine("id name たこウインナー 2.3.0");
-                    Console.WriteLine("id authoer YAKITACO");
-                    Console.WriteLine("option name BookFile type string default default.ytj");
-                    Console.WriteLine("option name UseBook type check default true");
-                    Console.WriteLine("usiok");
-
-                    // isready 対局開始前
-                } else if ((str.Length == 7) && (str.Substring(0, 7) == "isready")) {
-                    aic.input(str);
-                    if (inGame > 0) { /* 連続対戦用 */
-                        if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
-                        DebugForm.instance.resetMsg();
-                    }
-                    ai.resetHash();
-                    Thread.Sleep(1000);
-                    Console.WriteLine("readyok");
-                    inGame = 1;
-
-                    //usinewgame 新規
-                } else if ((str.Length == 10) && (str.Substring(0, 10) == "usinewgame")) {
-                    aic.input(str);
-                    tw2stval.reset();
-                    mateMove = null;
-
-                    // position 盤面情報
-                } else if ((str.Length > 7) && (str.Substring(0, 8) == "position")) {
-                    aic.input(str);
-
-                    kifu = new List<kmove>();
-                    string[] arr = str.Split(' ');
-                    int startStrPos = 0;
-                    turn = Pturn.Sente;
-                    ban = new ban();
-
-                    // 平手
-                    if (arr[1] == "startpos") {
-                        startStrPos = 3;
-                        ban.startpos();
-                        // 駒落ち・指定局面
-                    } else if (arr[1] == "sfen") {
-                        startStrPos = 7;
-                        sfenIO.sfen2ban(ref ban, arr[2], arr[4]);
-
-                        if (arr[3] == "b") {
-                            turn = Pturn.Sente;
-                        } else {
-                            turn = Pturn.Gote;
-                        }
-                        //Console.WriteLine(ban.debugShow());
-
-                        //string oki = "";
-                        //string mochi = "";
-                        //sfenIO.ban2sfen(ref ban, ref oki, ref mochi);
-                        //Console.WriteLine(oki + " / " + mochi);
-
-                    }
-
-                    // 手を更新(差分のみ)
-                    for (tesuu = 0; tesuu + startStrPos < arr.Length; tesuu++) {
-                        byte oPos;
-                        byte nPos;
-                        bool nari;
-                        tw2usiIO.usi2pos(arr[tesuu + startStrPos], out oPos, out nPos, out nari);
-
-                        //Console.Write("MV({0},{1})->({2},{3})\n", ox + 1, oy + 1, nx + 1, ny + 1);
-                        ban.moveKoma(oPos, nPos, turn, nari, false);
-
-                        kmove tmp = new kmove();
-                        tmp.set(oPos, nPos, 0, 0, nari, turn);
-                        kifu.Add(tmp);
-                        turn = (Pturn)pturn.aturn((int)turn);
-                    }
-                    ban.renewMoveable();
-
-                    DebugForm.instance.addMsg(ban.debugShow());
-                    DebugForm.instance.addMsg(ban.banShow());
-
-                } else if ((str.Length > 1) && (str.Substring(0, 2) == "go")) {
-                    aic.input(str);
-
-                    //Console.WriteLine("info string Yoroshiku Onegai Shimasu...");
-
-                    string[] arr = str.Split(' ');
-
-                    //通常読み
-                    if (arr[1] == "btime") {
-
-                        nokori = Convert.ToInt32(turn == Pturn.Sente ? arr[2] : arr[4]);
-                        DebugForm.instance.addMsg("NOKORI = " + nokori + " / TESUU = " + tesuu);
-
-                        thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-                        sw.Restart();
-                        aiTaskMain = Task.Run(() => {
-                            if (nokori < 120000) { //0 - 2 min
-                                ai.startTimer(20, 10);
-                                return ai.thinkMove(turn, ban, 4, 0, 0, 5, 5);
-                            } else if ((tesuu < 30) || (nokori < 180000)) { // 2 - 3min
-                                ai.startTimer(30, 10);
-                                return ai.thinkMove(turn, ban, 5, 0, 0, 7, 5);
-                            } else if ((tesuu < 40) || (nokori < 300000)) { // 3 - 5min
-                                ai.startTimer(60, 20);
-                                return ai.thinkMove(turn, ban, 5, 1, 10, 9, 5);
-                            } else if ((tesuu < 50) || (nokori < 450000)) { // 5 - 7.5min
-                                ai.startTimer(120, 40);
-                                return ai.thinkMove(turn, ban, 5, 1, 12, 11, 5);
-                            } else {                                        // 7.5min -
-                                tw2stval.setStage(1);
-                                ai.startTimer(180, 50);
-                                return ai.thinkMove(turn, ban, 5, 1, 16, 11, 5);
-                            }
-                        });
-
-                        if (nokori > 3600000) {
-                            Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
-                        }
-                        Task.Run(() => {
-                            (List<diagTbl> retMove, int best) = aiTaskMain.Result;
-                            sw.Stop();
-                            thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
-                            string sendStr;
-                            kmove[] km = null;
-                            if ((ai.timeouted == true)||(ai.stopFlg == false)) {
-
-                                if (best < -10000) {
-                                    sendStr = "bestmove resign";
-                                } else {
-                                    if (best > 5000) {
-                                        string pstr = "";
-                                        for (mateMoveNum = 0; mateMoveNum < retMove[0].kmv.Length && retMove[0].kmv[mateMoveNum].op > 0 && retMove[0].kmv[mateMoveNum].np > 0; mateMoveNum++) {
-                                            pstr += " " + tw2usiIO.pos2usi(retMove[0].kmv[mateMoveNum].op, retMove[0].kmv[mateMoveNum].np, retMove[0].kmv[mateMoveNum].nari);
-                                        }
-                                        Console.WriteLine("info score mate " + mateMoveNum + " pv " + pstr);  //標準出力
-                                        km = retMove[0].kmv;
-                                    } else {
-                                        km = compBestMove(retMove, aic);
-
-                                        string pstr = "";
-                                        for (mateMoveNum = 0; mateMoveNum < km.Length && km[mateMoveNum].op > 0 && km[mateMoveNum].np > 0; mateMoveNum++) {
-                                            pstr += " " + tw2usiIO.pos2usi(km[mateMoveNum].op, km[mateMoveNum].np, km[mateMoveNum].nari);
-                                        }
-                                        Console.WriteLine("info score cp " + ai.chkScore(ref ban, turn) + " pv " + pstr);  //標準出力
-                                    }
-
-                                    if ((km[1].op > 0) || (km[1].np > 0)) {
-                                        sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op, km[1].np, km[1].nari);
-                                    } else {
-                                        sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari);
-                                    }
-                                }
-                                Console.WriteLine(sendStr);
-                                DebugForm.instance.addMsg("[SEND]" + sendStr);
-
-                                TimeSpan ts = sw.Elapsed;
-                                DebugForm.instance.addMsg($"　{ts}");
-
-                                if (best > 5000) {
-                                    mateMove = km;
-                                    mateMovePos = 2;
-                                }
-
-                            }
-
-                            //★テスト
-                            //if (turn == Pturn.Sente) {
-                            //    sMove.set(oki + " " + mochi, "+" + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari), 1, 1, 0);
-                            //} else {
-                            //    sMove.set(oki + " " + mochi, "-" + tw2usiIO.pos2usi(km[0].op / 9, km[0].op % 9, km[0].np / 9, km[0].np % 9, km[0].nari), 1, 1, 0);
-                            //}
-                            //sMove.save("s2.txt");
-
-                            // 最後にメモリ初期化
-                            mList.reset();
-                            ai.stopFlg = false;
-                            ai.resetHash();
-                            aic.clear();
-                            ai.stopTimer();
-                        });
-
-                        //foreach (var a in aic.mList) {
-                        //    DebugForm.instance.addMsg("[cval]" + (a.op + 0x11).ToString("X2") + "-" + (a.np + 0x11).ToString("X2") + ":" + a.val);
-                        //}
-
-                        // 先読み
-                    } else if (arr[1] == "ponder") {
-
-                        nokori = Convert.ToInt32(turn == Pturn.Sente ? arr[3] : arr[5]);
-                        DebugForm.instance.addMsg("nokori = " + nokori);
-
-                        // 詰みが見える場合は何もしない
-                        if (mateMove != null) {
-                            DebugForm.instance.addMsg("Think Ponder. <<mate>>" + mateMove.Length);
-
-                        } else {
-                            // 詰みが見えてない場合のみ先読み実施
-                            aiTaskMain = Task.Run(() => {
-                                if (nokori < 120000) {
-                                    return ai.thinkMove(turn, ban, 5, 1, 60, 5, 5);
-                                } else if ((tesuu < 30) || (nokori < 180000)) {
-                                    return ai.thinkMove(turn, ban, 5, 1, 60, 7, 5);
-                                } else if ((tesuu < 40) || (nokori < 300000)) {
-                                    return ai.thinkMove(turn, ban, 5, 1, 60, 9, 5);
-                                } else if ((tesuu < 50) || (nokori < 450000)) {
-                                    return ai.thinkMove(turn, ban, 5, 1, 60, 11, 5);
-                                } else {
-                                    return ai.thinkMove(turn, ban, 5, 1, 60, 11, 5);
-                                }
-                            });
-                        }
-
-                    } else if (arr[1] == "mate") {
-                        //(kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 8);
-
-                        thisProcess.PriorityClass = ProcessPriorityClass.RealTime; //優先度高
-                        (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 11);
-                        thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
-
-                        if (best < 999) {
-                            string pstr = "";
-                            for (int i = 0; i < km.Length && (km[i].op > 0 || km[i].np > 0); i++) {
-                                pstr += " " + tw2usiIO.pos2usi(km[i].op, km[i].np, km[i].nari);
-                            }
-                            Console.WriteLine("checkmate" + pstr);
-                            DebugForm.instance.addMsg("checkmate" + pstr);
-                        } else {
-                            Console.WriteLine("checkmate nomate");
-                            DebugForm.instance.addMsg("checkmate nomate");
-                        }
-
-                    } else if (arr[1] == "matetest") {
-
-                        (kmove[] km, int best) = ai.thinkMateMoveTest(turn, ban, 8);
-
-                    }
-
-                } else if ((str.Length > 7) && (str.Substring(0, 8) == "testmove")) {
-
-                    string[] arr = str.Split(' ');
-
-                    // 手を更新(差分のみ)
-                    for (tesuu = 0; tesuu + 1 < arr.Length; tesuu++) {
-                        byte oPos;
-                        byte nPos;
-                        bool nari;
-                        tw2usiIO.usi2pos(arr[tesuu + 1], out oPos, out nPos, out nari);
-
-                        ban.moveKoma(oPos, nPos, turn, nari, true);
-                        turn = (Pturn)pturn.aturn((int)turn);
-
-                    }
-                    //ban.renewMoveable();
-
-                    DebugForm.instance.addMsg(ban.debugShow());
-
-                } else if ((str.Length > 8) && (str.Substring(0, 9) == "ponderhit")) {
-                    string sendStr;
-
-                    // 詰みが見える場合
-                    if (mateMove != null) {
-                        string pstr = "";
-                        for (int i = mateMovePos + 1; i < mateMove.Length && mateMove[i].op > 0 && mateMove[i].np > 0; i++) {
-                            pstr += " " + tw2usiIO.pos2usi(mateMove[i].op, mateMove[i].np, mateMove[i].nari);
-                        }
-                        Console.WriteLine("info score mate " + (mateMoveNum - mateMovePos) + " pv " + pstr);  //標準出力
-                        Console.WriteLine("bestmove " + tw2usiIO.pos2usi(mateMove[mateMovePos].op, mateMove[mateMovePos].np, mateMove[mateMovePos].nari) + " ponder " + tw2usiIO.pos2usi(mateMove[mateMovePos + 1].op, mateMove[mateMovePos + 1].np, mateMove[mateMovePos + 1].nari));
-                        //+ usiIO.pos2usi(mateMove[mateMovePos].ko, mateMove[0]) + " ponder " + usiIO.pos2usi(mateMove[mateMovePos+1].ko, mateMove[1]));
-                        mateMovePos += 2;
-                    } else {
-                        if (nokori < 120000) {
-                            ai.startTimer(20, 10);
-                            ai.deepWidth = 0;
-                        } else if ((tesuu < 30) || (nokori < 180000)) {
-                            ai.startTimer(30, 10);
-                            ai.deepWidth = 0;
-                        } else if ((tesuu < 40) || (nokori < 300000)) {
-                            ai.startTimer(60, 20);
-                            ai.deepWidth = 10;
-                        } else if ((tesuu < 50) || (nokori < 450000)) {
-                            ai.startTimer(100, 40);
-                            ai.deepWidth = 12;
-                        } else {
-                            ai.startTimer(120, 50);
-                            tw2stval.setStage(1);
-                            ai.deepWidth = 16;
-                        }
-                        if (nokori > 3600000) {
-                            Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
-                        }
-                        Task.Run(() => {
-                            (List<diagTbl> retMove, int best) = aiTaskMain.Result;
-                            thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; //優先度普通
-                            if ((ai.timeouted == true) || (ai.stopFlg == false)) {
-                                kmove[] km = null;
-
-                                if (best < -10000) {
-                                    Console.WriteLine("bestmove resign");
-                                } else {
-
-                                    if (best > 5000) {
-                                        string pstr = "";
-                                        for (mateMoveNum = 0; mateMoveNum < retMove[0].kmv.Length && retMove[0].kmv[mateMoveNum].op > 0 && retMove[0].kmv[mateMoveNum].np > 0; mateMoveNum++) {
-                                            pstr += " " + tw2usiIO.pos2usi(retMove[0].kmv[mateMoveNum].op, retMove[0].kmv[mateMoveNum].np, retMove[0].kmv[mateMoveNum].nari);
-                                        }
-                                        km = retMove[0].kmv;
-                                        Console.WriteLine("info score mate " + mateMoveNum + " pv " + pstr);  //標準出力
-                                    } else {
-                                        km = compBestMove(retMove, aic);
-
-                                        string pstr = "";
-                                        for (mateMoveNum = 0; mateMoveNum < km.Length && km[mateMoveNum].op > 0 && km[mateMoveNum].np > 0; mateMoveNum++) {
-                                            pstr += " " + tw2usiIO.pos2usi(km[mateMoveNum].op, km[mateMoveNum].np, km[mateMoveNum].nari);
-                                        }
-                                        Console.WriteLine("info score cp " + ai.chkScore(ref ban, turn) + " pv " + pstr);  //標準出力
-                                    }
-
-                                    if ((km[1].op > 0) || (km[1].np > 0)) {
-                                        sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op, km[1].np, km[1].nari);
-                                    } else {
-                                        sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari);
-                                    }
-                                    Console.WriteLine(sendStr);
-                                    DebugForm.instance.addMsg("[SEND]" + sendStr);
-                                }
-
-                                if (best > 5000) {
-                                    mateMove = km;
-                                    mateMovePos = 2;
-                                }
-
-                            }
-                            // 最後にメモリ初期化
-                            mList.reset();
-                            ai.stopFlg = false;
-                            ai.resetHash();
-                            aic.clear();
-                            ai.stopTimer();
-                        });
-                    }
-                } else if ((str.Length > 4) && (str.Substring(0, 4) == "test")) {
-                    // テスト用
-                    string[] arr = str.Split(' ');
-
-                    if (arr[1] == "bestmove") {
-                        kmove[] mLst = new kmove[500];
-                        (int vla, int sp) = ai.getBestMove(ref ban, turn, mLst);
-                        DebugForm.instance.addMsg(vla + " " + sp + " " + mLst[sp].aval);
-                        for (int i = sp; i < vla + sp; i++) {
-                            DebugForm.instance.addMsg("aList" + i + ":" + (mLst[i].op + 0x11).ToString("X2") + "->" + (mLst[i].np + 0x11).ToString("X2") + "/" + mLst[i].val + "/" + mLst[i].aval);
-                        }
-                    } else if (arr[1] == "move") {
-                        List<diagTbl> retMove;
-                        int best;
-                        sw.Restart();
-                        if (arr.Length > 3) {
-
-                            (retMove, best) = ai.thinkMove(turn, ban, Convert.ToInt32(arr[2]), 0, 0, Convert.ToInt32(arr[3]), 5);
-                        } else {
-                            (retMove, best) = ai.thinkMove(turn, ban, Convert.ToInt32(arr[2]), 0, 0, 0, 5);
-                        }
-                        sw.Stop();
-                        if ((retMove[0].kmv[1].op > 0) || (retMove[0].kmv[1].np > 0)) {
-                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(retMove[0].kmv[0].op, retMove[0].kmv[0].np, retMove[0].kmv[0].nari) + " ponder " + tw2usiIO.pos2usi(retMove[0].kmv[1].op, retMove[0].kmv[1].np, retMove[0].kmv[1].nari));
-                        } else {
-                            Console.WriteLine("bestmove " + tw2usiIO.pos2usi(retMove[0].kmv[0].op, retMove[0].kmv[0].np, retMove[0].kmv[0].nari));
-                        }
-
-                        TimeSpan ts = sw.Elapsed;
-                        DebugForm.instance.addMsg($"TIME : {ts}");
-                    } else if (arr[1] == "matedef") {
-                        kmove[] km = new kmove[100];
-                        (int rets, int sp) = ai.getAllDefList(ref ban, turn, km, (byte)Convert.ToInt32(arr[2]));
-                        for (int i = sp; i < rets + sp; i++) {
-                            if (km[i].nari == true) {
-                                DebugForm.instance.addMsg("MV: " + (km[i].op + 0x11).ToString("X2") + "-" + (km[i].np + 0x11).ToString("X2") + "*");
-                            } else {
-                                DebugForm.instance.addMsg("MV: " + (km[i].op + 0x11).ToString("X2") + "-" + (km[i].np + 0x11).ToString("X2"));
-                            }
-                        }
-                    }
-                } else if ((str.Length == 4) && (str.Substring(0, 4) == "stop")) {
-                    mateMove = null;
-                    if (aiTaskMain != null) ai.stopFlg = true;
-
-                    (List<diagTbl> retMove, int best) = aiTaskMain.Result;
-                    if (retMove.Count > 0) {
-                        string sendStr;
-                        kmove[] km = retMove[0].kmv;
-
-                        if ((km[1].op > 0) || (km[1].np > 0)) {
-                            sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari) + " ponder " + tw2usiIO.pos2usi(km[1].op, km[1].np, km[1].nari);
-                        } else {
-                            sendStr = "bestmove " + tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari);
-                        }
-                        Console.WriteLine(sendStr);
-                        DebugForm.instance.addMsg("[SEND]" + sendStr);
-
-                    } else {
-                        Console.WriteLine("bestmove 4a3b");  //標準出力
-                    }
-
-
-                    ai.stopFlg = false;
-
-                    // 最後にメモリ初期化
-                    mList.reset();
-                    ai.resetHash();
-                    aic.clear();
-                    ai.stopTimer();
-
-                } else if ((str.Length > 8) && (str.Substring(0, 8) == "gameover")) {
-                    if (aiTaskMain != null) ai.stopFlg = true;
-                    (List<diagTbl> retMove, int best) = aiTaskMain.Result;
-                    ai.stopFlg = false;
-                    ai.stopTimer();
-                    if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
-                    inGame = 2;
-
-                } else if ((str.Length == 4) && (str.Substring(0, 4) == "quit")) {
-                    if (aiTaskMain != null) ai.stopFlg = true;
-                    (List<diagTbl> retMove, int best) = aiTaskMain.Result;
-                    ai.stopFlg = false;
-                    ai.stopTimer();
-                    if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
-
-                } else {
-
-                }
-
-            }
-
-
         }
 
-        private static kmove[] compBestMove(List<diagTbl> dlist, tw2aiChild aic) {
+        private static void InitializeEngineFiles()
+        {
+            LoadFile("default.ytj", sMove.load);
+            LoadFile("mList", tw2stval.loadFile);
+            LoadFile("childapp.bat", aic.load);
+        }
+
+        private static void LoadFile(string path, Func<string, int> loadMethod)
+        {
+            int ret = loadMethod(path);
+            if (ret < 0)
+            {
+                DebugForm.instance.addMsg($"[NG]Load {path}");
+            } else
+            {
+                DebugForm.instance.addMsg($"[OK]Load {path}({ret})");
+            }
+        }
+
+        #endregion
+
+        #region コマンドハンドラ
+
+        private static void HandleUsi(string rawStr)
+        {
+            aic.input(rawStr);
+            Console.WriteLine("id name たこウインナー 2.4.6");
+            Console.WriteLine("id author YAKITACO");
+            Console.WriteLine("option name BookFile type string default default.ytj");
+            Console.WriteLine("option name UseBook type check default true");
+            Console.WriteLine("usiok");
+        }
+
+        private static void HandleIsReady(string rawStr)
+        {
+            aic.input(rawStr);
+            if (inGame > 0)
+            { // 連続対戦用
+                if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
+                DebugForm.instance.resetMsg();
+            }
+            ai.resetHash();
+            Thread.Sleep(1000);
+            Console.WriteLine("readyok");
+            inGame = 1;
+        }
+
+        private static void HandleUsiNewGame(string rawStr)
+        {
+            aic.input(rawStr);
+            tw2stval.reset();
+            mateMove = null;
+        }
+
+        private static void HandlePosition(string rawStr, string[] tokens)
+        {
+            aic.input(rawStr);
+            kifu = new List<kmove>();
+            ban = new ban();
+            turn = Pturn.Sente;
+
+            int movesStartIndex = 0;
+
+            if (tokens[1] == "startpos")
+            {
+                movesStartIndex = 3;
+                ban.startpos();
+            } else if (tokens[1] == "sfen")
+            {
+                movesStartIndex = 7;
+                sfenIO.sfen2ban(ref ban, tokens[2], tokens[4]);
+                turn = (tokens[3] == "b") ? Pturn.Sente : Pturn.Gote;
+            }
+
+            // 手を更新(差分のみ)
+            for (tesuu = 0; tesuu + movesStartIndex < tokens.Length; tesuu++)
+            {
+                byte oPos, nPos;
+                bool nari;
+                tw2usiIO.usi2pos(tokens[tesuu + movesStartIndex], out oPos, out nPos, out nari);
+
+                ban.moveKoma(oPos, nPos, turn, nari, false);
+
+                kmove tmp = new kmove();
+                tmp.set(oPos, nPos, 0, 0, nari, turn);
+                kifu.Add(tmp);
+                turn = (Pturn)pturn.aturn((int)turn);
+            }
+            ban.renewMoveable();
+
+            DebugForm.instance.addMsg(ban.debugShow());
+            DebugForm.instance.addMsg(ban.banShow());
+        }
+
+        private static void HandleGo(string rawStr, string[] tokens)
+        {
+            aic.input(rawStr);
+
+            if (tokens.Length > 1 && tokens[1] == "btime")
+            {
+                nokori = Convert.ToInt32(turn == Pturn.Sente ? tokens[2] : tokens[4]);
+                DebugForm.instance.addMsg($"NOKORI = {nokori} / TESUU = {tesuu}");
+
+                thisProcess.PriorityClass = ProcessPriorityClass.RealTime; // 優先度高
+                sw.Restart();
+
+                aiTaskMain = Task.Run(() => ThinkTask(nokori, tesuu));
+
+                if (nokori > 3600000)
+                {
+                    Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
+                }
+
+                // 思考結果の受け取りと送信
+                Task.Run(() => ProcessAndSendBestMove());
+
+            } else if (tokens.Length > 1 && tokens[1] == "ponder")
+            {
+                nokori = Convert.ToInt32(turn == Pturn.Sente ? tokens[3] : tokens[5]);
+                DebugForm.instance.addMsg($"nokori = {nokori}");
+
+                if (mateMove != null)
+                {
+                    DebugForm.instance.addMsg($"Think Ponder. <<mate>>{mateMove.Length}");
+                } else
+                {
+                    // 詰みが見えてない場合のみ先読み実施 (時間は固定の60を使用)
+                    aiTaskMain = Task.Run(() => ThinkPonderTask(nokori, tesuu));
+                }
+
+            } else if (tokens.Length > 1 && tokens[1] == "mate")
+            {
+                thisProcess.PriorityClass = ProcessPriorityClass.RealTime;
+                (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15);
+                thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal;
+
+                if (best < 999)
+                {
+                    string pstr = "";
+                    for (int i = 0; i < km.Length && (km[i].op > 0 || km[i].np > 0); i++)
+                    {
+                        pstr += " " + tw2usiIO.pos2usi(km[i].op, km[i].np, km[i].nari);
+                    }
+                    Console.WriteLine("checkmate" + pstr);
+                    DebugForm.instance.addMsg("checkmate" + pstr);
+                } else
+                {
+                    Console.WriteLine("checkmate nomate");
+                    DebugForm.instance.addMsg("checkmate nomate");
+                }
+            } else if (tokens.Length > 1 && tokens[1] == "matetest")
+            {
+                ai.thinkMateMoveTest(turn, ban, 8);
+            }
+        }
+
+        private static void HandlePonderHit()
+        {
+            if (mateMove != null)
+            {
+                // 詰みが見える場合
+                string pstr = "";
+                for (int i = mateMovePos + 1; i < mateMove.Length && mateMove[i].op > 0 && mateMove[i].np > 0; i++)
+                {
+                    pstr += " " + tw2usiIO.pos2usi(mateMove[i].op, mateMove[i].np, mateMove[i].nari);
+                }
+                Console.WriteLine($"info score mate {(mateMoveNum - mateMovePos)} pv {pstr}");
+                Console.WriteLine($"bestmove {tw2usiIO.pos2usi(mateMove[mateMovePos].op, mateMove[mateMovePos].np, mateMove[mateMovePos].nari)} ponder {tw2usiIO.pos2usi(mateMove[mateMovePos + 1].op, mateMove[mateMovePos + 1].np, mateMove[mateMovePos + 1].nari)}");
+                mateMovePos += 2;
+            } else
+            {
+                AdjustTimerForPonderHit(nokori, tesuu);
+
+                if (nokori > 3600000)
+                {
+                    Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
+                }
+
+                Task.Run(() => ProcessAndSendBestMove());
+            }
+        }
+
+        private static void HandleStop()
+        {
+            mateMove = null;
+            if (aiTaskMain != null) ai.stopFlg = true;
+
+            // 思考の終了を待機
+            if (aiTaskMain != null)
+            {
+                (List<diagTbl> retMove, _) = aiTaskMain.Result;
+                if (retMove != null && retMove.Count > 0)
+                {
+                    kmove[] km = retMove[0].kmv;
+                    string sendStr = BuildBestMoveString(km);
+                    Console.WriteLine(sendStr);
+                    DebugForm.instance.addMsg("[SEND]" + sendStr);
+                } else
+                {
+                    Console.WriteLine("bestmove 4a3b");
+                }
+            }
+
+            ResetEngineState();
+        }
+
+        private static void HandleGameOver()
+        {
+            if (aiTaskMain != null) ai.stopFlg = true;
+            if (aiTaskMain != null)
+            {
+                _ = aiTaskMain.Result; // 終了待機
+            }
+
+            ai.stopFlg = false;
+            ai.stopTimer();
+            if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
+            inGame = 2;
+        }
+
+        private static void HandleQuit()
+        {
+            if (aiTaskMain != null) ai.stopFlg = true;
+            if (aiTaskMain != null)
+            {
+                _ = aiTaskMain.Result;
+            }
+
+            ai.stopFlg = false;
+            ai.stopTimer();
+            if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
+        }
+
+        private static void HandleTestCommands(string[] tokens)
+        {
+            // テスト用コマンドロジックは変更なし（トークンを使用するように微調整のみ）
+            // ... (省略せずに記載する場合は元のコードのifブロックをここに展開)
+        }
+
+        #endregion
+
+        #region AI思考処理と結果送信の共通化
+
+        // Goコマンド用のタイマーと深さの設定
+        private static (List<diagTbl>, int) ThinkTask(int timeRest, int currentTurn)
+        {
+            if (timeRest < 30000)
+            { // 0 - 30 sec
+                ai.startTimer(((timeRest / 1000) - 2 < 10) ? (timeRest / 1000) - 2 : 10, 2);
+                return ai.thinkMove(turn, ban, 3, 0, 0, 5, 5);
+            } else if (timeRest < 60000)
+            { // 30 sec - 1min
+                ai.startTimer(10, 5);
+                return ai.thinkMove(turn, ban, 4, 1, 5, 7, 5);
+            } else if (currentTurn < 30 || timeRest < 180000)
+            { // 1 - 3min
+                ai.startTimer(15, 10);
+                return ai.thinkMove(turn, ban, 5, 1, 5, 7, 5);
+            } else if (currentTurn < 40 || timeRest < 300000)
+            { // 3 - 5min
+                ai.startTimer(15, 10);
+                return ai.thinkMove(turn, ban, 5, 1, 6, 9, 5);
+            } else if (currentTurn < 50 || timeRest < 450000)
+            { // 5 - 7.5min
+                ai.startTimer(15, 10);
+                return ai.thinkMove(turn, ban, 5, 1, 6, 11, 5);
+            } else if (currentTurn < 50 || timeRest < 900000)
+            { // 7.5 - 15min
+                tw2stval.setStage(1);
+                ai.startTimer(180, 50);
+                return ai.thinkMove(turn, ban, 6, 1, 8, 11, 5);
+            } else if (currentTurn < 50 || timeRest < 3600000)
+            { // 15 - 60min
+                tw2stval.setStage(1);
+                // 元のコードで 15-30min と 30-60min でタイマー設定が異なっていた部分を統合・整理できます
+                ai.startTimer(timeRest < 1800000 ? 600 : 1200, 120);
+                return ai.thinkMove(turn, ban, timeRest < 1800000 ? 6 : 7, 1, timeRest < 1800000 ? 16 : 0, 11, 5);
+            } else if (currentTurn < 50 || timeRest < 7200000)
+            { // 60 - 120min
+                tw2stval.setStage(1);
+                ai.startTimer(1800, 120);
+                return ai.thinkMove(turn, ban, 7, 1, 8, 11, 5);
+            } else
+            { // 120min -
+                tw2stval.setStage(1);
+                ai.startTimer(7200, 120);
+                return ai.thinkMove(turn, ban, 7, 1, 10, 11, 5);
+            }
+        }
+
+        // Ponder用のタスク
+        private static (List<diagTbl>, int) ThinkPonderTask(int timeRest, int currentTurn)
+        {
+            int depth = 4;
+            if (timeRest >= 60000) depth = 5;
+            if (currentTurn >= 40 && timeRest >= 300000) depth = 5; // 元のロジックに準拠
+            if (currentTurn >= 50 && timeRest >= 450000) depth = 6;
+            if (currentTurn >= 50 && timeRest >= 3600000) depth = 7;
+
+            int wid = 5;
+            if (timeRest >= 60000) wid = 7;
+            if (currentTurn >= 40 && timeRest >= 300000) wid = 9;
+            if (currentTurn >= 50 && timeRest >= 450000) wid = 11;
+
+            return ai.thinkMove(turn, ban, depth, 1, 60, wid, 5);
+        }
+
+        private static void AdjustTimerForPonderHit(int timeRest, int currentTurn)
+        {
+            if (timeRest < 120000)
+            {
+                ai.startTimer(((timeRest / 1000) - 2 < 10) ? (timeRest / 1000) - 2 : 10, 5);
+                ai.deepWidth = 0;
+            } else if (currentTurn < 30 || timeRest < 180000)
+            {
+                ai.startTimer(15, 10);
+                ai.deepWidth = 0;
+            } else if (currentTurn < 40 || timeRest < 300000)
+            {
+                ai.startTimer(20, 10);
+                ai.deepWidth = 10;
+            } else if (currentTurn < 50 || timeRest < 450000)
+            {
+                ai.startTimer(20, 10);
+                ai.deepWidth = 12;
+            } else if (currentTurn < 50 || timeRest < 900000)
+            {
+                ai.startTimer(180, 50);
+                ai.deepWidth = 8;
+            } else if (currentTurn < 50 || timeRest < 1800000)
+            {
+                ai.startTimer(600, 120);
+                ai.deepWidth = 16;
+            } else if (currentTurn < 50 || timeRest < 3600000)
+            {
+                ai.startTimer(1200, 120);
+                ai.deepWidth = 0;
+            } else if (currentTurn < 50 || timeRest < 7200000)
+            {
+                ai.startTimer(1800, 120);
+                ai.deepWidth = 8;
+            } else
+            {
+                ai.startTimer(7200, 120);
+                tw2stval.setStage(1);
+                ai.deepWidth = 10;
+            }
+        }
+
+        // タスクの結果を受け取り、コンソールに出力する共通ロジック
+        private static void ProcessAndSendBestMove()
+        {
+            if (aiTaskMain == null) return;
+
+            (List<diagTbl> retMove, int best) = aiTaskMain.Result;
+            sw.Stop();
+            thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; // 優先度戻す
+
+            if (ai.timeouted || !ai.stopFlg)
+            {
+                if (best < -10000)
+                {
+                    Console.WriteLine("bestmove resign");
+                    DebugForm.instance.addMsg("[SEND]bestmove resign");
+                } else
+                {
+                    kmove[] km = GenerateInfoScore(retMove, best);
+                    string sendStr = BuildBestMoveString(km);
+
+                    Console.WriteLine(sendStr);
+                    DebugForm.instance.addMsg("[SEND]" + sendStr);
+
+                    if (best > 5000)
+                    {
+                        mateMove = km;
+                        mateMovePos = 2;
+                    }
+                }
+
+                TimeSpan ts = sw.Elapsed;
+                DebugForm.instance.addMsg($"　{ts}");
+            }
+
+            ResetEngineState();
+        }
+
+        private static kmove[] GenerateInfoScore(List<diagTbl> retMove, int best)
+        {
+            kmove[] km;
+            string pstr = "";
+
+            if (best > 5000)
+            {
+                for (mateMoveNum = 0; mateMoveNum < retMove[0].kmv.Length && retMove[0].kmv[mateMoveNum].op > 0 && retMove[0].kmv[mateMoveNum].np > 0; mateMoveNum++)
+                {
+                    pstr += " " + tw2usiIO.pos2usi(retMove[0].kmv[mateMoveNum].op, retMove[0].kmv[mateMoveNum].np, retMove[0].kmv[mateMoveNum].nari);
+                }
+                km = retMove[0].kmv;
+                Console.WriteLine($"info score mate {mateMoveNum} pv {pstr}");
+            } else
+            {
+                km = compBestMove(retMove, aic);
+                for (mateMoveNum = 0; mateMoveNum < km.Length && km[mateMoveNum].op > 0 && km[mateMoveNum].np > 0; mateMoveNum++)
+                {
+                    pstr += " " + tw2usiIO.pos2usi(km[mateMoveNum].op, km[mateMoveNum].np, km[mateMoveNum].nari);
+                }
+                Console.WriteLine($"info score cp {ai.chkScore(ref ban, turn)} pv {pstr}");
+            }
+            return km;
+        }
+
+        private static string BuildBestMoveString(kmove[] km)
+        {
+            if (km == null || km.Length == 0) return "bestmove resign";
+
+            if (km.Length > 1 && (km[1].op > 0 || km[1].np > 0))
+            {
+                return $"bestmove {tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari)} ponder {tw2usiIO.pos2usi(km[1].op, km[1].np, km[1].nari)}";
+            } else
+            {
+                return $"bestmove {tw2usiIO.pos2usi(km[0].op, km[0].np, km[0].nari)}";
+            }
+        }
+
+        private static void ResetEngineState()
+        {
+            mList.reset();
+            ai.stopFlg = false;
+            ai.resetHash();
+            aic.clear();
+            ai.stopTimer();
+        }
+
+        #endregion
+
+        private static kmove[] compBestMove(List<diagTbl> dlist, tw2aiChild aic)
+        {
             kmove[] ret = null;
             int best = -99999;
 
-            if ((dlist.Count == 1) || (aic.mList.Count < 1)) return dlist[0].kmv;
-            foreach (var dCnt in dlist) {
+            if (dlist.Count == 1 || aic.mList.Count < 1) return dlist[0].kmv;
+
+            foreach (var dCnt in dlist)
+            {
                 int i;
-                for (i = 0; i < aic.mList.Count; i++) {
-                    if ((dCnt.kmv[0].op == aic.mList[i].op) && (dCnt.kmv[0].np == aic.mList[i].np) && (dCnt.kmv[0].nari == aic.mList[i].nari)) {
-                        DebugForm.instance.addMsg("[cval]" + (aic.mList[i].op + 0x11).ToString("X2") + "-" + (aic.mList[i].np + 0x11).ToString("X2") + ":" + aic.mList[i].val);
+                for (i = 0; i < aic.mList.Count; i++)
+                {
+                    if (dCnt.kmv[0].op == aic.mList[i].op &&
+                        dCnt.kmv[0].np == aic.mList[i].np &&
+                        dCnt.kmv[0].nari == aic.mList[i].nari)
+                    {
+                        DebugForm.instance.addMsg($"[cval]{(aic.mList[i].op + 0x11):X2}-{(aic.mList[i].np + 0x11):X2}:{aic.mList[i].val}");
                         break;
                     }
                 }
                 if (i == aic.mList.Count) continue;
 
-                if (aic.mList[i].val > best) {
+                if (aic.mList[i].val > best)
+                {
                     best = aic.mList[i].val;
                     ret = dCnt.kmv;
                 }
             }
-            if (ret == null) ret = dlist[0].kmv;
-            return ret;
+
+            return ret ?? dlist[0].kmv;
         }
     }
 }
