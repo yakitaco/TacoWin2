@@ -82,7 +82,6 @@ namespace TacoWin2
                         case "gameover":
                             HandleGameOver();
                             break;
-                        case "testmove":
                         case "test":
                             HandleTestCommands(tokens);
                             break;
@@ -107,7 +106,8 @@ namespace TacoWin2
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            Task.Run(() => {
+            Task.Run(() =>
+            {
                 Application.Run(new DebugForm()); // デバッグフォーム
                 Console.WriteLine("bestmove resign");
             });
@@ -356,8 +356,45 @@ namespace TacoWin2
 
         private static void HandleTestCommands(string[] tokens)
         {
-            // テスト用コマンドロジックは変更なし（トークンを使用するように微調整のみ）
-            // ... (省略せずに記載する場合は元のコードのifブロックをここに展開)
+            if (tokens.Length > 1)
+            {
+                string csvFile = tokens[1];
+                string filterType = null;
+                string filterValue = null;
+                int iterations = 1;
+
+                // 引数が4つある場合 (例: test testdata.csv group Tsumi  または  test testdata.csv avg 5)
+                if (tokens.Length >= 4)
+                {
+                    string option = tokens[2].ToLower();
+
+                    if (option == "avg")
+                    {
+                        if (!int.TryParse(tokens[3], out iterations) || iterations < 1)
+                        {
+                            DebugForm.instance.addMsg("[ERROR] Invalid iteration count. Usage: test <csv> avg <count>");
+                            return;
+                        }
+                    } else
+                    {
+                        // "group" または "name" として扱う
+                        filterType = option;
+                        filterValue = tokens[3];
+                    }
+                } else if (tokens.Length == 3)
+                {
+                    DebugForm.instance.addMsg("[ERROR] test command is missing arguments. Usage: test <csv> [group|name|avg] <value>");
+                    return;
+                }
+
+                DebugForm.instance.addMsg($"[INFO] Starting test with CSV: {csvFile}");
+
+                // メインスレッドで同期的に実行
+                AITestRunner.RunTest(csvFile, ai, filterType, filterValue, iterations);
+            } else
+            {
+                DebugForm.instance.addMsg("[ERROR] test command requires a CSV file name. Usage: test <csv> [group|name|avg] <value>");
+            }
         }
 
         #endregion
