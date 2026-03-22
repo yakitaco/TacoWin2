@@ -1,10 +1,11 @@
 ﻿using System;
-using System.IO;
-using System.Diagnostics;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using TacoWin2_sfenIO;
+using System.Threading;
 using TacoWin2_BanInfo;
+using TacoWin2_sfenIO;
 
 namespace TacoWin2
 {
@@ -90,18 +91,35 @@ namespace TacoWin2
                     string bestMoveStr = "resign";
                     int lastBestScore = 0;
 
+                    // AI探索タイムアウト・中断用の非同期処理キャンセル管理クラス
+                    CancellationTokenSource searchCts = new CancellationTokenSource();
+                    // AI詰み探索タイムアウト・中断用の非同期処理キャンセル管理クラス
+                    CancellationTokenSource mateCts = new CancellationTokenSource();
+
                     // 指定回数ループして計測
                     for (int i = 0; i < iterations; i++)
                     {
                         // 盤面状態を毎回完全に初期化する
                         ban testBan = new ban();
+                        List<kmove> kifu = new List<kmove>();
                         sfenIO.sfen2ban(ref testBan, sfenTokens[0], sfenTokens[2]);
                         testBan.renewMoveable();
                         Pturn testTurn = (sfenTokens[1] == "b") ? Pturn.Sente : Pturn.Gote;
 
-                        ai.stopFlg = false;
-                        tw2Main.kifu = new List<kmove>();
+                        kifu = new List<kmove>();
                         ai.resetHash();
+
+                        // タイムアウトチェック時には、下記を有効にする
+                        // 通常探索用Ctsをリセット
+                        //searchCts?.Dispose();
+                        //searchCts = new CancellationTokenSource();
+                        //
+                        //// 詰み探索用Ctsをリセット
+                        //mateCts?.Dispose();
+                        //mateCts = new CancellationTokenSource();
+                        //
+                        //searchCts.CancelAfter(15000);
+                        //mateCts.CancelAfter(10000);
 
                         // デバッグ情報の出力
                         if (i == 0) // 最初のループのみ表示
@@ -110,14 +128,12 @@ namespace TacoWin2
                             DebugForm.instance.addMsg(testBan.banShow());
                         }
 
-                        ai.startTimer(12000, 12000);
-
                         GC.Collect();
                         GC.WaitForPendingFinalizers();
 
                         Stopwatch sw = Stopwatch.StartNew();
 
-                        (List<diagTbl> retMove, int bestScore) = ai.thinkMove(testTurn, testBan, depth, deepMax, deepsWidth, mateDepth, retMax);
+                        (List<diagTbl> retMove, int bestScore) = ai.thinkMove(testTurn, testBan, kifu, depth, deepMax, deepsWidth, mateDepth, retMax, searchCts.Token, mateCts.Token);
 
                         sw.Stop();
                         totalTimeMs += sw.ElapsedMilliseconds;
