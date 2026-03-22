@@ -97,7 +97,6 @@ namespace TacoWin2
         // thread同時数
         static int workMin;
         static int ioMin;
-        public bool stopFlg = false;
         Object lockObj = new Object();
         Object lockObj_hash = new Object();
         int mateDepMax = 0;
@@ -202,48 +201,10 @@ namespace TacoWin2
             }
         }
 
-        System.Timers.Timer mateTimer = null;
-        System.Timers.Timer timer = null;
-        public bool timeouted = false;
-
-        public void startTimer(int time, int mateTime)
-        {
-            timer = new System.Timers.Timer();
-            timer.AutoReset = false;               // 1回しか呼ばない場合はfalse
-            timer.Interval = time * 1000;          // Intervalの設定単位はミリ秒
-            timer.Elapsed += timer_Elapsed;        // タイマイベント処理(時間経過後の処理)を登録
-            timer.Enabled = true;                  // <-- これを呼ばないとタイマは開始しません
-
-            mateTimer = new System.Timers.Timer();
-            mateTimer.AutoReset = false;                // 1回しか呼ばない場合はfalse
-            mateTimer.Interval = mateTime * 1000;       // Intervalの設定単位はミリ秒
-            mateTimer.Elapsed += mateTimer_Elapsed;     // タイマイベント処理(時間経過後の処理)を登録
-            mateTimer.Enabled = true;                   // <-- これを呼ばないとタイマは開始しません
-        }
-
-        private void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            DebugForm.instance.addMsg("TIMEOUT");
-            stopFlg = true;
-            timeouted = true;
-        }
-
-        private void mateTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            DebugForm.instance.addMsg("MATE TIMEOUT");
-            timeOutFlg = true;
-        }
-
-        public void stopTimer()
-        {
-            timer.Stop();
-            mateTimer.Stop();
-        }
-
         /// <summary>
         /// 定跡が存在するかチェックし、存在すれば評価値と最善手を返します。
         /// </summary>
-        private bool TryGetJoseki(Pturn turn, ref ban currentBan, int depth, int pVal, out int bestVal, out kmove[] bestMoveList)
+        private bool TryGetJoseki(Pturn turn, ref ban currentBan, int depth, int pVal, out int bestVal, out kmove[] bestMoveList, CancellationToken token)
         {
             bestVal = 0;
             bestMoveList = null;
@@ -271,7 +232,7 @@ namespace TacoWin2
             if (depth < 20)
             {
                 kmove[] retList;
-                bestVal = -think(pturn.aturn(turn), ref tmpBan, out retList, -999999, 999999, val, depth + 1, Math.Max(depth, 1));
+                bestVal = -think(pturn.aturn(turn), ref tmpBan, out retList, -999999, 999999, val, depth + 1, Math.Max(depth, 1), token);
                 bestMoveList = retList;
             } else
             {
@@ -347,7 +308,7 @@ namespace TacoWin2
         /// </summary>
         private List<diagTbl> ExpandAndEvaluateNode(
             diagTbl baseNode, Pturn turn, int moveSearchDepth, int evalDepthLimit,
-            bool adjustTmpVal, Action<kmove[], kmove[], kmove> applyMoveHistory, out bool stopped)
+            bool adjustTmpVal, Action<kmove[], kmove[], kmove> applyMoveHistory, out bool stopped, CancellationToken token)
         {
 
             stopped = false;
@@ -365,13 +326,14 @@ namespace TacoWin2
             (int moveCount, int sp) = getAllMoveList(ref baseNode.ban, turn, moveList);
             int teCnt = 0;
 
-            Parallel.For(0, workMin, id => {
+            Parallel.For(0, workMin, id =>
+            {
                 while (true)
                 {
                     int cnt_local;
                     lock (lockObj)
                     {
-                        if (moveCount <= teCnt || stopFlg) break;
+                        if (moveCount <= teCnt || token.IsCancellationRequested) break;
                         cnt_local = teCnt + sp;
                         teCnt++;
                     }
@@ -382,9 +344,9 @@ namespace TacoWin2
                     if (!TryExecuteMoveAndCheck(ref tbl.ban, moveList[cnt_local], turn)) continue;
 
                     kmove[] retList;
-                    int retVal = -think(pturn.aturn(turn), ref tbl.ban, out retList, -beta, -alpha, moveList[cnt_local].val, moveSearchDepth, evalDepthLimit);
+                    int retVal = -think(pturn.aturn(turn), ref tbl.ban, out retList, -beta, -alpha, moveList[cnt_local].val, moveSearchDepth, evalDepthLimit, token);
 
-                    if (stopFlg) break;
+                    if (token.IsCancellationRequested) break;
 
                     // 打ち歩詰めチェック
                     if (IsUchifuZume(retVal, moveList[cnt_local], retList, moveSearchDepth)) continue;
@@ -411,7 +373,7 @@ namespace TacoWin2
                 }
             });
 
-            stopped = stopFlg;
+            stopped = token.IsCancellationRequested;
             lock (lockObj)
             {
                 mList.freeAlist(aid);
@@ -424,10 +386,9 @@ namespace TacoWin2
         // thinkMove (ルート探索・並列反復深化)
         // =========================================================
 
-        public (List<diagTbl>, int) thinkMove(Pturn turn, ban ban, int depth, int deepMax, int deepsWidth, int mateDepth, int retMax)
+        public (List<diagTbl>, int) thinkMove(Pturn turn, ban ban, IReadOnlyList<kmove> history, int depth, int deepMax, int deepsWidth, int mateDepth, int retMax, CancellationToken token, CancellationToken mateToken)
         {
             deepWidth = deepsWidth;
-            timeouted = false;
             int best = -999999;
             var sw = new System.Diagnostics.Stopwatch();
             List<diagTbl> retMove = new List<diagTbl>();
@@ -436,8 +397,7 @@ namespace TacoWin2
             if (mateDepth > 0)
             {
                 DebugForm.instance.addMsg("thinkMateMove=" + mateDepth);
-                (kmove[] mateBestMove, int mateRet) = thinkMateMove(turn, ban, mateDepth);
-                mateTimer.Stop();
+                (kmove[] mateBestMove, int mateRet) = thinkMateMove(turn, ban, mateDepth, token, mateToken);
 
                 if (mateRet < 999)
                 {
@@ -453,7 +413,7 @@ namespace TacoWin2
             unsafe
             {
                 // 2. 定跡チェック (共通メソッド利用)
-                if (TryGetJoseki(turn, ref ban, 0, 0, out int josekiVal, out kmove[] josekiMoveList))
+                if (TryGetJoseki(turn, ref ban, 0, 0, out int josekiVal, out kmove[] josekiMoveList, token))
                 {
                     string str = "";
                     for (int i = 0; josekiMoveList[i].op > 0 || josekiMoveList[i].np > 0; i++)
@@ -485,13 +445,14 @@ namespace TacoWin2
                 kmove[] bestmove = null;
 
                 // 4. 第一階層の並列探索
-                Parallel.For(0, workMin, id => {
+                Parallel.For(0, workMin, id =>
+                {
                     while (true)
                     {
                         int cnt_local;
                         lock (lockObj)
                         {
-                            if (moveCount <= teCnt || stopFlg) break;
+                            if (moveCount <= teCnt || token.IsCancellationRequested) break;
                             cnt_local = teCnt + sp;
                             teCnt++;
                         }
@@ -499,9 +460,9 @@ namespace TacoWin2
                         diagTbl tbl = new diagTbl(moveList[cnt_local].val, ban);
 
                         // 千日手・同一局面回避用の評価値ペナルティ
-                        for (int i = tw2Main.kifu.Count - 2; i >= 0 && i > tw2Main.kifu.Count - 6; i -= 2)
+                        for (int i = history.Count - 2; i >= 0 && i > history.Count - 6; i -= 2)
                         {
-                            if (moveList[cnt_local].op == tw2Main.kifu[i].op && moveList[cnt_local].np == tw2Main.kifu[i].np)
+                            if (moveList[cnt_local].op == history[i].op && moveList[cnt_local].np == history[i].np)
                             {
                                 moveList[cnt_local].val -= 500;
                             }
@@ -530,8 +491,8 @@ namespace TacoWin2
                         }
 
                         kmove[] retList;
-                        int retVal = -think(pturn.aturn(turn), ref tbl.ban, out retList, -beta, -alpha, moveList[cnt_local].val, 1, depth);
-                        if (stopFlg) break;
+                        int retVal = -think(pturn.aturn(turn), ref tbl.ban, out retList, -beta, -alpha, moveList[cnt_local].val, 1, depth, token);
+                        if (token.IsCancellationRequested) break;
 
                         retList[0] = moveList[cnt_local];
 
@@ -562,7 +523,7 @@ namespace TacoWin2
                 mList.freeAlist(aid);
 
                 // 中断時や反復深化を行わない場合はここでリターン
-                if (stopFlg || deepMax < 1 || deepWidth < 1 || deepList[0].Count <= retMax || best < -5000 || best > 5000)
+                if (token.IsCancellationRequested || deepMax < 1 || deepWidth < 1 || deepList[0].Count <= retMax || best < -5000 || best > 5000)
                 {
                     if (deepList[0].Count > retMax) deepList[0].RemoveRange(retMax, deepList[0].Count - retMax);
                     return (deepList[0], best);
@@ -594,11 +555,12 @@ namespace TacoWin2
                             moveSearchDepth: 2 + deepCnt,
                             evalDepthLimit: 1 + depth + deepCnt,
                             adjustTmpVal: deepMax > 1,
-                            applyMoveHistory: (targetKmv, sourceKmv, currentMove) => {
+                            applyMoveHistory: (targetKmv, sourceKmv, currentMove) =>
+                            {
                                 for (int i = 0; i < deepCnt + 1; i++) targetKmv[i] = sourceKmv[i];
                                 targetKmv[deepCnt + 1] = currentMove;
                             },
-                            out bool isStopped
+                            out bool isStopped, token
                         );
 
                         if (isStopped)
@@ -641,13 +603,14 @@ namespace TacoWin2
                                 moveSearchDepth: 3 + deepCnt,
                                 evalDepthLimit: 2 + depth + deepCnt,
                                 adjustTmpVal: false,
-                                applyMoveHistory: (targetKmv, sourceKmv, currentMove) => {
+                                applyMoveHistory: (targetKmv, sourceKmv, currentMove) =>
+                                {
                                     // 元の実装の特殊なインデックス割り当てを再現
                                     targetKmv[0] = sourceKmv[0];
                                     targetKmv[1] = sourceKmv[1];
                                     targetKmv[deepCnt + 2] = currentMove;
                                 },
-                                out isStopped
+                                out isStopped, token
                             );
 
                             if (isStopped)
@@ -680,7 +643,7 @@ namespace TacoWin2
 
                     if (deepMax == 1)
                     {
-                        if ((stopFlg || deepWidth < 1) && resList.Count < retMax)
+                        if ((token.IsCancellationRequested || deepWidth < 1) && resList.Count < retMax)
                         {
                             if (deepList[0].Count > retMax) deepList[0].RemoveRange(retMax, deepList[0].Count - retMax);
                             return (deepList[0], best);
@@ -716,14 +679,14 @@ namespace TacoWin2
         // think (アルファベータ探索)
         // =========================================================
 
-        public int think(Pturn turn, ref ban currentBan, out kmove[] bestMoveList, int alpha, int beta, int pVal, int depth, int depMax)
+        public int think(Pturn turn, ref ban currentBan, out kmove[] bestMoveList, int alpha, int beta, int pVal, int depth, int depMax, CancellationToken token)
         {
             int val = -pVal;
             bestMoveList = null;
             int best = -999999;
             ulong bestHash = 0;
 
-            if (stopFlg)
+            if (token.IsCancellationRequested)
             {
                 bestMoveList = new kmove[30];
                 return 0;
@@ -732,7 +695,7 @@ namespace TacoWin2
             unsafe
             {
                 // 1. 定跡チェック (共通メソッド利用)
-                if (TryGetJoseki(turn, ref currentBan, depth, val, out int josekiBestVal, out kmove[] josekiMoveList))
+                if (TryGetJoseki(turn, ref currentBan, depth, val, out int josekiBestVal, out kmove[] josekiMoveList, token))
                 {
                     bestMoveList = josekiMoveList;
                     return josekiBestVal;
@@ -769,7 +732,7 @@ namespace TacoWin2
                         }
 
                         kmove[] retList;
-                        int retVal = -think(pturn.aturn(turn), ref tmp_ban, out retList, -beta, -alpha, moveList[cnt].val - pVal, depth + 1, depMax);
+                        int retVal = -think(pturn.aturn(turn), ref tmp_ban, out retList, -beta, -alpha, moveList[cnt].val - pVal, depth + 1, depMax, token);
 
                         // 共通メソッドで打ち歩詰めチェック
                         if (IsUchifuZume(retVal, moveList[cnt], retList, depth + 2)) continue;

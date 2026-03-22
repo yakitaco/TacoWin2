@@ -13,7 +13,8 @@ namespace TacoWin2
 {
     class tw2Main
     {
-        public static List<kmove> kifu;
+        // 棋譜
+        private static List<kmove> kifu;
 
         // --- エンジンの状態管理 ---
         private static int tesuu = 0;
@@ -32,6 +33,11 @@ namespace TacoWin2
         private static Stopwatch sw = new Stopwatch();
         private static Process thisProcess = Process.GetCurrentProcess();
         private static Random rnds = new Random();
+
+        // AI探索タイムアウト・中断用の非同期処理キャンセル管理クラス
+        private static CancellationTokenSource searchCts;
+        // AI詰み探索タイムアウト・中断用の非同期処理キャンセル管理クラス
+        private static CancellationTokenSource mateCts;
 
         [STAThread]
         static void Main(string[] args)
@@ -227,7 +233,15 @@ namespace TacoWin2
                 thisProcess.PriorityClass = ProcessPriorityClass.RealTime; // 優先度高
                 sw.Restart();
 
-                aiTaskMain = Task.Run(() => ThinkTask(nokori, tesuu));
+                // 通常探索用Ctsをリセット
+                searchCts?.Dispose();
+                searchCts = new CancellationTokenSource();
+
+                // 詰み探索用Ctsをリセット
+                mateCts?.Dispose();
+                mateCts = new CancellationTokenSource();
+
+                aiTaskMain = Task.Run(() => ThinkTask(nokori, tesuu, searchCts.Token), searchCts.Token);
 
                 if (nokori > 3600000)
                 {
@@ -254,7 +268,7 @@ namespace TacoWin2
             } else if (tokens.Length > 1 && tokens[1] == "mate")
             {
                 thisProcess.PriorityClass = ProcessPriorityClass.RealTime;
-                (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15);
+                (kmove[] km, int best) = ai.thinkMateMove(turn, ban, 15, searchCts.Token, mateCts.Token);
                 thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal;
 
                 if (best < 999)
@@ -306,7 +320,18 @@ namespace TacoWin2
         private static void HandleStop()
         {
             mateMove = null;
-            if (aiTaskMain != null) ai.stopFlg = true;
+
+            // キャンセルを発行(AI通常探索用)
+            if (searchCts != null && !searchCts.IsCancellationRequested)
+            {
+                searchCts.Cancel();
+            }
+
+            // キャンセルを発行(AI詰み探索用)
+            if (mateCts != null && !mateCts.IsCancellationRequested)
+            {
+                mateCts.Cancel();
+            }
 
             // 思考の終了を待機
             if (aiTaskMain != null)
@@ -329,28 +354,48 @@ namespace TacoWin2
 
         private static void HandleGameOver()
         {
-            if (aiTaskMain != null) ai.stopFlg = true;
+            if (aiTaskMain != null)
+            {             // キャンセルを発行(AI通常探索用)
+                if (searchCts != null && !searchCts.IsCancellationRequested)
+                {
+                    searchCts.Cancel();
+                }
+
+                // キャンセルを発行(AI詰み探索用)
+                if (mateCts != null && !mateCts.IsCancellationRequested)
+                {
+                    mateCts.Cancel();
+                }
+            }
             if (aiTaskMain != null)
             {
                 _ = aiTaskMain.Result; // 終了待機
             }
 
-            ai.stopFlg = false;
-            ai.stopTimer();
             if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
             inGame = 2;
         }
 
         private static void HandleQuit()
         {
-            if (aiTaskMain != null) ai.stopFlg = true;
+            if (aiTaskMain != null)
+            {             // キャンセルを発行(AI通常探索用)
+                if (searchCts != null && !searchCts.IsCancellationRequested)
+                {
+                    searchCts.Cancel();
+                }
+
+                // キャンセルを発行(AI詰み探索用)
+                if (mateCts != null && !mateCts.IsCancellationRequested)
+                {
+                    mateCts.Cancel();
+                }
+            }
             if (aiTaskMain != null)
             {
                 _ = aiTaskMain.Result;
             }
 
-            ai.stopFlg = false;
-            ai.stopTimer();
             if (inGame == 1) tw2_log.save(DebugForm.instance.getText(), (int)turn);
         }
 
@@ -402,50 +447,70 @@ namespace TacoWin2
         #region AI思考処理と結果送信の共通化
 
         // Goコマンド用のタイマーと深さの設定
-        private static (List<diagTbl>, int) ThinkTask(int timeRest, int currentTurn)
+        private static (List<diagTbl>, int) ThinkTask(int timeRest, int currentTurn, CancellationToken token)
         {
             if (timeRest < 30000)
             { // 0 - 30 sec
-                ai.startTimer(((timeRest / 1000) - 2 < 10) ? (timeRest / 1000) - 2 : 10, 2);
-                return ai.thinkMove(turn, ban, 3, 0, 0, 5, 5);
+                // 通常探索(残り時間 - 2秒) : 詰み探索5秒
+                searchCts.CancelAfter(((timeRest / 1000) - 2 < 10) ? ((timeRest / 1000) - 2) * 1000 : 10000);
+                mateCts.CancelAfter(5000);
+                return ai.thinkMove(turn, ban, kifu, 3, 0, 0, 5, 5, searchCts.Token, mateCts.Token);
             } else if (timeRest < 60000)
             { // 30 sec - 1min
-                ai.startTimer(10, 5);
-                return ai.thinkMove(turn, ban, 4, 1, 5, 7, 5);
+                // 通常探索10秒 : 詰み探索5秒
+                searchCts.CancelAfter(10000);
+                mateCts.CancelAfter(5000);
+                return ai.thinkMove(turn, ban, kifu, 4, 1, 5, 7, 5, searchCts.Token, mateCts.Token);
             } else if (currentTurn < 30 || timeRest < 180000)
             { // 1 - 3min
-                ai.startTimer(15, 10);
-                return ai.thinkMove(turn, ban, 5, 1, 5, 7, 5);
+                // 通常探索15秒 : 詰み探索10秒
+                searchCts.CancelAfter(15000);
+                mateCts.CancelAfter(10000);
+                return ai.thinkMove(turn, ban, kifu, 5, 1, 5, 7, 5, searchCts.Token, mateCts.Token);
             } else if (currentTurn < 40 || timeRest < 300000)
             { // 3 - 5min
-                ai.startTimer(15, 10);
-                return ai.thinkMove(turn, ban, 5, 1, 6, 9, 5);
+                // 通常探索15秒 : 詰み探索10秒
+                searchCts.CancelAfter(15000);
+                mateCts.CancelAfter(10000);
+                return ai.thinkMove(turn, ban, kifu, 5, 1, 6, 9, 5, searchCts.Token, mateCts.Token);
             } else if (currentTurn < 50 || timeRest < 450000)
             { // 5 - 7.5min
-                ai.startTimer(15, 10);
-                return ai.thinkMove(turn, ban, 5, 1, 6, 11, 5);
+                // 通常探索15秒 : 詰み探索10秒
+                searchCts.CancelAfter(15000);
+                mateCts.CancelAfter(10000);
+                return ai.thinkMove(turn, ban, kifu, 5, 1, 6, 11, 5, searchCts.Token, mateCts.Token);
             } else if (currentTurn < 50 || timeRest < 900000)
             { // 7.5 - 15min
                 tw2stval.setStage(1);
-                ai.startTimer(180, 50);
-                return ai.thinkMove(turn, ban, 6, 1, 8, 11, 5);
+                // 通常探索180秒 : 詰み探索50秒
+                searchCts.CancelAfter(180000);
+                mateCts.CancelAfter(50000);
+                return ai.thinkMove(turn, ban, kifu, 6, 1, 8, 11, 5, searchCts.Token, mateCts.Token);
             } else if (currentTurn < 50 || timeRest < 3600000)
             { // 15 - 60min
                 tw2stval.setStage(1);
-                // 元のコードで 15-30min と 30-60min でタイマー設定が異なっていた部分を統合・整理できます
-                ai.startTimer(timeRest < 1800000 ? 600 : 1200, 120);
-                return ai.thinkMove(turn, ban, timeRest < 1800000 ? 6 : 7, 1, timeRest < 1800000 ? 16 : 0, 11, 5);
+                // 通常探索300秒 : 詰み探索50秒
+                searchCts.CancelAfter(300000);
+                mateCts.CancelAfter(50000);
+                return ai.thinkMove(turn, ban, kifu, timeRest < 1800000 ? 6 : 7, 1, timeRest < 1800000 ? 16 : 0, 11, 5, searchCts.Token, mateCts.Token);
             } else if (currentTurn < 50 || timeRest < 7200000)
             { // 60 - 120min
                 tw2stval.setStage(1);
-                ai.startTimer(1800, 120);
-                return ai.thinkMove(turn, ban, 7, 1, 8, 11, 5);
+                // 通常探索300秒 : 詰み探索50秒
+                searchCts.CancelAfter(300000);
+                mateCts.CancelAfter(50000);
+                return ai.thinkMove(turn, ban, kifu, 7, 1, 8, 11, 5, searchCts.Token, mateCts.Token);
             } else
             { // 120min -
                 tw2stval.setStage(1);
-                ai.startTimer(7200, 120);
-                return ai.thinkMove(turn, ban, 7, 1, 10, 11, 5);
+                // 通常探索600秒 : 詰み探索120秒
+                searchCts.CancelAfter(600000);
+                mateCts.CancelAfter(120000);
+                return ai.thinkMove(turn, ban, kifu, 7, 1, 10, 11, 5, searchCts.Token, mateCts.Token);
             }
+
+
+
         }
 
         // Ponder用のタスク
@@ -462,46 +527,66 @@ namespace TacoWin2
             if (currentTurn >= 40 && timeRest >= 300000) wid = 9;
             if (currentTurn >= 50 && timeRest >= 450000) wid = 11;
 
-            return ai.thinkMove(turn, ban, depth, 1, 60, wid, 5);
+            return ai.thinkMove(turn, ban, kifu, depth, 1, 60, wid, 5, searchCts.Token, mateCts.Token);
         }
 
         private static void AdjustTimerForPonderHit(int timeRest, int currentTurn)
         {
+            // 先読みからの切り替え時に、残り時間と現在の手数に応じてタイマーと深さを調整
             if (timeRest < 120000)
             {
-                ai.startTimer(((timeRest / 1000) - 2 < 10) ? (timeRest / 1000) - 2 : 10, 5);
+                // 通常探索(残り時間 - 2秒) : 詰み探索5秒
+                searchCts.CancelAfter(((timeRest / 1000) - 2 < 10) ? ((timeRest / 1000) - 2) * 1000 : 10000);
+                mateCts.CancelAfter(5000);
                 ai.deepWidth = 0;
+
             } else if (currentTurn < 30 || timeRest < 180000)
             {
-                ai.startTimer(15, 10);
+                // 通常探索15秒 : 詰み探索10秒
+                searchCts.CancelAfter(15000);
+                mateCts.CancelAfter(10000);
                 ai.deepWidth = 0;
             } else if (currentTurn < 40 || timeRest < 300000)
             {
-                ai.startTimer(20, 10);
+                // 通常探索20秒 : 詰み探索10秒
+                searchCts.CancelAfter(20000);
+                mateCts.CancelAfter(10000);
                 ai.deepWidth = 10;
             } else if (currentTurn < 50 || timeRest < 450000)
             {
-                ai.startTimer(20, 10);
+                // 通常探索20秒 : 詰み探索10秒
+                searchCts.CancelAfter(20000);
+                mateCts.CancelAfter(10000);
                 ai.deepWidth = 12;
             } else if (currentTurn < 50 || timeRest < 900000)
             {
-                ai.startTimer(180, 50);
+                // 通常探索180秒 : 詰み探索50秒
+                searchCts.CancelAfter(180000);
+                mateCts.CancelAfter(50000);
                 ai.deepWidth = 8;
             } else if (currentTurn < 50 || timeRest < 1800000)
             {
-                ai.startTimer(600, 120);
+                // 通常探索600秒 : 詰み探索120秒
+                searchCts.CancelAfter(600000);
+                mateCts.CancelAfter(120000);
                 ai.deepWidth = 16;
             } else if (currentTurn < 50 || timeRest < 3600000)
             {
-                ai.startTimer(1200, 120);
+                // 通常探索1200秒 : 詰み探索120秒
+                searchCts.CancelAfter(1200000);
+                mateCts.CancelAfter(120000);
                 ai.deepWidth = 0;
             } else if (currentTurn < 50 || timeRest < 7200000)
             {
-                ai.startTimer(1800, 120);
+                // 通常探索1800秒 : 詰み探索120秒
+                searchCts.CancelAfter(1800000);
+                mateCts.CancelAfter(120000);
                 ai.deepWidth = 8;
             } else
             {
-                ai.startTimer(7200, 120);
+                // 通常探索7200秒 : 詰み探索120秒
+                searchCts.CancelAfter(7200000);
+                mateCts.CancelAfter(120000);
                 tw2stval.setStage(1);
                 ai.deepWidth = 10;
             }
@@ -516,7 +601,8 @@ namespace TacoWin2
             sw.Stop();
             thisProcess.PriorityClass = ProcessPriorityClass.AboveNormal; // 優先度戻す
 
-            if (ai.timeouted || !ai.stopFlg)
+            // タイムアウトやキャンセルが発生していない場合のみ、結果を送信
+            if (!searchCts.Token.IsCancellationRequested)
             {
                 if (best < -10000)
                 {
@@ -585,10 +671,8 @@ namespace TacoWin2
         private static void ResetEngineState()
         {
             mList.reset();
-            ai.stopFlg = false;
             ai.resetHash();
             aic.clear();
-            ai.stopTimer();
         }
 
         #endregion
