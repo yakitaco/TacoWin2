@@ -100,7 +100,10 @@ namespace TacoWin2
         Object lockObj = new Object();
         Object lockObj_hash = new Object();
         int mateDepMax = 0;
-        public int deepWidth = 0;
+
+        // 反復深化の幅制限 (0なら幅制限なし、1なら最善手のみ、2以上なら上位n手を展開)
+        private volatile int _deepWidth = 0;
+
         static tw2ai()
         {
             // thread同時数取得
@@ -111,6 +114,15 @@ namespace TacoWin2
         public tw2ai()
         {
             resetHash();
+        }
+
+        /// <summary>
+        /// 反復深化の幅制限を更新します。探索途中で幅を広げる際に呼び出されます。
+        /// </summary>
+        /// <param name="newWidth">更新後の幅制限値</param>
+        public void UpdateDeepWidth(int newWidth)
+        {
+            _deepWidth = newWidth;
         }
 
         public void resetHash()
@@ -388,7 +400,7 @@ namespace TacoWin2
 
         public (List<diagTbl>, int) thinkMove(Pturn turn, ban ban, IReadOnlyList<kmove> history, int depth, int deepMax, int deepsWidth, int mateDepth, int retMax, CancellationToken token, CancellationToken mateToken)
         {
-            deepWidth = deepsWidth;
+            UpdateDeepWidth(deepsWidth);
             int best = -999999;
             var sw = new System.Diagnostics.Stopwatch();
             List<diagTbl> retMove = new List<diagTbl>();
@@ -509,7 +521,7 @@ namespace TacoWin2
                             {
                                 best = retVal;
                                 bestmove = retList;
-                                if (best > alpha && deepWidth < 1)
+                                if (best > alpha && _deepWidth < 1)
                                 {
                                     alpha = best;
                                 }
@@ -523,7 +535,7 @@ namespace TacoWin2
                 mList.freeAlist(aid);
 
                 // 中断時や反復深化を行わない場合はここでリターン
-                if (token.IsCancellationRequested || deepMax < 1 || deepWidth < 1 || deepList[0].Count <= retMax || best < -5000 || best > 5000)
+                if (token.IsCancellationRequested || deepMax < 1 || _deepWidth < 1 || deepList[0].Count <= retMax || best < -5000 || best > 5000)
                 {
                     if (deepList[0].Count > retMax) deepList[0].RemoveRange(retMax, deepList[0].Count - retMax);
                     return (deepList[0], best);
@@ -538,13 +550,13 @@ namespace TacoWin2
                 {
                     tmpTurn = pturn.aturn(tmpTurn);
 
-                    for (int WidthCnt = 0; WidthCnt < deepList[deepCnt].Count && (WidthCnt < deepWidth || (resList.Count > 0 && resList[0].val < -5000)); WidthCnt++)
+                    for (int WidthCnt = 0; WidthCnt < deepList[deepCnt].Count && (WidthCnt < _deepWidth || (resList.Count > 0 && resList[0].val < -5000)); WidthCnt++)
                     {
 
                         // 1. 同一進行の枝刈り
                         if (IsDuplicateMoveSequence(deepCnt, WidthCnt))
                         {
-                            deepWidth++;
+                            _deepWidth++;
                             continue;
                         }
 
@@ -643,7 +655,7 @@ namespace TacoWin2
 
                     if (deepMax == 1)
                     {
-                        if ((token.IsCancellationRequested || deepWidth < 1) && resList.Count < retMax)
+                        if ((token.IsCancellationRequested || _deepWidth < 1) && resList.Count < retMax)
                         {
                             if (deepList[0].Count > retMax) deepList[0].RemoveRange(retMax, deepList[0].Count - retMax);
                             return (deepList[0], best);
