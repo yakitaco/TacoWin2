@@ -538,57 +538,57 @@ namespace TacoWin2
                 // 通常探索(残り時間 - 2秒) : 詰み探索5秒
                 searchCts.CancelAfter(((timeRest / 1000) - 2 < 10) ? ((timeRest / 1000) - 2) * 1000 : 10000);
                 mateCts.CancelAfter(5000);
-                ai.deepWidth = 0;
+                ai.UpdateDeepWidth(0);
 
             } else if (currentTurn < 30 || timeRest < 180000)
             {
                 // 通常探索15秒 : 詰み探索10秒
                 searchCts.CancelAfter(15000);
                 mateCts.CancelAfter(10000);
-                ai.deepWidth = 0;
+                ai.UpdateDeepWidth(0);
             } else if (currentTurn < 40 || timeRest < 300000)
             {
                 // 通常探索20秒 : 詰み探索10秒
                 searchCts.CancelAfter(20000);
                 mateCts.CancelAfter(10000);
-                ai.deepWidth = 10;
+                ai.UpdateDeepWidth(10);
             } else if (currentTurn < 50 || timeRest < 450000)
             {
                 // 通常探索20秒 : 詰み探索10秒
                 searchCts.CancelAfter(20000);
                 mateCts.CancelAfter(10000);
-                ai.deepWidth = 12;
+                ai.UpdateDeepWidth(12);
             } else if (currentTurn < 50 || timeRest < 900000)
             {
                 // 通常探索180秒 : 詰み探索50秒
                 searchCts.CancelAfter(180000);
                 mateCts.CancelAfter(50000);
-                ai.deepWidth = 8;
+                ai.UpdateDeepWidth(14);
             } else if (currentTurn < 50 || timeRest < 1800000)
             {
                 // 通常探索600秒 : 詰み探索120秒
                 searchCts.CancelAfter(600000);
                 mateCts.CancelAfter(120000);
-                ai.deepWidth = 16;
+                ai.UpdateDeepWidth(16);
             } else if (currentTurn < 50 || timeRest < 3600000)
             {
                 // 通常探索1200秒 : 詰み探索120秒
                 searchCts.CancelAfter(1200000);
                 mateCts.CancelAfter(120000);
-                ai.deepWidth = 0;
+                ai.UpdateDeepWidth(0);
             } else if (currentTurn < 50 || timeRest < 7200000)
             {
                 // 通常探索1800秒 : 詰み探索120秒
                 searchCts.CancelAfter(1800000);
                 mateCts.CancelAfter(120000);
-                ai.deepWidth = 8;
+                ai.UpdateDeepWidth(8);
             } else
             {
                 // 通常探索7200秒 : 詰み探索120秒
                 searchCts.CancelAfter(7200000);
                 mateCts.CancelAfter(120000);
                 tw2stval.setStage(1);
-                ai.deepWidth = 10;
+                ai.UpdateDeepWidth(10);
             }
         }
 
