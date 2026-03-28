@@ -50,60 +50,6 @@ namespace TacoWin2
         List<hashTbl> aList = new List<hashTbl>();
         List<diagTbl>[] deepList;
 
-        /// <summary>
-        /// 各駒の固定価値
-        /// </summary>
-        public static int[] kVal = {
-        0,        //なし
-        100,   //歩兵
-        500,  //香車
-        600,    //桂馬
-        800,  //銀将
-        1500,    //飛車
-        1200, //角行
-        900,  //金将
-        99999,   //王将
-        200,    //と金(成歩兵)
-        550, //成香
-        650,  //成桂
-        900,  //成銀
-        1800,   //竜王
-        1400,   //竜馬
-    };
-
-        /// <summary>
-        /// 各駒の固定価値
-        /// </summary>
-        public static int[,] kpVal = {
-        { 0   , 0    },   //なし
-        { 50  , 100  },   //歩兵
-        { 120 , 170  },   //香車
-        { 150 , 200  },   //桂馬
-        { 200 , 300  },   //銀将
-        { 350 , 500  },   //飛車
-        { 300 , 400  },   //角行
-        { 250 , 350  },   //金将
-        {99999, 99999},   //王将
-        {99999, 99999},   //と金(成歩兵)
-        {99999, 99999},   //成香
-        {99999, 99999},   //成桂
-        {99999, 99999},   //成銀
-        {99999, 99999},   //竜王
-        {99999, 99999},   //竜馬
-    };
-
-        /* 持ち駒の評価 {1個め,2個目以降} */
-        public static int[,] mScore = {
-        { 0    , 0      }, //なし
-        { 150  , 10     }, //歩兵
-        { 700  , 100    }, //香車
-        { 800  , 150    }, //桂馬
-        { 1000  , 500   }, //銀将
-        { 2000  , 2500  }, //飛車
-        { 1500  , 2000  }, //角行
-        { 1200  , 1000  },  //金将
-    };
-
         Random rnds = new System.Random();
 
         // thread同時数
@@ -243,7 +189,7 @@ namespace TacoWin2
             int val = pVal;
             if (currentBan.getOnBoardKtype(nPos) > ktype.None)
             {
-                val += kVal[(int)currentBan.getOnBoardKtype(nPos)] + tw2stval.get(currentBan.getOnBoardKtype(oPos), oPos, nPos, turn);
+                val += KomaValues.kVal[(int)currentBan.getOnBoardKtype(nPos)] + tw2stval.get(currentBan.getOnBoardKtype(oPos), oPos, nPos, turn);
             } else if (oPos < 0x90)
             {
                 val += tw2stval.get(currentBan.getOnBoardKtype(oPos), oPos, nPos, turn);
@@ -1193,10 +1139,10 @@ namespace TacoWin2
                                 {
                                     val -= 200;
                                 }
-                                val -= kpVal[oPos & 0x0F, 1];
+                                val -= KomaValues.kpVal[oPos & 0x0F, 1];
                             } else
                             {
-                                val -= kpVal[oPos & 0x0F, 0];
+                                val -= KomaValues.kpVal[oPos & 0x0F, 0];
                             }
 
                             if ((pturn.psX(turn, j) < 7) && ((ban.data[(i << 4) + j] >> (8 + ((int)turn << 2)) & 0x0F) >= (ban.data[(i << 4) + j] >> (8 + (pturn.aturn((int)turn) << 2)) & 0x0F))
@@ -1352,15 +1298,15 @@ namespace TacoWin2
                 if ((nPos > 0x88) || ((nPos & 0xF) > 0x08)) return 3; // 範囲外(移動できない)
                 int sval = tw2stval.get(ban.getOnBoardKtype(oPos), oPos, nPos, turn) + tw2acval.mvGet(ref ban, ban.getOnBoardKtype(oPos), oPos, nPos, turn) + ((int)ban.data[nPos] >> (((int)turn << 2) + 8) & 0x0F) - ((int)ban.data[nPos] >> ((pturn.aturn((int)turn) << 2) + 8) & 0x0F);
                 //現在の敵の取得候補より価値が高い場合、自分が取得候補となる
-                if (((ban.data[nPos] >> ((pturn.aturn((int)turn) << 2) + 8) & 0x0F) > 0) && (kVal[(int)ban.getOnBoardKtype(oPos)] > eVal))
+                if (((ban.data[nPos] >> ((pturn.aturn((int)turn) << 2) + 8) & 0x0F) > 0) && (KomaValues.kVal[(int)ban.getOnBoardKtype(oPos)] > eVal))
                 {
-                    eVal = tw2ai.kVal[(int)ban.getOnBoardKtype(oPos)];
+                    eVal = KomaValues.kVal[(int)ban.getOnBoardKtype(oPos)];
                 }
                 if (ban.getOnBoardKtype(nPos) > ktype.None)
                 { //駒が存在
                     if (ban.getOnBoardPturn(nPos) != turn)
                     {
-                        val = kVal[(int)ban.getOnBoardKtype(nPos)] + sval;
+                        val = KomaValues.kVal[(int)ban.getOnBoardKtype(nPos)] + sval;
                         if ((((pturn.ps(turn, oPos) & 0x0F) > 5) || ((pturn.ps(turn, nPos) & 0x0F) > 5)) && ((int)ban.getOnBoardKtype(oPos) < 7))
                         {
 
@@ -1484,7 +1430,7 @@ namespace TacoWin2
                 {
                     if ((ban.data[((int)Pturn.Sente << 6) + ban.setFu + (i >> 2)] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
-                        score += kVal[(int)ktype.Fuhyou] + (int)(ban.data[((int)Pturn.Sente << 6) + ban.setFu + (i >> 2)] >> ((i & 3) << 3) & 0x0F);
+                        score += KomaValues.kVal[(int)ktype.Fuhyou] + (int)(ban.data[((int)Pturn.Sente << 6) + ban.setFu + (i >> 2)] >> ((i & 3) << 3) & 0x0F);
                     }
                 }
 
@@ -1494,7 +1440,7 @@ namespace TacoWin2
                     if ((ban.data[((int)Pturn.Sente << 6) + ban.setKyo] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
                         nPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setKyo] >> ((i & 3) << 3) & 0xFF);
-                        score += kVal[(int)ktype.Kyousha] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
+                        score += KomaValues.kVal[(int)ktype.Kyousha] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
                     }
                 }
 
@@ -1504,7 +1450,7 @@ namespace TacoWin2
                     if ((ban.data[((int)Pturn.Sente << 6) + ban.setKei] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
                         nPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setKei] >> ((i & 3) << 3) & 0xFF);
-                        score += kVal[(int)ktype.Keima] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
+                        score += KomaValues.kVal[(int)ktype.Keima] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
                     }
                 }
 
@@ -1514,7 +1460,7 @@ namespace TacoWin2
                     if ((ban.data[((int)Pturn.Sente << 6) + ban.setGin] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
                         nPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setGin] >> ((i & 3) << 3) & 0xFF);
-                        score += kVal[(int)ktype.Ginsyou] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
+                        score += KomaValues.kVal[(int)ktype.Ginsyou] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
                     }
                 }
 
@@ -1524,7 +1470,7 @@ namespace TacoWin2
                     if ((ban.data[((int)Pturn.Sente << 6) + ban.setHi] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
                         nPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setHi] >> ((i & 3) << 3) & 0xFF);
-                        score += kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
+                        score += KomaValues.kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
                     }
                 }
 
@@ -1534,7 +1480,7 @@ namespace TacoWin2
                     if ((ban.data[((int)Pturn.Sente << 6) + ban.setKa] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
                         nPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setKa] >> ((i & 3) << 3) & 0xFF);
-                        score += kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
+                        score += KomaValues.kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
                     }
                 }
 
@@ -1543,7 +1489,7 @@ namespace TacoWin2
                 {
                     if ((ban.data[((int)Pturn.Sente << 6) + ban.setKin] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
-                        score += kVal[(int)ktype.Kinsyou];
+                        score += KomaValues.kVal[(int)ktype.Kinsyou];
                     }
                 }
 
@@ -1553,7 +1499,7 @@ namespace TacoWin2
                     if ((ban.data[((int)Pturn.Sente << 6) + ban.setNa + (i >> 2)] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
                         nPos = (byte)(ban.data[((int)Pturn.Sente << 6) + ban.setNa] >> ((i & 3) << 3) & 0xFF);
-                        score += kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
+                        score += KomaValues.kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
                         j++;
                     }
                 }
@@ -1563,7 +1509,7 @@ namespace TacoWin2
                 {
                     if (ban.data[((int)Pturn.Sente << 6) + ban.hand + i] > 0)
                     {
-                        score += mScore[i, 0] + (int)(ban.data[((int)Pturn.Sente << 6) + ban.hand + i] - 1) * mScore[i, 1];
+                        score += KomaValues.mScore[i, 0] + (int)(ban.data[((int)Pturn.Sente << 6) + ban.hand + i] - 1) * KomaValues.mScore[i, 1];
                     }
                 }
 
@@ -1575,7 +1521,7 @@ namespace TacoWin2
                 {
                     if ((ban.data[((int)Pturn.Gote << 6) + ban.setFu + (i >> 2)] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
-                        score -= kVal[(int)ktype.Fuhyou];
+                        score -= KomaValues.kVal[(int)ktype.Fuhyou];
                     }
                 }
 
@@ -1585,7 +1531,7 @@ namespace TacoWin2
                     if ((ban.data[((int)Pturn.Gote << 6) + ban.setKyo] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
                         nPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setKyo] >> ((i & 3) << 3) & 0xFF);
-                        score -= kVal[(int)ktype.Kyousha] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
+                        score -= KomaValues.kVal[(int)ktype.Kyousha] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
                     }
                 }
 
@@ -1595,7 +1541,7 @@ namespace TacoWin2
                     if ((ban.data[((int)Pturn.Gote << 6) + ban.setKei] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
                         nPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setKei] >> ((i & 3) << 3) & 0xFF);
-                        score -= kVal[(int)ktype.Keima] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
+                        score -= KomaValues.kVal[(int)ktype.Keima] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
                     }
                 }
 
@@ -1605,7 +1551,7 @@ namespace TacoWin2
                     if ((ban.data[((int)Pturn.Gote << 6) + ban.setGin] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
                         nPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setGin] >> ((i & 3) << 3) & 0xFF);
-                        score -= kVal[(int)ktype.Ginsyou] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
+                        score -= KomaValues.kVal[(int)ktype.Ginsyou] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 2);
                     }
                 }
 
@@ -1615,7 +1561,7 @@ namespace TacoWin2
                     if ((ban.data[((int)Pturn.Gote << 6) + ban.setHi] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
                         nPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setHi] >> ((i & 3) << 3) & 0xFF);
-                        score -= kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
+                        score -= KomaValues.kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
                     }
                 }
 
@@ -1625,7 +1571,7 @@ namespace TacoWin2
                     if ((ban.data[((int)Pturn.Gote << 6) + ban.setKa] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
                         nPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setKa] >> ((i & 3) << 3) & 0xFF);
-                        score -= kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
+                        score -= KomaValues.kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
                     }
                 }
 
@@ -1634,7 +1580,7 @@ namespace TacoWin2
                 {
                     if ((ban.data[((int)Pturn.Gote << 6) + ban.setKin] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
-                        score -= kVal[(int)ktype.Kinsyou];
+                        score -= KomaValues.kVal[(int)ktype.Kinsyou];
                     }
                 }
 
@@ -1644,7 +1590,7 @@ namespace TacoWin2
                     if ((ban.data[((int)Pturn.Gote << 6) + ban.setNa + (i >> 2)] >> ((i & 3) << 3) & 0xFF) != 0xFF)
                     {
                         nPos = (byte)(ban.data[((int)Pturn.Gote << 6) + ban.setNa] >> ((i & 3) << 3) & 0xFF);
-                        score -= kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
+                        score -= KomaValues.kVal[(int)ban.getOnBoardKtype(nPos)] - ((Math.Abs(pturn.dx(turn, aOuPos, nPos)) + Math.Abs(pturn.dy(turn, aOuPos, nPos))) << 3);
                         j++;
                     }
                 }
@@ -1654,7 +1600,7 @@ namespace TacoWin2
                 {
                     if (ban.data[((int)Pturn.Gote << 6) + ban.hand + i] > 0)
                     {
-                        score -= mScore[i, 0] + (int)(ban.data[((int)Pturn.Gote << 6) + ban.hand + i] - 1) * mScore[i, 1];
+                        score -= KomaValues.mScore[i, 0] + (int)(ban.data[((int)Pturn.Gote << 6) + ban.hand + i] - 1) * KomaValues.mScore[i, 1];
                     }
                 }
 
