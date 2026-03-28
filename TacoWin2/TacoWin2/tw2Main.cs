@@ -127,11 +127,15 @@ namespace TacoWin2
             }
         }
 
+        /// <summary>
+        /// エンジンの動作に必要なファイルを読み込む処理をまとめたメソッド。
+        /// </summary>
         private static void InitializeEngineFiles()
         {
             LoadFile("default.ytj", sMove.load);
             LoadFile("mList", tw2stval.loadFile);
             LoadFile("childapp.bat", aic.load);
+            LoadFile("komavalue.csv", KomaValues.LoadKomaValues);
         }
 
         private static void LoadFile(string path, Func<string, int> loadMethod)
