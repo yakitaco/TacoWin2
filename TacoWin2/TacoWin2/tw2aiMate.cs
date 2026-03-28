@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using TacoWin2_BanInfo;
 
@@ -18,8 +19,10 @@ namespace TacoWin2
 
         public (kmove[], int) thinkMateMoveTest(Pturn turn, ban ban, int depth)
         {
-            kmove[] moveList = null;
-            int aid = mList.assignAlist(out moveList);
+            // ThreadLocalプールから取得（ロック不要）
+            int safeDepth = Math.Min(depth, MAX_SEARCH_DEPTH - 1);
+            kmove[] moveList = threadLocalMoveLists.Value[safeDepth];
+
             (int vla, int sp) = getAllCheckList(ref ban, turn, moveList);
 
             for (int cnt = sp; cnt < vla + sp; cnt++)
@@ -32,7 +35,6 @@ namespace TacoWin2
                     DebugForm.instance.addMsg("MV: " + (moveList[cnt].op + 0x11).ToString("X2") + "-" + (moveList[cnt].np + 0x11).ToString("X2"));
                 }
             }
-            mList.freeAlist(aid);
 
             DebugForm.instance.addMsg("checkmate nomate");
             return (null, 0);
@@ -56,25 +58,23 @@ namespace TacoWin2
 
             unsafe
             {
-
-                int aid = mList.assignAlist(out kmove[] moveList);
+                // ルートノード(深さ0)用のプールを取得
+                kmove[] moveList = threadLocalMoveLists.Value[0];
 
                 //[攻め方]王手を指せる手を全てリスト追加
                 (int vla, int sp) = getAllCheckList(ref ban, turn, moveList);
 
                 Parallel.For(0, workMin, id =>
                 {
-                    int cnt_local;
-
                     while (true)
                     {
+                        if (token.IsCancellationRequested || mateToken.IsCancellationRequested) break;
 
-                        lock (lockObj)
-                        {
-                            if ((vla <= teCnt) || (token.IsCancellationRequested) || (mateToken.IsCancellationRequested)) break;
-                            cnt_local = teCnt + sp;
-                            teCnt++;
-                        }
+                        // ロックフリーで次のインデックスを取得
+                        int currentTe = Interlocked.Increment(ref teCnt) - 1;
+                        if (currentTe >= vla) break;
+
+                        int cnt_local = currentTe + sp;
 
                         // debug
                         if (moveList[cnt_local].nari == true)
@@ -127,7 +127,7 @@ namespace TacoWin2
 
                             DebugForm.instance.addMsg("TASK[" + Task.CurrentId + ":" + cnt_local + "]MV[" + retVal + "]" + str);
 
-
+                            // ベストスコアの更新のみロックをかける（競合は極小）
                             lock (lockObj)
                             {
                                 if (retVal < best)
@@ -139,8 +139,6 @@ namespace TacoWin2
                         }
                     }
                 });
-
-                mList.freeAlist(aid);
             }
 
             DebugForm.instance.addMsg("FIN:" + best);
@@ -172,13 +170,10 @@ namespace TacoWin2
 
             unsafe
             {
+                // ThreadLocalプールから取得（ロック不要）
+                int safeDepth = Math.Min(depth, MAX_SEARCH_DEPTH - 1);
+                kmove[] moveList = threadLocalMoveLists.Value[safeDepth];
 
-                kmove[] moveList = null;
-                int aid;
-                lock (lockObj)
-                {
-                    aid = mList.assignAlist(out moveList);
-                }
                 (int vla, int sp) = getAllDefList(ref ban, turn, moveList, cPos);
                 for (int cnt = sp; cnt < vla + sp; cnt++)
                 {
@@ -202,10 +197,6 @@ namespace TacoWin2
                         {
                             bestMoveList = retList;
                             bestMoveList[depth] = moveList[cnt];
-                            lock (lockObj)
-                            {
-                                mList.freeAlist(aid);
-                            }
                             return retVal;
                         }
 
@@ -216,11 +207,6 @@ namespace TacoWin2
                             bestMoveList[depth] = moveList[cnt];
                         }
                     }
-                }
-
-                lock (lockObj)
-                {
-                    mList.freeAlist(aid);
                 }
 
                 //ここで詰んだ
@@ -256,13 +242,9 @@ namespace TacoWin2
 
             unsafe
             {
-
-                kmove[] moveList;
-                int aid;
-                lock (lockObj)
-                {
-                    aid = mList.assignAlist(out moveList);
-                }
+                // ThreadLocalプールから取得（ロック不要）
+                int safeDepth = Math.Min(depth, MAX_SEARCH_DEPTH - 1);
+                kmove[] moveList = threadLocalMoveLists.Value[safeDepth];
 
                 //[攻め方]王手を指せる手を全てリスト追加
                 if ((depth < mateDepMax) && (depth < depMax))
@@ -307,10 +289,7 @@ namespace TacoWin2
                 {
                     /* なにもしない */
                 }
-                lock (lockObj)
-                {
-                    mList.freeAlist(aid);
-                }
+
                 if (bestMoveList == null) bestMoveList = new kmove[30];
                 return best;
             }
