@@ -670,7 +670,6 @@ namespace TacoWin2
 
         private static void ResetEngineState()
         {
-            mList.reset();
             ai.resetHash();
             aic.clear();
         }

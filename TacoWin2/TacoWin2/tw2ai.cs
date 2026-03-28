@@ -33,7 +33,19 @@ namespace TacoWin2
 
         }
 
-        uint tnum = 0;
+        int tnum = 0;
+
+        // --- ThreadLocalによるロックフリーのメモリプール ---
+        private const int MAX_SEARCH_DEPTH = 128;
+        private const int MAX_MOVES = 600;
+        private static ThreadLocal<kmove[][]> threadLocalMoveLists = new ThreadLocal<kmove[][]>(() => {
+            var lists = new kmove[MAX_SEARCH_DEPTH][];
+            for (int i = 0; i < MAX_SEARCH_DEPTH; i++)
+            {
+                lists[i] = new kmove[MAX_MOVES];
+            }
+            return lists;
+        });
 
         List<hashTbl> aList = new List<hashTbl>();
         List<diagTbl>[] deepList;
@@ -328,12 +340,11 @@ namespace TacoWin2
             int alpha = -999999;
             int beta = 999999;
 
-            int aid;
-            kmove[] moveList;
-            lock (lockObj)
-            {
-                aid = mList.assignAlist(out moveList);
-            }
+            // 展開元の親ノード用として 1つ浅い階層のインデックス (moveSearchDepth - 1) を借用
+            int safeDepth = Math.Min(moveSearchDepth - 1, MAX_SEARCH_DEPTH - 1);
+            //if (safeDepth < 0) safeDepth = 0;
+
+            kmove[] moveList = threadLocalMoveLists.Value[safeDepth];
 
             (int moveCount, int sp) = getAllMoveList(ref baseNode.ban, turn, moveList);
             int teCnt = 0;
@@ -342,20 +353,21 @@ namespace TacoWin2
             {
                 while (true)
                 {
-                    int cnt_local;
-                    lock (lockObj)
-                    {
-                        if (moveCount <= teCnt || token.IsCancellationRequested) break;
-                        cnt_local = teCnt + sp;
-                        teCnt++;
-                    }
+                    if (token.IsCancellationRequested) break;
 
-                    diagTbl tbl = new diagTbl(baseNode.tmpVal, baseNode.ban);
+                    // ロックフリーで次の処理対象インデックスを取得
+                    int currentTe = Interlocked.Increment(ref teCnt) - 1;
+                    if (currentTe >= moveCount) break;
+
+                    int cnt_local = currentTe + sp;
+
+                    diagTbl tbl = new diagTbl(baseNode.tmpVal, baseNode.ban); // ディープコピー適用済
 
                     // 王手放置チェック
                     if (!TryExecuteMoveAndCheck(ref tbl.ban, moveList[cnt_local], turn)) continue;
 
                     kmove[] retList;
+                    // ここの think は moveSearchDepth を使用するため、安全に配列が分離される
                     int retVal = -think(pturn.aturn(turn), ref tbl.ban, out retList, -beta, -alpha, moveList[cnt_local].val, moveSearchDepth, evalDepthLimit, token);
 
                     if (token.IsCancellationRequested) break;
@@ -386,10 +398,6 @@ namespace TacoWin2
             });
 
             stopped = token.IsCancellationRequested;
-            lock (lockObj)
-            {
-                mList.freeAlist(aid);
-            }
 
             return resultList;
         }
@@ -397,7 +405,6 @@ namespace TacoWin2
         // =========================================================
         // thinkMove (ルート探索・並列反復深化)
         // =========================================================
-
         public (List<diagTbl>, int) thinkMove(Pturn turn, ban ban, IReadOnlyList<kmove> history, int depth, int deepMax, int deepsWidth, int mateDepth, int retMax, CancellationToken token, CancellationToken mateToken)
         {
             UpdateDeepWidth(deepsWidth);
@@ -441,7 +448,9 @@ namespace TacoWin2
 
                 // 3. ルートノードの全手生成
                 sw.Restart();
-                int aid = mList.assignAlist(out kmove[] moveList);
+
+                // ルート用のスレッドローカル配列を取得（ロック不要）
+                kmove[] moveList = threadLocalMoveLists.Value[0];
                 (int moveCount, int sp) = getAllMoveList(ref ban, turn, moveList);
 
                 // 探索深さの調整
@@ -461,13 +470,13 @@ namespace TacoWin2
                 {
                     while (true)
                     {
-                        int cnt_local;
-                        lock (lockObj)
-                        {
-                            if (moveCount <= teCnt || token.IsCancellationRequested) break;
-                            cnt_local = teCnt + sp;
-                            teCnt++;
-                        }
+                        if (token.IsCancellationRequested) break;
+
+                        // ロックフリーなインデックス取得
+                        int currentTe = Interlocked.Increment(ref teCnt) - 1;
+                        if (currentTe >= moveCount) break;
+
+                        int cnt_local = currentTe + sp;
 
                         diagTbl tbl = new diagTbl(moveList[cnt_local].val, ban);
 
@@ -532,7 +541,6 @@ namespace TacoWin2
 
                 sw.Stop();
                 DebugForm.instance.addMsg($"　{sw.Elapsed} , {tnum}");
-                mList.freeAlist(aid);
 
                 // 中断時や反復深化を行わない場合はここでリターン
                 if (token.IsCancellationRequested || deepMax < 1 || _deepWidth < 1 || deepList[0].Count <= retMax || best < -5000 || best > 5000)
@@ -690,7 +698,6 @@ namespace TacoWin2
         // =========================================================
         // think (アルファベータ探索)
         // =========================================================
-
         public int think(Pturn turn, ref ban currentBan, out kmove[] bestMoveList, int alpha, int beta, int pVal, int depth, int depMax, CancellationToken token)
         {
             int val = -pVal;
@@ -713,12 +720,9 @@ namespace TacoWin2
                     return josekiBestVal;
                 }
 
-                int aid;
-                kmove[] moveList;
-                lock (lockObj)
-                {
-                    aid = mList.assignAlist(out moveList);
-                }
+                // スレッドローカルから深度に応じた配列を取得
+                int safeDepth = Math.Min(depth, MAX_SEARCH_DEPTH - 1);
+                kmove[] moveList = threadLocalMoveLists.Value[safeDepth];
 
                 // 王手による一手延長判定
                 bool isCheck = ((byte)currentBan.data[((int)turn << 6) + ban.setOu] != 0xFF) &&
@@ -760,7 +764,6 @@ namespace TacoWin2
 
                             if (best >= beta)
                             {
-                                lock (lockObj) mList.freeAlist(aid);
                                 if (depth < 2)
                                 {
                                     lock (lockObj_hash) addHash(tmp_ban.hash, depth, best, bestMoveList);
@@ -780,10 +783,8 @@ namespace TacoWin2
                     bestMoveList = new kmove[30];
                     bestMoveList[depth] = moveList[sp];
 
-                    lock (lockObj) tnum += 1;
+                    Interlocked.Increment(ref tnum);
                 }
-
-                lock (lockObj) mList.freeAlist(aid);
             }
 
             return best;
