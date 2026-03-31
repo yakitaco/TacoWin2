@@ -464,14 +464,19 @@ namespace TacoWin2_BanInfo {
         public int moveKoma(byte oPos, byte nPos, Pturn turn, bool nari, bool renewMoveable) {
             // 駒打ち
             if (oPos > 0x90) {
+
+                // 持ち駒の種類(Debugログ)
                 if (nPos > 0xF0) Debug.WriteLine("move " + this.debugShow());
+
                 // 持ち駒情報からデクリメント
                 data[((int)turn << 6) + hand + (oPos & 0x0F)]--;
 
-                // hash更新
+                // 打ち先に既にある(Debugログ)
                 if (oPos == 245) Debug.WriteLine("move " + this.debugShow());
-                    hash ^= tw2bi_hash.mochiSeed[(int)turn * 7 + (oPos & 0x0F) - 1, data[((int)turn << 6) + hand + (oPos & 0x0F)]];
-                hash ^= tw2bi_hash.okiSeed[(int)turn * 14 + (int)(oPos & 0x0F) - 1, (nPos >> 4) * 9 + (nPos & 0x0F)];
+
+                // hash更新
+                tw2bi_hash.ToggleHandPiece(ref hash, turn, (ktype)(oPos & 0x0F), data[((int)turn << 6) + hand + (oPos & 0x0F)]);
+                tw2bi_hash.ToggleBoardPiece(ref hash, turn, (ktype)(oPos & 0x0F), nPos);
 
                 //置き駒情報・盤上情報を更新
                 putKoma(nPos, turn, (data[nPos] >> 8) & 0xFF, (ktype)(oPos & 0x0F));
@@ -489,8 +494,8 @@ namespace TacoWin2_BanInfo {
                     if (renewMoveable == true) chgMoveable((byte)nPos, getOnBoardPturn(nPos), -1);
 
                     // hash更新
-                    hash ^= tw2bi_hash.okiSeed[(int)getOnBoardPturn(nPos) * 14 + (int)getOnBoardKtype(nPos) - 1, (nPos >> 4) * 9 + (nPos & 0x0F)];
-                    hash ^= tw2bi_hash.mochiSeed[(int)turn * 7 + (int)kNoNari(getOnBoardKtype(nPos)) - 1, data[((int)turn << 6) + hand + (int)kNoNari(getOnBoardKtype(nPos))]];
+                    tw2bi_hash.ToggleBoardPiece(ref hash, getOnBoardPturn(nPos), getOnBoardKtype(nPos), nPos);
+                    tw2bi_hash.ToggleHandPiece(ref hash, turn, kNoNari(getOnBoardKtype(nPos)), data[((int)turn << 6) + hand + (int)kNoNari(getOnBoardKtype(nPos))]);
 
                     removeKoma(nPos);
 
@@ -506,7 +511,7 @@ namespace TacoWin2_BanInfo {
                 uint mk = data[oPos];
 
                 // hash更新
-                hash ^= tw2bi_hash.okiSeed[(int)turn * 14 + (int)getOnBoardKtype(oPos) - 1, (oPos >> 4) * 9 + (oPos & 0x0F)];
+                tw2bi_hash.ToggleBoardPiece(ref hash, turn, getOnBoardKtype(oPos), oPos);
 
                 if (renewMoveable == true) chgMoveable((byte)(oPos), turn, -1);
 
@@ -587,7 +592,7 @@ namespace TacoWin2_BanInfo {
 
 
                 // hash更新
-                hash ^= tw2bi_hash.okiSeed[(int)turn * 14 + (int)getOnBoardKtype(nPos) - 1, (nPos >> 4) * 9 + (nPos & 0x0F)];
+                tw2bi_hash.ToggleBoardPiece(ref hash, turn, getOnBoardKtype(nPos), nPos);
 
             }
 

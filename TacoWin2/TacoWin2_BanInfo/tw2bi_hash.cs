@@ -1,4 +1,6 @@
-﻿namespace TacoWin2_BanInfo {
+﻿using System.Runtime.CompilerServices;
+
+namespace TacoWin2_BanInfo {
     public class tw2bi_hash {
         public static ulong[,] okiSeed = new ulong[28, 81] {
     // 先手:歩兵
@@ -409,6 +411,25 @@
 
         }
 
+        /// <summary>
+        /// 盤上の駒のハッシュ値を反転（配置/除去）します
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ToggleBoardPiece(ref ulong hash, Pturn turn, ktype type, int pos)
+        {
+            int pieceIndex = (int)turn * 14 + (int)type - 1;
+            int posIndex = (pos >> 4) * 9 + (pos & 0x0F);
+            hash ^= okiSeed[pieceIndex, posIndex];
+        }
 
+        /// <summary>
+        /// 持ち駒のハッシュ値を反転（追加/減少）します
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ToggleHandPiece(ref ulong hash, Pturn turn, ktype type, uint countIndex)
+        {
+            int pieceIndex = (int)turn * 7 + (int)type - 1;
+            hash ^= mochiSeed[pieceIndex, countIndex];
+        }
     }
 }
