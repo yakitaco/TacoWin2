@@ -659,6 +659,13 @@ namespace TacoWin2
 
             unsafe
             {
+                // 相手の王を既に王手している場合は評価値を高くして早く詰みを見つける
+                if (((byte)currentBan.data[((int)turn << 6) + ban.setOu] != 0xFF) &&
+                    ((currentBan.data[currentBan.data[((int)turn << 6) + ban.setOu] & 0xFF] >> (8 + ((int)pturn.aturn(turn) << 2)) & 0x0F) > 0))
+                {
+                    val += 99999;
+                }
+
                 // 1. 定跡チェック (共通メソッド利用)
                 if (TryGetJoseki(turn, ref currentBan, depth, val, out int josekiBestVal, out kmove[] josekiMoveList, token))
                 {
