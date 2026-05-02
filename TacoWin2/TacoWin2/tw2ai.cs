@@ -33,7 +33,7 @@ namespace TacoWin2
 
         }
 
-        int tnum = 0;
+        public int tnum = 0;
 
         // --- ThreadLocalによるロックフリーのメモリプール ---
         private const int MAX_SEARCH_DEPTH = 128;
@@ -404,7 +404,7 @@ namespace TacoWin2
                 if (moveCount > 150 && depth > 5) depth = 5;
                 if (moveCount > 100 && depth > 6) depth = 6;
 
-                DebugForm.instance.addMsg($"tenum = {moveCount}/ depMax = {depth}/ workMin = {workMin}");
+                DebugForm.instance.addMsg($"tenum = {moveCount}/ depMax = {depth}/ workMin = {workMin}/depth = {depth}/deepMax = {deepMax}/deepsWidth = {deepsWidth}/mateDepth = {mateDepth}/retMax = {retMax}");
 
                 int teCnt = 0;
                 int alpha = -999999;
@@ -486,7 +486,7 @@ namespace TacoWin2
                 });
 
                 sw.Stop();
-                DebugForm.instance.addMsg($"　{sw.Elapsed} , {tnum}");
+                DebugForm.instance.addMsg($"ROOT: Time = {sw.Elapsed} , TeCount = {tnum}");
 
                 // 中断時や反復深化を行わない場合はここでリターン
                 if (token.IsCancellationRequested || deepMax < 1 || _deepWidth < 1 || deepList[0].Count <= retMax || best < -5000 || best > 5000)

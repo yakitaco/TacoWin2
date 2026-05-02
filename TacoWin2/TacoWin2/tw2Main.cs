@@ -247,6 +247,9 @@ namespace TacoWin2
 
                 aiTaskMain = Task.Run(() => ThinkTask(nokori, tesuu, searchCts.Token), searchCts.Token);
 
+                // 監視タスク稼働
+                Task.Run(() => MonitorProgress(searchCts.Token));
+
                 if (nokori > 3600000)
                 {
                     Thread.Sleep(2000 + rnds.Next(0, nokori / 2000));
@@ -267,6 +270,9 @@ namespace TacoWin2
                 {
                     // 詰みが見えてない場合のみ先読み実施 (時間は固定の60を使用)
                     aiTaskMain = Task.Run(() => ThinkPonderTask(nokori, tesuu));
+
+                    // 監視タスク稼働
+                    Task.Run(() => MonitorProgress(searchCts.Token));
                 }
 
             } else if (tokens.Length > 1 && tokens[1] == "mate")
@@ -632,6 +638,39 @@ namespace TacoWin2
             }
 
             ResetEngineState();
+        }
+
+        /// <summary>
+        /// AIの探索進捗を定期的に監視し、USIプロトコルに準拠した形式でノード数やNPSを出力するタスク。
+        /// </summary>
+        /// <param name="token">キャンセルトークン</param>
+        /// <returns></returns>
+        private static async Task MonitorProgress(CancellationToken token)
+        {
+            try
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    // 1秒(1000ミリ秒)ごとに状況を報告
+                    await Task.Delay(1000, token);
+
+                    long elapsed = sw.ElapsedMilliseconds;
+                    if (elapsed > 0)
+                    {
+                        // NPS (Nodes Per Second: 1秒あたりの探索局面数) を計算
+                        long nps = (ai.tnum * 1000L) / elapsed;
+
+                        // USIプロトコルに準拠して進捗を出力 (将棋GUIの画面に反映されます)
+                        Console.WriteLine($"info nodes {ai.tnum} nps {nps} time {elapsed}");
+
+                        // デバッグ画面にも出力 (コンソール等で直接確認用)
+                        DebugForm.instance.addMsg($"[THINKING] time: {elapsed / 1000}s, nodes: {ai.tnum}, nps: {nps}");
+                    }
+                }
+            } catch (TaskCanceledException)
+            {
+                // 探索終了や中断コマンドが来てキャンセルされた場合は静かに終了
+            }
         }
 
         private static kmove[] GenerateInfoScore(List<diagTbl> retMove, int best)
